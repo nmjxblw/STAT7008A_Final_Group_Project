@@ -11,7 +11,7 @@ class ExceptionHandler:
     def robust_request(
         self, url: str, retry_count: int = 0
     ) -> requests.Response | None:
-        """带重试机制的请求处理[11](@ref)"""
+        """带重试机制的请求处理"""
         try:
             response = requests.get(url, timeout=self.timeout)
             response.raise_for_status()

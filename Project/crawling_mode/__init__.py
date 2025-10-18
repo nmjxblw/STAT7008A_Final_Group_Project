@@ -1,7 +1,7 @@
 """爬虫模块"""
 
 from .create_tray import create_system_tray
-from .add_to_startup import *
+from .registry_api import *
 
 __all__ = [
     "create_system_tray",
