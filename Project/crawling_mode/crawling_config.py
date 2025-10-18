@@ -32,7 +32,7 @@ class CrawlingConfig:
     """文件时效性，单位为天"""
     max_workers: int = field(default=5)
     """最大并发工作线程数"""
-    request_timeout: int = field(default=30)
+    request_timeout: int = field(default=5)
     """请求超时时间，单位为秒"""
     retry_attempts: int = field(default=3)
     """请求重试次数"""

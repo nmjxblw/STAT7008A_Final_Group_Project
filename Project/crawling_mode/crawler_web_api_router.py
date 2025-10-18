@@ -4,7 +4,9 @@ import time
 from .web_crawler import WebCrawler
 
 
-class CrawlerAPI:
+class CrawlerWebAPIRouter:
+    """爬虫API路由类"""
+
     def __init__(self, crawler: WebCrawler):
         self.app: Flask = Flask(__name__)
         self.crawler: WebCrawler = crawler
@@ -15,12 +17,15 @@ class CrawlerAPI:
     def setup_routes(self):
         """设置API路由"""
         self.app.add_url_rule(
-            "/start", "start_crawling_task", self.start_crawling_task, methods=["POST"]
+            rule="/start",
+            endpoint="start_crawling_task",
+            view_func=self.start_crawling_task,
+            methods=["POST"],
         )
         self.app.add_url_rule(
-            "/status/current_web",
-            "get_current_crawling_web",
-            self.get_current_crawling_web,
+            rule="/status/current_web",
+            endpoint="get_current_crawling_web",
+            view_func=self.get_current_crawling_web,
             methods=["GET"],
         )
         self.app.add_url_rule(
@@ -60,14 +65,28 @@ class CrawlerAPI:
         """获取当前爬取的网站"""
         return jsonify(
             {
-                "current_web": getattr(self.crawler, "current_web", "暂无"),
+                "current_web": self.crawler.get_current_crawling_web(),
+                "status": self.current_status,
+            }
+        )
+
+    def get_current_crawling_article(self):
+        """获取当前爬取的文章"""
+        return jsonify(
+            {
+                "current_article": self.crawler.get_current_crawling_article(),
                 "status": self.current_status,
             }
         )
 
     def get_crawling_task_progress(self):
         """获取任务进度"""
-        return jsonify({"progress": self.progress, "status": self.current_status})
+        return jsonify(
+            {
+                "progress": self.crawler.get_crawling_task_progress(),
+                "status": self.current_status,
+            }
+        )
 
     def run_api_server(self, host="localhost", port=5000):
         """启动API服务器"""
