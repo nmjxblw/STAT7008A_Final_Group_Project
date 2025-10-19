@@ -4,7 +4,7 @@ import PyPDF2
 from openai import OpenAI
 import hashlib
 
-from Project.file_calssifier_mode.utils import get_pdf_text
+from .utils import get_pdf_text
 
 
 def pdf_analysis(unclassified_folder, save_data_folder):
