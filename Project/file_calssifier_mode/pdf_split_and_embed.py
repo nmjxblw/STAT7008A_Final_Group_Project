@@ -5,7 +5,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from langchain.embeddings.dashscope import DashScopeEmbeddings
+from langchain_community.embeddings import DashScopeEmbeddings
 import json
 import hashlib
 
@@ -16,7 +16,7 @@ def pdf_split_and_embed(analysed_data, save_embed_folder, save_data_folder):
         # 如果数据库文件已存在，加载现有数据
         db_file = save_data_folder + "\\pdf_analysis_database.json"
         if os.path.exists(db_file):
-            with open(db_file, 'r', encoding='utf-8') as f:
+            with open(db_file, "r", encoding="utf-8") as f:
                 database = json.load(f)
         else:
             database = {}
@@ -29,7 +29,7 @@ def pdf_split_and_embed(analysed_data, save_embed_folder, save_data_folder):
         }
 
         # 保存到JSON文件
-        with open(db_file, 'w', encoding='utf-8') as f:
+        with open(db_file, "w", encoding="utf-8") as f:
             json.dump(database, f, ensure_ascii=False, indent=2)
 
     """
@@ -48,18 +48,19 @@ def pdf_split_and_embed(analysed_data, save_embed_folder, save_data_folder):
     embeddings_model = DashScopeEmbeddings(
         model="text-embedding-v4",
         dashscope_api_key="sk-c750cbedece2432f823d3100c91bdd14",
-
     )
 
     # 1. 加载文档
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,  # 块大小
         chunk_overlap=200,  # 块重叠
-        separators=["\n\n", "\n", ".", "!", "?", " "]  # 分隔符
+        separators=["\n\n", "\n", ".", "!", "?", " "],  # 分隔符
     )
 
     try:
-        vector_db = FAISS.load_local(save_embed_folder, embeddings_model, allow_dangerous_deserialization=True)
+        vector_db = FAISS.load_local(
+            save_embed_folder, embeddings_model, allow_dangerous_deserialization=True
+        )
         print(f"loading current db {vector_db.index.ntotal} vectors")
     except:
         print("failed at loading odl vector DB, creating a new one...")
@@ -73,9 +74,10 @@ def pdf_split_and_embed(analysed_data, save_embed_folder, save_data_folder):
                 "file_id": file_info.get("file_id", ""),
                 "title": file_info.get("title", ""),
                 "summary": file_info.get("summary", ""),
-                "keywords": ", ".join(file_info.get("keywords", [])),  # 将关键词列表转为字符串
-
-            }
+                "keywords": ", ".join(
+                    file_info.get("keywords", [])
+                ),  # 将关键词列表转为字符串
+            },
         )
         # 2. 文本分割
         one_split = text_splitter.split_documents([doc])
@@ -128,7 +130,9 @@ def pdf_split_and_embed(analysed_data, save_embed_folder, save_data_folder):
             success_filename_list.append(filename)
         except Exception as e:
             print(f"error:{e}")
-            print(f"current file:{filename} embed failed,will not store by db(common and vector), nor move to 'Classified' folder)")
+            print(
+                f"current file:{filename} embed failed,will not store by db(common and vector), nor move to 'Classified' folder)"
+            )
     # 5. 保存到文件
     # 5.1 保存向量库
     VECTOR_DB_PATH = save_embed_folder
