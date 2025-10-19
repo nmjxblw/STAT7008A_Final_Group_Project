@@ -1,0 +1,15 @@
+{
+  "Attention Is All You Need.pdf": {
+    "file_id": "75ac7d52",
+    "file_name": "Attention Is All You Need.pdf",
+    "title": "Attention Is All You Need",
+    "summary": "This groundbreaking paper introduces the Transformer, a neural network architecture that ditches recurrence and convolution entirely in favor of multi-headed self-attention mechanisms. Like replacing a horse-drawn carriage with a teleportation device, it achieves superior performance on machine translation tasks while being dramatically more parallelizable. The model sets new state-of-the-art records on WMT 2014 English-German (28.4 BLEU) and English-French (41.8 BLEU) benchmarks, training in just 3.5 days on eight GPUs - essentially the computational equivalent of a weekend getaway compared to previous models' marathon training sessions. The architecture also generalizes impressively to English constituency parsing, proving attention isn't just a flashy trick but a fundamental building block for sequence processing.",
+    "keywords": [
+      "Transformer Architecture",
+      "Self-Attention Mechanism",
+      "Neural Machine Translation",
+      "Sequence Modeling",
+      "Parallel Computation"
+    ]
+  }
+}
