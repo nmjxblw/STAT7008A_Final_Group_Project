@@ -1,39 +1,4 @@
-
-
-def get_pdf_text(pdf_path,filename):
-    """获取文本，包括基本清理文本内容"""
-    text = extract_text_from_pdf(pdf_path)
-    if not text:
-        print(f"  {filename} 文本提取失败，跳过...")
-        return None
-    else:
-        # 清理文本
-        clean_text_content = clean_text(text)
-        return clean_text_content
-def extract_text_from_pdf(pdf_path):
-    """从PDF文件中提取文本"""
-    import PyPDF2
-    try:
-        text = ""
-        with open(pdf_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            for page in reader.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text += page_text + "\n"
-        return text.strip()
-    except Exception as e:
-        print(f"提取PDF文本时出错 {pdf_path}: {e}")
-        return None
-
-def clean_text(text):
-    """清理文本，移除特殊字符和多余空格"""
-    import re
-    text = re.sub(r'[^\x20-\x7E\u4e00-\u9fa5]+', ' ', text)
-    text = re.sub(r'\s+', ' ', text)
-    return text.strip()
-
-
+import json
 import os
 import shutil
 
@@ -69,3 +34,25 @@ def move_files(source, target, success_filename_list):
     except Exception as e:
         print(f"Error occurred: {e}")
         return False
+
+def save_to_json(file_info, save_data_folder):
+        """将结果保存到简单的文件数据库中"""
+        # 如果数据库文件已存在，加载现有数据
+        db_file = save_data_folder + "\\pdf_analysis_database.json"
+        if os.path.exists(db_file):
+            with open(db_file, 'r', encoding='utf-8') as f:
+                database = json.load(f)
+        else:
+            database = {}
+        database[file_info["file_id"]] = {
+            "file_id": file_info["file_id"],
+            "file_text": file_info["file_text"],
+            "file_name": file_info["file_name"],
+            "file_title": file_info["file_title"],
+            "file_summary": file_info["file_summary"],
+            "file_keywords": file_info["file_keywords"],
+        }
+
+        # 保存到JSON文件
+        with open(db_file, 'w', encoding='utf-8') as f:
+            json.dump(database, f, ensure_ascii=False, indent=2)

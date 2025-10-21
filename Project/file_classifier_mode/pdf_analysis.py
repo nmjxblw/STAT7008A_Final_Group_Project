@@ -1,44 +1,65 @@
-import os
 import json
-import PyPDF2
-from openai import OpenAI
-import hashlib
 
-from .utils import get_pdf_text
+from langchain_openai import OpenAI
 
 
-def pdf_analysis(unclassified_folder, save_data_folder):
-    """
-    处理文件夹中的PDF文件，提取文本并调用大模型生成摘要和关键词，返回结果
+class PDFContentAnalyser:
+    def run(self, input_queue, output_queue):
+        """ "
+        调用提取文本队列中的数据流,
+        这个接口为数据流处理预留
+        """
+        # 这里从消息队列取出之前的处理结果
+        ###
 
-    参数:
-    unclassified_folder: 包含PDF文件的文件夹路径
+        # 分析
+        # new_file_data_dict=self.start_analyze(previous_file_data_dict)
 
-    返回:
-    dict: 以文件名为主键，包含摘要和关键词的字典
-    返回字段：
-            "file_id": file_id,
-            "file_name": filename,
-            "title": ai_result["title"],
-            "summary": ai_result["summary"],
-            "text":clean_text_content,
-            "keywords": ai_result["keywords"]
+        # 投入到下一步的消息队列
+        ###
 
-    """
+    def analyze(self, previous_file_data_dict):
+        """
+        这里开始分析,现在只有文本分析,后面加OCR可以扩展
+        """
+        # 文本
+        new_file_data_dict = self.__generate_summary_and_keywords(
+            previous_file_data_dict
+        )
 
-    api_key = "sk-c750cbedece2432f823d3100c91bdd14"
-    # 初始化OpenAI客户端
-    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
-    # 创建简单数据库文件
+        # OCR
+        # new_file_data_dict=ocr_method()
 
-    def call_ai_model(text):
+        return new_file_data_dict
+
+    def __generate_summary_and_keywords(self, file_data_dict):
+        """
+        根据文本,让llm生成信息
+        """
+        file_text_content = file_data_dict["file_text"]
+        ai_result = self.__call_ai_model(file_text_content)
+        file_data_dict.update(
+            {
+                "file_title": ai_result["title"],
+                "file_summary": ai_result["summary"],
+                "file_keywords": ai_result["keywords"],
+            }
+        )
+        return file_data_dict
+
+    def __call_ai_model(self, text):
+        api_key = ""
+        # 初始化OpenAI客户端
+        client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+        # 创建简单数据库文件
+
         try:
             """调用大模型API生成摘要和关键词"""
             prompt = f"""
                 Please give me the superior main title of the text paper, generate a refined and brief summary(150-250 words) and 5 keywords, according to the content of a paper or thesis:
                 text content:
                 {text}
-
+    
                 Return with following pattern without any other redundant description:
                 {{
                     "title": "here is the title of the paper",
@@ -85,68 +106,3 @@ def pdf_analysis(unclassified_folder, save_data_folder):
         except Exception as e:
             print(f"调用AI API时出错: {e}")
             return {"summary": "failed when analyzing", "keywords": []}
-
-    # 主处理逻辑
-    results = {}
-    # 检查文件夹是否存在
-    if not os.path.exists(unclassified_folder):
-        print(f"Error: folder {unclassified_folder} doesnt exist")
-        return results
-
-    # 获取所有PDF文件
-    pdf_files = [
-        f for f in os.listdir(unclassified_folder) if f.lower().endswith(".pdf")
-    ]
-
-    if not pdf_files:
-        print("Find no files at target folder")
-        return results
-
-    print(f"find {len(pdf_files)} PDF files,start handling...")
-    db_file = save_data_folder + "\\pdf_analysis_database.json"
-    if os.path.exists(db_file):
-        with open(db_file, "r", encoding="utf-8") as f:
-            database = json.load(f)
-    else:
-        database = {}
-    for i, filename in enumerate(pdf_files, 1):
-        print(f"Handling {i}/{len(pdf_files)}: {filename}")
-
-        pdf_path = os.path.join(unclassified_folder, filename)
-
-        # 检查是否已处理过（基于文件名）
-        if filename in database:
-            print(
-                f"  {filename} had been handled, continue...no analyzing and embedding"
-            )
-
-            continue
-
-        # 获取pdf文件的文本内容
-        clean_text_content = get_pdf_text(pdf_path, filename)
-        if not clean_text_content:
-            continue
-
-        print(f"  cleaned text length: {len(clean_text_content)} chars")
-
-        # 调用AI模型
-        print("  Generating summary and keywords...")
-        ai_result = call_ai_model(clean_text_content)
-
-        # 保存到数据库
-        file_id = hashlib.md5(filename.encode()).hexdigest()[:8]
-
-        results[filename] = {
-            "file_id": file_id,
-            "file_name": filename,
-            "title": ai_result["title"],
-            "summary": ai_result["summary"],
-            "text": clean_text_content,
-            "keywords": ai_result["keywords"],
-        }
-        print(f"  {filename} finished handling")
-
-    print(f"Complete! Handled {len(results)} files")
-    print(f"return analyzed data...")
-
-    return results
