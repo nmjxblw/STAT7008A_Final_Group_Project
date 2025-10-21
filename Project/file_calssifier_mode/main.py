@@ -1,59 +1,48 @@
-import os
-
-from langchain_community.embeddings import DashScopeEmbeddings
-from langchain_openai import OpenAIEmbeddings
-
-from Project.file_calssifier_mode.pdf_analysis import pdf_analysis
-from Project.file_calssifier_mode.pdf_split_and_embed import pdf_split_and_embed
-from Project.file_calssifier_mode.utils import move_files
 
 
-def start_file_classify_task():
-    # 获取当前运行路径
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # 获取上级运行路径（项目根目录）
-    project_root = os.path.dirname(script_dir)
-
-    unclassified_folder = os.path.join(project_root, "Resource", "Unclassified")
-    classified_folder = os.path.join(project_root, "Resource", "Classified")
-    save_data_folder = os.path.join(project_root, "DB", "common")
-    save_embed_folder = os.path.join(project_root, "DB", "embedding")
-
-    # 将爬取的文件提取文本并简单分析
-    analysed_data = pdf_analysis(unclassified_folder,save_data_folder)
-    # 将提取的文本嵌入向量
-    success_filename_list=pdf_split_and_embed(analysed_data, save_embed_folder,save_data_folder)
-    # 将处理完的pdf移动到classified文件夹
-    move_files(unclassified_folder, classified_folder,success_filename_list)
-    print("finish pipeline pdf handling")
+from Project.file_calssifier_mode.pdf_analysis import PDFContentAnalyser
+from Project.file_calssifier_mode.pdf_split_and_embed import PDFRagWorker
+from Project.file_calssifier_mode.pdf_transform import PDFTransformer
+from Project.file_calssifier_mode.utils import save_to_json, move_files
 
 
+def start_file_classify_task(unclassified_path, file_name ,classified_path, json_db_path):
 
 
-if __name__ == "__main__":
-    start_file_classify_task()
+    """
+    目前数据格式如下
+        "file_id",
+        "file_text",
+        "file_name",
+        "file_title",
+        "file_summary",
+        "file_keywords",
+
+    """
+    #这里先以单文件为例顺序执行,后续可以实现根据流式处理的多线程调度
+
+    #pdf转换,目前实现转文字,且未筛选有效信息
+    #TODO:优化文字处理,优化正则匹配效果,剔除无用信息; OCR
+    transformer=PDFTransformer()
+    pdf_info_dict=transformer.transform(unclassified_path, file_name)
+
+    #pdf分析,目前使用了deepseek api
+    analyzer=PDFContentAnalyser()
+    pdf_info_dict=analyzer.analyze(pdf_info_dict)
+
+    #rag前期工作,包括embedding和BM25,目前仅有基于embedding api的模型,且数据切分很粗糙,后续需要优化
+    #TODO:embedding本地部署调用; BM25实现; Faiss的全局启动(与flask对接); 数据切分方式优化
+    ragWorker=PDFRagWorker()
+    ragWorker.set_retrival_knowledge(pdf_info_dict)
+
+    #数据入库(键值库,现在先保存到json)
+    #TODO:完成数据库的部署和连接
+    #save_data()
+    save_to_json(pdf_info_dict,json_db_path)
+    move_files(unclassified_path,classified_path, [file_name])
 
 
-    # 下面为调试流程，测试向量库可否正确检索，完成pdf的分析和切分直接调上面的函数
-    # 重新从磁盘加载向量库
-    from langchain_community.vectorstores import FAISS
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir)
-    save_embed_folder = os.path.join(project_root, "DB", "embedding")
-    embeddings_model = DashScopeEmbeddings(
-        model="text-embedding-v4",
-        dashscope_api_key="sk-c750cbedece2432f823d3100c91bdd14",
 
-    )
-    loaded_vector_db = FAISS.load_local(save_embed_folder, embeddings_model, allow_dangerous_deserialization=True)
 
-    # 进行相似性搜索测试
-    query="what is attention?"
-    docs = loaded_vector_db.similarity_search(query, k=2)
-    print("start test")
-    print("query={query}")
-    for i in range(len(docs)):
 
-        print(f"found no.{i+1} related content(in vector view):", docs[i].page_content)
-        print("relevant metadata:", docs[i].metadata)  # 这里将显示您保存的元数据
