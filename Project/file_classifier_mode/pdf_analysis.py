@@ -4,39 +4,40 @@ from langchain_openai import OpenAI
 
 
 class PDFContentAnalyser:
-    def run(self,input_queue, output_queue):
-        """"
+    def run(self, input_queue, output_queue):
+        """ "
         调用提取文本队列中的数据流,
         这个接口为数据流处理预留
         """
-        #这里从消息队列取出之前的处理结果
+        # 这里从消息队列取出之前的处理结果
         ###
 
-        #分析
-        #new_file_data_dict=self.start_analyze(previous_file_data_dict)
+        # 分析
+        # new_file_data_dict=self.start_analyze(previous_file_data_dict)
 
-        #投入到下一步的消息队列
+        # 投入到下一步的消息队列
         ###
 
-
-
-    def analyze(self,previous_file_data_dict):
+    def analyze(self, previous_file_data_dict):
         """
         这里开始分析,现在只有文本分析,后面加OCR可以扩展
         """
-        #文本
-        new_file_data_dict=self.__generate_summary_and_keywords(previous_file_data_dict)
+        # 文本
+        new_file_data_dict = self.__generate_summary_and_keywords(
+            previous_file_data_dict
+        )
 
-        #OCR
+        # OCR
         # new_file_data_dict=ocr_method()
 
         return new_file_data_dict
+
     def __generate_summary_and_keywords(self, file_data_dict):
         """
         根据文本,让llm生成信息
         """
-        file_text_content=file_data_dict["file_text"]
-        ai_result=self.__call_ai_model(file_text_content)
+        file_text_content = file_data_dict["file_text"]
+        ai_result = self.__call_ai_model(file_text_content)
         file_data_dict.update(
             {
                 "file_title": ai_result["title"],
@@ -46,8 +47,7 @@ class PDFContentAnalyser:
         )
         return file_data_dict
 
-
-    def __call_ai_model(self,text):
+    def __call_ai_model(self, text):
         api_key = ""
         # 初始化OpenAI客户端
         client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
@@ -71,23 +71,28 @@ class PDFContentAnalyser:
             response = client.chat.completions.create(
                 model="deepseek-chat",  # 可根据需要更改模型
                 messages=[
-                    {"role": "system", "content": "You are an expert in this field of study,"
-                                                  " with deep insights into computers and artificial intelligence. "
-                                                  "Your way of explaining is humorous, witty, and easy to understand, "
-                                                  "yet remains professional."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert in this field of study,"
+                        " with deep insights into computers and artificial intelligence. "
+                        "Your way of explaining is humorous, witty, and easy to understand, "
+                        "yet remains professional.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 max_tokens=800,
-                temperature=0.3
+                temperature=0.3,
             )
-
+            if response.choices[0].message.content is None:
+                raise ValueError("Empty response from AI model")
             result_text = response.choices[0].message.content.strip()
 
             # 尝试解析JSON响应
             try:
                 # 提取JSON部分（避免模型返回额外文本）
                 import re
-                json_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+
+                json_match = re.search(r"\{.*\}", result_text, re.DOTALL)
                 if json_match:
                     result = json.loads(json_match.group())
                 else:
@@ -101,4 +106,3 @@ class PDFContentAnalyser:
         except Exception as e:
             print(f"调用AI API时出错: {e}")
             return {"summary": "failed when analyzing", "keywords": []}
-
