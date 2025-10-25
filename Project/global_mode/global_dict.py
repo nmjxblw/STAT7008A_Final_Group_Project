@@ -1,6 +1,6 @@
 import threading
 from typing import Any, Optional
-from utility_mode.singleton_meta import SingletonMeta
+from utility_mode import SingletonMeta
 import threading
 from collections import UserDict
 
