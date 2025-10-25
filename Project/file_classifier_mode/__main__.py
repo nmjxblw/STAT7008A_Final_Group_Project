@@ -1,7 +1,7 @@
-from Project.file_calssifier_mode.pdf_analysis import PDFContentAnalyser
-from Project.file_calssifier_mode.pdf_split_and_embed import PDFRagWorker
-from Project.file_calssifier_mode.pdf_transform import PDFTransformer
-from Project.file_calssifier_mode.utils import save_to_json, move_files
+from Project.file_classifier_mode.pdf_analysis import PDFContentAnalyser
+from Project.file_classifier_mode.pdf_split_and_embed import PDFRagWorker
+from Project.file_classifier_mode.pdf_transform import PDFTransformer
+from Project.file_classifier_mode.utils import save_to_json, move_files
 
 
 def start_file_classify_task(
@@ -30,7 +30,7 @@ def start_file_classify_task(
 
     # rag前期工作,包括embedding和BM25,目前仅有基于embedding api的模型,且数据切分很粗糙,后续需要优化
     # TODO:embedding本地部署调用; BM25实现; Faiss的全局启动(与flask对接); 数据切分方式优化
-    ragWorker = PDFRagWorker()
+    ragWorker = PDFRagWorker(use_local_embedding=True)  # 明确指定
     ragWorker.set_retrival_knowledge(pdf_info_dict)
 
     # 数据入库(键值库,现在先保存到json)
