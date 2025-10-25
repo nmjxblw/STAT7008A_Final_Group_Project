@@ -38,19 +38,21 @@ def move_files(source, target, success_filename_list):
 def save_to_json(file_info, save_data_folder):
         """将结果保存到简单的文件数据库中"""
         # 如果数据库文件已存在，加载现有数据
-        db_file = save_data_folder + "\\pdf_analysis_database.json"
+        db_file = os.path.join(save_data_folder, "pdf_analysis_database.json")
         if os.path.exists(db_file):
             with open(db_file, 'r', encoding='utf-8') as f:
                 database = json.load(f)
         else:
             database = {}
-        database[file_info["file_id"]] = {
-            "file_id": file_info["file_id"],
-            "file_text": file_info["file_text"],
+        # 使用文件名作为键，保存完整元数据和文本
+        database[file_info["file_name"]] = {
+            "file_id": file_info["file_id"][:8],  # 只保存前8位
             "file_name": file_info["file_name"],
-            "file_title": file_info["file_title"],
-            "file_summary": file_info["file_summary"],
-            "file_keywords": file_info["file_keywords"],
+            "title": file_info["file_title"],  # 键名改为title
+            "summary": file_info["file_summary"],
+            "keywords": file_info["file_keywords"],
+            "full_text": file_info["file_text"],  # 保存完整文本
+            "text_length": len(file_info["file_text"]),  # 文本长度统计
         }
 
         # 保存到JSON文件
