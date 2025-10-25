@@ -50,7 +50,7 @@ class PDFContentAnalyser:
         return file_data_dict
 
     def __call_ai_model(self, text):
-        api_key = "sk-2696d151d5a746aca92217ef7fbb513c"
+        api_key = ""
         
         # 如果没有API key，返回默认值
         if not api_key:
