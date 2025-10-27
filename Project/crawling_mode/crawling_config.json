@@ -9,5 +9,6 @@
   "timeliness": 365,
   "max_workers": 5,
   "request_timeout": 30,
-  "retry_attempts": 3
+  "retry_attempts": 3,
+  "save_directory": "Resource/Unclassified"
 }
