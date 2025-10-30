@@ -8,7 +8,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from .crawling_config import CrawlingConfig
+from crawling_config import CrawlingConfig
 
 
 class WebCrawler:

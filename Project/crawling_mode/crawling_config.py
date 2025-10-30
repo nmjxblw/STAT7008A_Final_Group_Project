@@ -126,6 +126,6 @@ class CrawlingConfig:
 
 
 # 导入模块时自动加载配置
-crawling_config = CrawlingConfig.from_json_file("./crawling_config.json")
+crawling_config = CrawlingConfig.from_json_file(r"Project/app_settings.json")
 if __name__ == "__main__":
     print(crawling_config)
