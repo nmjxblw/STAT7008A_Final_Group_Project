@@ -149,7 +149,9 @@ class WebCrawler:
         """从页面提取链接"""
         links = []
         for link in soup.find_all("a", href=True):
-            href = link["href"]
+            href = str(link["href"])
+            if href is None or href == "":
+                continue
             full_url = urljoin(base_url, href)
 
             # 只爬取同域名下的链接
@@ -163,7 +165,9 @@ class WebCrawler:
         all_links = soup.find_all("a", href=True)
 
         for link in all_links:
-            href = link.get("href", "")
+            href = str(link.get("href", ""))
+            if href is None or href == "":
+                continue
             full_url = urljoin(page_url, href)
 
             # 检查文件类型
