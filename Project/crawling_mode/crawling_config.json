@@ -1,0 +1,14 @@
+{
+  "trigger_time": "8:00AM,UTC+08:00",
+  "crawling_source_list": [
+    "https://arxiv.org/catchup/cs.CV/2025-09-30?abs=True"
+  ],
+  "blocked_sites": ["config from json"],
+  "crawling_keywords": ["[Pp]aper", "[Ee]ssay"],
+  "file_type": [".pdf"],
+  "timeliness": 365,
+  "max_workers": 5,
+  "request_timeout": 30,
+  "retry_attempts": 3,
+  "save_directory": "Resource/Unclassified"
+}
