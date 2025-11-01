@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 import pathlib
+from crawling_mode import crawling_config as cc
 import flask
 import threading
 import json
@@ -21,7 +22,7 @@ def main():
         globals["app_config"] = json.load(
             open(app_settings_file_name, "r", encoding="utf-8")
         )
-        print(f"应用设置加载成功: {globals['app_config']['crawling_mode_config']}")
+        # print(f"应用设置加载成功: {globals['app_config']['crawling_mode_config']}")
     except Exception as e:
         print(f"加载应用设置时发生错误: {e}")
     # launcher_app.run(debug=True)
