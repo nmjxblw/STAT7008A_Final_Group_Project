@@ -2,7 +2,6 @@
 
 # 延迟导入可选模块,避免缺少依赖时导入失败
 __all__ = [
-    "CrawlingConfig",
     "WebCrawler",
     "CrawlerWebAPIRouter",
     "TaskScheduler",
@@ -11,7 +10,6 @@ __all__ = [
 
 # 导出核心类
 import os
-from .crawling_config import CrawlingConfig
 from .web_crawler import WebCrawler
 from .crawler_web_api_router import CrawlerWebAPIRouter
 from .scheduler import TaskScheduler

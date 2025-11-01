@@ -8,12 +8,13 @@ from datetime import datetime
 import sys
 import os
 from pathlib import Path
+from .global_mode import ProjectName, ProjectDescription, ProjectAuthor
 
 # 应用信息
-APP_NAME = "Paper AI Agent"
+APP_NAME = ProjectName
 APP_VERSION = f"{datetime.now().strftime('%Y.%m.%d.%H%M')}"
-APP_DESCRIPTION = "PDF文档分析与知识检索系统"
-APP_AUTHOR = "STAT7008A Group 19"
+APP_DESCRIPTION = ProjectDescription
+APP_AUTHOR = ProjectAuthor
 
 # 主程序入口
 MAIN_SCRIPT = "__main__.py"
