@@ -210,3 +210,9 @@ __marimo__/
 # API keys and secrets
 *.apikey
 [Aa]pi[key]
+
+# Executables
+*.exe
+
+# Windows dynamic-link libraries
+# *.dll
