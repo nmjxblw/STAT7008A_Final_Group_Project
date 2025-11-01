@@ -2,18 +2,17 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import re
 from .web_crawler import *
-from .crawling_config import CrawlingConfig
+from global_mode import crawler_config
 
 
 class TaskScheduler:
-    def __init__(self, crawling_config: CrawlingConfig):
-        self.config = crawling_config
+    def __init__(self):
         self.scheduler = BackgroundScheduler()
-        self.crawler = WebCrawler(crawling_config)
+        self.crawler = WebCrawler()
 
     def parse_trigger_time(self):
         """解析触发时间配置"""
-        time_str = self.config.trigger_time
+        time_str = crawler_config.trigger_time
         match = re.match(r"(\d{1,2}):(\d{2})(AM|PM),UTC([+-])(\d{2}):(\d{2})", time_str)
 
         if match:

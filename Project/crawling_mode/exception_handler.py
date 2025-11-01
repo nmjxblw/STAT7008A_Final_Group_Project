@@ -8,8 +8,10 @@ import traceback
 from functools import wraps
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 import requests
-from .crawling_config import CrawlingConfig
+from global_mode import crawler_config
+from log_mode import logger
 
 
 class CrawlerException(Exception):
@@ -39,10 +41,10 @@ class FileException(CrawlerException):
 class ExceptionHandler:
     """异常处理器"""
 
-    def __init__(self, config: CrawlingConfig = None, log_dir: str = None):
+    def __init__(self, log_dir: Optional[str | Path] = None):
         """初始化异常处理器"""
-        self.max_retries: int = config.retry_attempts if config else 3
-        self.timeout: int = config.request_timeout if config else 30
+        self.max_retries: int = crawler_config.retry_attempts
+        self.timeout: int = crawler_config.request_timeout
 
         if log_dir is None:
             project_root = Path(__file__).parent.parent.parent

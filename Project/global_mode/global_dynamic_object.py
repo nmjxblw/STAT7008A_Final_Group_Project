@@ -170,7 +170,7 @@ class GlobalDynamicObject(metaclass=SingletonMeta):
                 int | str | bytes | PathLike[str] | PathLike[bytes]
             ] = None
             self._initialized = True
-            print("全局变量初始化成功。")
+            print(f"全局变量{self.__class__.__name__}实例化完成。")
         if data is not None:
             self.load_from_data(data)
 

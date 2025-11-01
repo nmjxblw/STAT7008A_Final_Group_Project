@@ -2,4 +2,9 @@
 
 from .singleton_meta import *
 
-__all__ = ["SingletonMeta"]
+# from .exception_logger import *
+
+__all__ = [
+    "SingletonMeta",
+    # "ExceptionLogger"
+]
