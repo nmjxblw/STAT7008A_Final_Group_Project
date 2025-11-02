@@ -10,7 +10,7 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from answer_generator import DeepSeekAPI
+from .deepseek_api import DeepSeekAPI
 
 
 def print_separator(char: str = "=", length: int = 60):

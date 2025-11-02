@@ -8,7 +8,7 @@ from datetime import datetime
 import sys
 import os
 from pathlib import Path
-from .global_mode import ProjectName, ProjectDescription, ProjectAuthor
+from paper_ai_agent.global_module import ProjectName, ProjectDescription, ProjectAuthor
 
 # 应用信息
 APP_NAME = ProjectName

@@ -1,5 +1,7 @@
 {
   "system_config": {
+    "project_name": "论文检索智能体",
+    "project_description": "PDF文档分析与知识检索系统",
     "database_path": "DB/app_database.db",
     "ip_address": {
       "host": ["127.0.0.1", "localhost"],
@@ -78,7 +80,7 @@
     "crawling_source_list": [
       "https://arxiv.org/catchup/cs.CV/2025-09-30?abs=True"
     ],
-    "blocked_sites": ["config from json"],
+    "blocked_sites": ["www.blocked_sites.com", "www.another-blocked.com"],
     "crawling_keywords": ["[Pp]aper", "[Ee]ssay"],
     "file_type": [".pdf"],
     "timeliness": 365,
@@ -86,19 +88,6 @@
     "request_timeout": 30,
     "retry_attempts": 3,
     "save_directory": "Resource/Unclassified"
-  },
-  "logging_config": {
-    "filename": "logs/{date.now()}.log",
-    "filemode": "a",
-    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    "datefmt": "%Y-%m-%d %H:%M:%S",
-    "style": "",
-    "level": "INFO",
-    "stream": "ext://sys.stdout",
-    "handlers": ["console", "file"],
-    "force": false,
-    "encoding": "utf-8",
-    "errors": "strict"
   },
   "answer_generator_config": {
     "apikey_file_name": "api_key.txt",

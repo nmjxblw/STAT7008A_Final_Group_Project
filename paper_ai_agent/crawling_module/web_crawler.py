@@ -1,4 +1,8 @@
 import asyncio
+from concurrent.futures import thread
+from signal import raise_signal
+import threading
+from log_module import logger
 import requests
 from bs4 import BeautifulSoup
 import urllib.robotparser
@@ -8,10 +12,12 @@ import os
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from global_mode.global_dynamic_object import crawler_config
+from global_module import crawler_config
+from sympy import Basic
+from utility_mode import SingletonMeta
 
 
-class WebCrawler:
+class WebCrawler(metaclass=SingletonMeta):
     """网页爬虫类"""
 
     def __init__(self):
@@ -28,6 +34,7 @@ class WebCrawler:
         self.project_root = Path(__file__).parent.parent.parent
         self.resource_path = self.project_root / "Project" / "Resource" / "Unclassified"
         self.log_path = self.project_root / "Crawling Log"
+        logger.debug(f"网页爬虫类实例化完成")
 
     def setup_session(self):
         """设置请求会话参数"""
@@ -267,3 +274,9 @@ class WebCrawler:
             )
             * 100,
         )
+
+    def get_block_list(self) -> list[str]:
+        """获取当前的黑名单列表"""
+        if isinstance(crawler_config.blocked_sites.to_list(), list):
+            return crawler_config.blocked_sites.to_list()
+        return []
