@@ -1,4 +1,5 @@
 from utility_mode import SingletonMeta
+from log_module import logger
 
 
 class DBHandler(metaclass=SingletonMeta):
@@ -6,6 +7,7 @@ class DBHandler(metaclass=SingletonMeta):
 
     def __init__(self):
         self.connection = None
+        logger.debug("数据库处理类实例化完成")
 
     def connect(self, connection_string):
         """连接到数据库"""

@@ -154,11 +154,18 @@ class GlobalDynamicObject(metaclass=SingletonMeta):
             """将节点及其子节点递归转换为原始数据结构（dict/list/标量）。"""
             with self._lock:
                 if self._items is not None:
-                    return [self._unwrap(v) for v in self._items]
+                    return self.to_list()
                 result: Dict[str, Any] = {}
                 for k, v in self._data.items():
                     result[k] = self._unwrap(v)
                 return result
+
+        def to_list(self) -> Any:
+            """将节点及其子节点递归转换为列表（仅当节点为列表时）。"""
+            with self._lock:
+                if self._items is None:
+                    raise TypeError("此节点不是列表，无法转换为列表")
+                return [self._unwrap(v) for v in self._items]
 
     # ============= 顶层单例对象 =============
     def __init__(self, data: Any = None):
@@ -170,7 +177,6 @@ class GlobalDynamicObject(metaclass=SingletonMeta):
                 int | str | bytes | PathLike[str] | PathLike[bytes]
             ] = None
             self._initialized = True
-            print(f"全局变量{self.__class__.__name__}实例化完成。")
         if data is not None:
             self.load_from_data(data)
 
@@ -180,10 +186,17 @@ class GlobalDynamicObject(metaclass=SingletonMeta):
     ) -> None:
         """从 JSON 文件加载为动态对象（覆盖当前内容）。"""
         with self._lock:
-            with open(file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            self._root = GlobalDynamicObject._Node(data, self._lock)
-            self._file_path = file_path
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                self._root = GlobalDynamicObject._Node(data, self._lock)
+                self._file_path = file_path
+                print(f"✓ 全局动态对象已从文件加载: {file_path}")
+            except Exception as e:
+                print(f"✗ 从文件加载全局动态对象失败: {e}")
+                import os
+
+                os._exit(1)
 
     def load_from_data(self, data: Any) -> None:
         """从已有数据构建（覆盖当前内容）。"""
@@ -273,12 +286,12 @@ class GlobalDynamicObject(metaclass=SingletonMeta):
 
 globals: GlobalDynamicObject = GlobalDynamicObject()
 """全局变量实例（单例）"""
+_path = None
 try:
-    globals.load(Path.joinpath(Path.cwd(), "app_settings.json"))
+    _path = Path.joinpath(Path.cwd(), "app_settings.json")
+    globals.load(_path)
 except Exception:
-    raise RuntimeError(
-        "初始化全局变量时发生错误，请检查 app_settings.json 文件格式是否正确。"
-    )
+    raise RuntimeError(f"初始化全局变量时发生错误，请检查 {_path} 文件格式是否正确。")
 
 
 def _load_config_or_raise_error(
@@ -295,17 +308,13 @@ def _load_config_or_raise_error(
 
 
 system_config: GlobalDynamicObject._Node = _load_config_or_raise_error(
-    "system_config", "系统模式配置未找到或未正确加载。"
+    "system_config", "系统配置未找到或未正确加载。"
 )
-"""全局系统模式配置对象"""
+"""全局系统配置对象"""
 crawler_config: GlobalDynamicObject._Node = _load_config_or_raise_error(
     "crawler_config", "爬虫配置未找到或未正确加载。"
 )
 """全局爬虫配置对象"""
-logging_config: GlobalDynamicObject._Node = _load_config_or_raise_error(
-    "logging_config", "日志配置未找到或未正确加载。"
-)
-"""全局日志配置对象"""
 answer_generator_config: GlobalDynamicObject._Node = _load_config_or_raise_error(
     "answer_generator_config", "回答生成器配置未找到或未正确加载。"
 )

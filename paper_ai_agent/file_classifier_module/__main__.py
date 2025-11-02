@@ -1,7 +1,7 @@
-from Project.file_classifier_mode.pdf_analysis import PDFContentAnalyser
-from Project.file_classifier_mode.pdf_split_and_embed import PDFRagWorker
-from Project.file_classifier_mode.pdf_transform import PDFTransformer
-from Project.file_classifier_mode.utils import save_to_json, move_files
+from .pdf_analysis import PDFContentAnalyzer
+from .pdf_split_and_embed import PDFRagWorker
+from .pdf_transform import PDFTransformer
+from .utils import save_to_json, move_files
 
 
 def start_file_classify_task(
@@ -25,7 +25,7 @@ def start_file_classify_task(
     pdf_info_dict = transformer.transform(unclassified_path, file_name)
 
     # pdf分析,目前使用了deepseek api
-    analyzer = PDFContentAnalyser()
+    analyzer = PDFContentAnalyzer()
     pdf_info_dict = analyzer.analyze(pdf_info_dict)
 
     # rag前期工作,包括embedding和BM25,目前仅有基于embedding api的模型,且数据切分很粗糙,后续需要优化

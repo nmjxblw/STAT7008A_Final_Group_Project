@@ -1,8 +1,8 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import re
-from .web_crawler import *
-from global_mode import crawler_config
+from crawling_module.web_crawler import *
+from global_module import crawler_config
 
 
 class TaskScheduler:
