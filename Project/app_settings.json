@@ -1,5 +1,79 @@
 {
-  "crawling_mode_config": {
+  "system_config": {
+    "database_path": "DB/app_database.db",
+    "ip_address": {
+      "host": ["127.0.0.1", "localhost"],
+      "port": [8080]
+    }
+  },
+  "webapi_config": [
+    {
+      "url": "crawler/start_crawling_task",
+      "function_name": "start_crawling_task",
+      "method": "POST"
+    },
+    {
+      "url": "crawler/stop_crawling_task",
+      "function_name": "stop_crawling_task",
+      "method": "POST"
+    },
+    {
+      "url": "crawler/current_crawling_web",
+      "function_name": "current_crawling_web",
+      "method": "GET"
+    },
+    {
+      "url": "crawler/current_crawling_progress",
+      "function_name": "current_crawling_progress",
+      "method": "GET"
+    },
+    {
+      "url": "classifier/start_classify_task",
+      "function_name": "start_classify_task",
+      "method": "POST"
+    },
+    {
+      "url": "classifier/stop_classify_task",
+      "function_name": "stop_classify_task",
+      "method": "POST"
+    },
+    {
+      "url": "classifier/get_classify_progress",
+      "function_name": "get_classify_progress",
+      "method": "GET"
+    },
+    {
+      "url": "classifier/export_analysis_to_excel",
+      "function_name": "export_analysis_to_excel",
+      "method": "POST"
+    },
+    {
+      "url": "generator/set_demand",
+      "function_name": "set_demand",
+      "method": "POST"
+    },
+    {
+      "url": "generator/get_query_files",
+      "function_name": "get_query_files",
+      "method": "GET"
+    },
+    {
+      "url": "generator/get_qualified_files_info/<int:top_n>",
+      "function_name": "get_qualified_files_info",
+      "method": "GET"
+    },
+    {
+      "url": "generator/get_query_task_result",
+      "function_name": "get_query_task_result",
+      "method": "GET"
+    },
+    {
+      "url": "generator/get_LLM_reply",
+      "function_name": "get_LLM_reply",
+      "method": "GET"
+    }
+  ],
+  "crawler_config": {
     "trigger_time": "8:00AM,UTC+08:00",
     "crawling_source_list": [
       "https://arxiv.org/catchup/cs.CV/2025-09-30?abs=True"
@@ -12,5 +86,34 @@
     "request_timeout": 30,
     "retry_attempts": 3,
     "save_directory": "Resource/Unclassified"
+  },
+  "logging_config": {
+    "filename": "logs/{date.now()}.log",
+    "filemode": "a",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "datefmt": "%Y-%m-%d %H:%M:%S",
+    "style": "",
+    "level": "INFO",
+    "stream": "ext://sys.stdout",
+    "handlers": ["console", "file"],
+    "force": false,
+    "encoding": "utf-8",
+    "errors": "strict"
+  },
+  "answer_generator_config": {
+    "apikey_file_name": "api_key.txt",
+    "base_url": "https://api.deepseek.com/v1",
+    "model": "deepseek-chat",
+    "temperature": 1.0,
+    "max_tokens": null,
+    "system_prompt": "你是一个有帮助的AI助手。请用中文回答问题，保持友好和专业。",
+    "save_responses": true,
+    "response_save_dir": "DeepSeek_Responses"
+  },
+  "file_classifier_config": {
+    "model": "file-classifier",
+    "api_key": "YOUR_FILE_CLASSIFIER_API_KEY_HERE",
+    "base_url": "https://api.fileclassifier.com/v1",
+    "timeout": 30
   }
 }

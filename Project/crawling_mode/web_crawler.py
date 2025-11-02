@@ -8,14 +8,13 @@ import os
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from .crawling_config import CrawlingConfig
+from global_mode.global_dynamic_object import crawler_config
 
 
 class WebCrawler:
     """网页爬虫类"""
 
-    def __init__(self, crawling_config: CrawlingConfig):
-        self.crawling_config: CrawlingConfig = crawling_config
+    def __init__(self):
         self.session: requests.Session = requests.Session()
         self.setup_session()
         self.visited_urls: set[str] = set()
@@ -29,10 +28,6 @@ class WebCrawler:
         self.project_root = Path(__file__).parent.parent.parent
         self.resource_path = self.project_root / "Project" / "Resource" / "Unclassified"
         self.log_path = self.project_root / "Crawling Log"
-
-    def update_config(self, new_config: CrawlingConfig):
-        """更新爬虫配置"""
-        self.crawling_config = new_config
 
     def setup_session(self):
         """设置请求会话参数"""
@@ -99,7 +94,7 @@ class WebCrawler:
             timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
             log_file = self.log_path / f"{timestamp}.log"
 
-            for website in self.crawling_config.crawling_source_list:
+            for website in crawler_config.crawling_source_list:
                 self.current_crawling_web = website
                 self.crawl_website(website)
 
@@ -124,9 +119,7 @@ class WebCrawler:
 
             self.visited_urls.add(url)
             try:
-                response = self.session.get(
-                    url, timeout=self.crawling_config.request_timeout
-                )
+                response = self.session.get(url, timeout=crawler_config.request_timeout)
                 if response.status_code == 200:
                     soup = BeautifulSoup(response.text, "html.parser")
                     self.extract_and_save_files(soup, url)
@@ -140,7 +133,7 @@ class WebCrawler:
         """检查URL是否在黑名单中"""
         parsed_url = urlparse(url)
         domain = parsed_url.netloc
-        for blocked in self.crawling_config.blocked_sites:
+        for blocked in crawler_config.blocked_sites:
             if blocked in domain or blocked in url:
                 return True
         return False
@@ -149,7 +142,9 @@ class WebCrawler:
         """从页面提取链接"""
         links = []
         for link in soup.find_all("a", href=True):
-            href = link["href"]
+            href = str(link["href"])
+            if href is None or href == "":
+                continue
             full_url = urljoin(base_url, href)
 
             # 只爬取同域名下的链接
@@ -163,11 +158,13 @@ class WebCrawler:
         all_links = soup.find_all("a", href=True)
 
         for link in all_links:
-            href = link.get("href", "")
+            href = str(link.get("href", ""))
+            if href is None or href == "":
+                continue
             full_url = urljoin(page_url, href)
 
             # 检查文件类型
-            for file_type in self.crawling_config.file_type:
+            for file_type in crawler_config.file_type:
                 if full_url.lower().endswith(file_type):
                     # 检查关键词
                     if self.match_keywords(link.text, soup):
@@ -178,13 +175,13 @@ class WebCrawler:
 
     def match_keywords(self, text: str, soup: BeautifulSoup) -> bool:
         """匹配关键词"""
-        if not self.crawling_config.crawling_keywords:
+        if not crawler_config.crawling_keywords:
             return True  # 如果没有设置关键词,则匹配所有
 
         # 获取链接文本和周围文本
         search_text = text + " " + soup.get_text()
 
-        for keyword in self.crawling_config.crawling_keywords:
+        for keyword in crawler_config.crawling_keywords:
             if re.search(keyword, search_text, re.IGNORECASE):
                 return True
         return False
@@ -258,7 +255,7 @@ class WebCrawler:
 
     def get_crawling_task_progress(self) -> float:
         """获取爬取工作进度"""
-        if not self.crawling_config.crawling_source_list:
+        if not crawler_config.crawling_source_list:
             return 0.0
         # 简单的进度计算: 已访问URL数 / 预估总URL数
         # 这是一个简化的实现
@@ -266,7 +263,7 @@ class WebCrawler:
             100.0,
             (
                 len(self.visited_urls)
-                / max(1, len(self.crawling_config.crawling_source_list) * 10)
+                / max(1, len(crawler_config.crawling_source_list) * 10)
             )
             * 100,
         )

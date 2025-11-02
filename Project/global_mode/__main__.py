@@ -1,4 +1,4 @@
-from .global_dict import globals
+from .global_dynamic_object import globals
 
 if __name__ == "__main__":
     globals["example_key"] = "example_value"
