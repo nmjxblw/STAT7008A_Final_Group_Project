@@ -4,7 +4,6 @@ from signal import raise_signal
 import threading
 
 from requests import Response
-from log_module import logger
 import requests
 from bs4 import BeautifulSoup
 import urllib.robotparser
@@ -17,6 +16,10 @@ from pathlib import Path
 from global_module import crawler_config
 from sympy import Basic
 from utility_mode import SingletonMeta
+import log_module
+
+logger = log_module.get_default_logger()
+""" 全局日志记录器对象 """
 
 
 class WebCrawler(metaclass=SingletonMeta):
@@ -200,7 +203,7 @@ class WebCrawler(metaclass=SingletonMeta):
         # 获取链接文本和周围文本
         search_text = text + " " + soup.get_text()
 
-        for keyword in crawler_config.crawling_keywords:
+        for keyword in crawler_config.crawling_keywords.to_list():
             if re.search(keyword, search_text, re.IGNORECASE):
                 return True
         return False

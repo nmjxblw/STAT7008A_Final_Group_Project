@@ -72,7 +72,7 @@ class TimedDirectoryFileHandler(logging.Handler):
         self.stream: Optional[TextIOWrapper] = open(
             self.log_file_path, "a", encoding=self.encoding
         )
-
+        # os.system("cls" if os.name == "nt" else "clear")
         print(f"✓ 日志文件已创建: {self.log_file_path}")
 
     def emit(self, record):

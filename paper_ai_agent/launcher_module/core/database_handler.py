@@ -1,5 +1,9 @@
+from lark import logger
 from utility_mode import SingletonMeta
-from log_module import logger
+import log_module
+
+logger = log_module.get_default_logger()
+""" 全局日志记录器对象 """
 
 
 class DBHandler(metaclass=SingletonMeta):

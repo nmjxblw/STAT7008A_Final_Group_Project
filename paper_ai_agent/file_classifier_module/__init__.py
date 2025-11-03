@@ -1,3 +1,5 @@
 """文档归档智能体模块"""
 
-__all__ = []
+from .__main__ import *
+
+__all__ = ["start_file_classify_task"]
