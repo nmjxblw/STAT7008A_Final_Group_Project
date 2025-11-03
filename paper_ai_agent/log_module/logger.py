@@ -12,7 +12,7 @@ from pathlib import Path
 from datetime import datetime
 from types import FrameType, TracebackType
 from typing import Optional, Tuple, Type
-from global_module import ProjectName
+from global_module import PROJECT_NAME
 
 
 class TimedDirectoryFileHandler(logging.Handler):
@@ -73,7 +73,7 @@ class TimedDirectoryFileHandler(logging.Handler):
             self.log_file_path, "a", encoding=self.encoding
         )
 
-        print(f"📝 日志文件已创建: {self.log_file_path}")
+        print(f"✓ 日志文件已创建: {self.log_file_path}")
 
     def emit(self, record):
         """
@@ -152,7 +152,7 @@ class LoggerConfig:
         # 确保日志根目录存在
         Path(base_dir).mkdir(parents=True, exist_ok=True)
 
-    def get_logger(self, name: str = ProjectName) -> logging.Logger:
+    def get_logger(self, name: str = PROJECT_NAME) -> logging.Logger:
         """
         获取配置好的日志记录器
 
@@ -219,11 +219,11 @@ def setup_logger(
 
 
 # 全局默认日志记录器
-logger: logging.Logger = setup_logger(ProjectName)
+logger: logging.Logger = setup_logger(name=PROJECT_NAME, level=logging.DEBUG)
 """全局默认日志记录器对象"""
 
 
-def get_default_logger(default_name: str = ProjectName) -> logging.Logger:
+def get_default_logger(default_name: str = PROJECT_NAME) -> logging.Logger:
     """
     获取全局默认日志记录器（单例模式）
 
@@ -232,7 +232,7 @@ def get_default_logger(default_name: str = ProjectName) -> logging.Logger:
     """
     global logger
     if logger is None:
-        logger = setup_logger(default_name)
+        logger = setup_logger(name=default_name, level=logging.DEBUG)
     return logger
 
 

@@ -1,21 +1,22 @@
 """启动模块"""
 
 import os
+import sys
 from pathlib import Path
 import flask
 import threading
 from global_module import (
-    system_config,
     crawler_config,
     answer_generator_config,
     file_classifier_config,
-    ProjectName,
+    PROJECT_NAME,
+    API_KEY,
 )  # 导入全局变量模块
 from crawling_module import *
 from launcher_module.core import *
 from log_module import logger
 
-_launcher_app: flask.Flask = flask.Flask(f"{ProjectName}")
+_launcher_app: flask.Flask = flask.Flask(f"{PROJECT_NAME}")
 """flask应用实例"""
 
 _crawler_instance: WebCrawler = WebCrawler()

@@ -8,13 +8,16 @@ from datetime import datetime
 import sys
 import os
 from pathlib import Path
-from paper_ai_agent.global_module import ProjectName, ProjectDescription, ProjectAuthor
+from dotenv import load_dotenv
+
+load_dotenv(encoding="utf-8")
 
 # 应用信息
-APP_NAME = ProjectName
+
+APP_NAME = os.getenv("PROJECT_NAME", "")
 APP_VERSION = f"{datetime.now().strftime('%Y.%m.%d.%H%M')}"
-APP_DESCRIPTION = ProjectDescription
-APP_AUTHOR = ProjectAuthor
+APP_DESCRIPTION = os.getenv("PROJECT_DESCRIPTION", "")
+APP_AUTHOR = os.getenv("PROJECT_AUTHOR", "")
 
 # 主程序入口
 MAIN_SCRIPT = "__main__.py"
@@ -172,6 +175,7 @@ INCLUDE_FILES = []
 
 # 配置文件
 config_files = [
+    ".env",
     "app_settings.json",
 ]
 
