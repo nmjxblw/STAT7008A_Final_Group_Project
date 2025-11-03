@@ -71,7 +71,7 @@
     "crawling_source_list": [
       "https://arxiv.org/catchup/cs.CV/2025-09-30?abs=True"
     ],
-    "blocked_sites": ["www.blocked_sites.com", "www.another-blocked.com"],
+    "blocked_sites": ["None"],
     "crawling_keywords": ["[Pp]aper", "[Ee]ssay"],
     "file_type": [".pdf"],
     "timeliness": 365,

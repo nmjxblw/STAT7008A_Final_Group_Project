@@ -15,6 +15,8 @@ from global_module import (
 from crawling_module import *
 from launcher_module.core import *
 from log_module import logger
+from core import *
+
 
 _launcher_app: flask.Flask = flask.Flask(f"{PROJECT_NAME}")
 """flask应用实例"""
@@ -30,6 +32,7 @@ def main():
     """程序入口函数"""
     logger.debug("主程序启动程序...")
     global _crawler_instance, _db_handler_instance, _launcher_app
+    # _launcher_app.register_blueprint()
 
 
 if __name__ == "__main__":
