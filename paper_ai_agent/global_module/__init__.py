@@ -12,7 +12,7 @@ __all__ = [
     "PROJECT_DESCRIPTION",
     "PROJECT_AUTHOR",
     "DATABASE_PATH",
-    "HOST_NAME",
+    "HOST",
     "PORT",
     "API_KEY",
     "crawler_config",
@@ -29,7 +29,7 @@ PROJECT_AUTHOR: str = os.getenv("PROJECT_AUTHOR", "")
 """项目作者"""
 DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")
 """数据库路径"""
-HOST_NAME: str = os.getenv("HOST", "127.0.0.1")
+HOST: str = os.getenv("HOST", "127.0.0.1")
 """主机名"""
 PORT: int = int(os.getenv("PORT", 8080))
 """端口号"""

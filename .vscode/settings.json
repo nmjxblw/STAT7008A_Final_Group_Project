@@ -1,5 +1,14 @@
 {
     "cSpell.words": [
         "filemode"
-    ]
+    ],
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:STAT7008A_Final_Group_Project}/paper_ai_agent/DB/app_database.db",
+            "name": "app_database"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
 }
