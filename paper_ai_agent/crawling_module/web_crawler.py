@@ -2,6 +2,8 @@ import asyncio
 from concurrent.futures import thread
 from signal import raise_signal
 import threading
+
+from requests import Response
 from log_module import logger
 import requests
 from bs4 import BeautifulSoup
@@ -22,18 +24,28 @@ class WebCrawler(metaclass=SingletonMeta):
 
     def __init__(self):
         self.session: requests.Session = requests.Session()
+        """ 请求会话 """
         self.setup_session()
         self.visited_urls: set[str] = set()
+        """ 已访问的URL集合 """
         self.respect_robots_txt: bool = True
+        """ 是否遵守robots.txt协议 """
         self.current_crawling_web: str = ""
+        """ 当前正在爬取的网页 """
         self.current_crawling_article: str = ""
+        """ 当前正在爬取的文章 """
         self.total_files_downloaded: int = 0
+        """ 已下载的文件总数 """
         self.crawling_log: list[dict] = []
+        """ 爬取日志列表 """
 
         # 设置保存路径
-        self.project_root = Path(__file__).parent.parent.parent
-        self.resource_path = self.project_root / "Project" / "Resource" / "Unclassified"
-        self.log_path = self.project_root / "Crawling Log"
+        self.project_root: Path = Path.cwd()
+        """ 项目根目录 """
+        self.resource_path: Path = (
+            self.project_root / "Project" / "Resource" / "Unclassified"
+        )
+        """ 资源保存路径 """
         logger.debug(f"网页爬虫类实例化完成")
 
     def setup_session(self):
@@ -53,8 +65,11 @@ class WebCrawler(metaclass=SingletonMeta):
             return True
 
         parsed = urlparse(url)
+        """ 解析URL """
         base_url = f"{parsed.scheme}://{parsed.netloc}"
+        """ 构建基础URL """
         rp = urllib.robotparser.RobotFileParser()
+        """ 创建机器人文件解析器 """
         rp.set_url(urljoin(base_url, "/robots.txt"))
         try:
             rp.read()
@@ -95,18 +110,13 @@ class WebCrawler(metaclass=SingletonMeta):
         try:
             # 创建保存目录和日志目录
             self.resource_path.mkdir(parents=True, exist_ok=True)
-            self.log_path.mkdir(parents=True, exist_ok=True)
-
-            # 初始化日志
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-            log_file = self.log_path / f"{timestamp}.log"
 
             for website in crawler_config.crawling_source_list:
                 self.current_crawling_web = website
                 self.crawl_website(website)
 
             # 保存爬取日志
-            self.save_crawling_log(log_file)
+            self.save_crawling_log()
             return True
         except Exception as e:
             print(f"爬虫任务失败: {e}")
@@ -126,11 +136,13 @@ class WebCrawler(metaclass=SingletonMeta):
 
             self.visited_urls.add(url)
             try:
-                response = self.session.get(url, timeout=crawler_config.request_timeout)
+                response: Response = self.session.get(
+                    url, timeout=crawler_config.request_timeout
+                )
                 if response.status_code == 200:
-                    soup = BeautifulSoup(response.text, "html.parser")
+                    soup: BeautifulSoup = BeautifulSoup(response.text, "html.parser")
                     self.extract_and_save_files(soup, url)
-                    links = self.extract_links(soup, base_url)
+                    links: list[str] = self.extract_links(soup, base_url)
                     to_visit.extend(links)
                 time.sleep(1)  # 请求延迟
             except Exception as e:
@@ -147,7 +159,7 @@ class WebCrawler(metaclass=SingletonMeta):
 
     def extract_links(self, soup: BeautifulSoup, base_url: str) -> list[str]:
         """从页面提取链接"""
-        links = []
+        links: list[str] = []
         for link in soup.find_all("a", href=True):
             href = str(link["href"])
             if href is None or href == "":
@@ -240,16 +252,14 @@ class WebCrawler(metaclass=SingletonMeta):
         except Exception as e:
             print(f"保存文件失败: {e}")
 
-    def save_crawling_log(self, log_file: Path):
+    def save_crawling_log(self):
         """保存爬取日志"""
         try:
-            with open(log_file, "w", encoding="utf-8") as f:
-                for entry in self.crawling_log:
-                    log_line = f"[{entry['timestamp']}] FileName:\"{entry['filename']}\" Url:\"{entry['url']}\"\n"
-                    f.write(log_line)
-            print(f"日志已保存: {log_file}")
+            for entry in self.crawling_log:
+                log_line = f"[{entry['timestamp']}] FileName:\"{entry['filename']}\" Url:\"{entry['url']}\"\n"
+                logger.info(log_line.strip())
         except Exception as e:
-            print(f"保存日志失败: {e}")
+            raise e  # 抛出异常，让日志来定位报错
 
     # API接口方法
     def get_current_crawling_web(self) -> str:
