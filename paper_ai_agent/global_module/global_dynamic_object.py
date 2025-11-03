@@ -198,6 +198,13 @@ class GlobalDynamicObject(metaclass=SingletonMeta):
 
                 os._exit(1)
 
+    def refresh(self) -> None:
+        """重新加载最近一次 load 的文件内容（覆盖当前内容）。"""
+        with self._lock:
+            if not self._file_path:
+                raise ValueError(f"✗ 全局动态对象未指定加载路径，无法刷新")
+            self.load(self._file_path)
+
     def load_from_data(self, data: Any) -> None:
         """从已有数据构建（覆盖当前内容）。"""
         with self._lock:
@@ -307,9 +314,6 @@ def _load_config_or_raise_error(
         raise RuntimeError(error_message)
 
 
-system_config: GlobalDynamicObject._Node = _load_config_or_raise_error(
-    "system_config", "系统配置未找到或未正确加载。"
-)
 """全局系统配置对象"""
 crawler_config: GlobalDynamicObject._Node = _load_config_or_raise_error(
     "crawler_config", "爬虫配置未找到或未正确加载。"

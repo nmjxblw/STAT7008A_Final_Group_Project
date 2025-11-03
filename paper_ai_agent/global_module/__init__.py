@@ -1,29 +1,38 @@
 """全局变量模块"""
 
+from json import load
+import os
+from dotenv import load_dotenv
 from .global_dynamic_object import *
 
 __all__ = [
     "GlobalDynamicObject",
     "globals",
-    "ProjectName",
-    "ProjectDescription",
-    "ProjectAuthor",
-    "DatabasePath",
-    "system_config",
+    "PROJECT_NAME",
+    "PROJECT_DESCRIPTION",
+    "PROJECT_AUTHOR",
+    "DATABASE_PATH",
+    "HOST_NAME",
+    "PORT",
+    "API_KEY",
     "crawler_config",
     "answer_generator_config",
     "file_classifier_config",
 ]
 
 # region 项目静态信息
-ProjectName: str = system_config.get("project_name", "PDF文档分析与知识检索系统")
+PROJECT_NAME: str = os.getenv("PROJECT_NAME", "")
 """项目名称"""
-ProjectDescription: str = system_config.get(
-    "project_description", "PDF文档分析与知识检索系统"
-)
+PROJECT_DESCRIPTION: str = os.getenv("PROJECT_DESCRIPTION", "")
 """项目描述"""
-ProjectAuthor: str = system_config.get("project_author", "STAT7008A Group 19")
+PROJECT_AUTHOR: str = os.getenv("PROJECT_AUTHOR", "")
 """项目作者"""
-DatabasePath: str = system_config.get("database_path", "DB/app_database.db")
+DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")
 """数据库路径"""
+HOST_NAME: str = os.getenv("HOST", "127.0.0.1")
+"""主机名"""
+PORT: int = int(os.getenv("PORT", 8080))
+"""端口号"""
+API_KEY: str = os.getenv("API_KEY", "")
+"""API密钥"""
 # endregion

@@ -1,13 +1,4 @@
 {
-  "system_config": {
-    "project_name": "论文检索智能体",
-    "project_description": "PDF文档分析与知识检索系统",
-    "database_path": "DB/app_database.db",
-    "ip_address": {
-      "host": ["127.0.0.1", "localhost"],
-      "port": [8080]
-    }
-  },
   "webapi_config": [
     {
       "url": "crawler/start_crawling_task",
