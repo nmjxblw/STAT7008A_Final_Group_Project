@@ -6,6 +6,6 @@
 
 from .database_handler import *
 from .crawler_blueprint import *
-from .test_blueprint import *
+from .example_blueprint import *
 
-__all__ = ["DBHandler", "crawler_bp", "test_bp"]
+__all__ = ["DBHandler", "crawler_bp", "example_bp"]

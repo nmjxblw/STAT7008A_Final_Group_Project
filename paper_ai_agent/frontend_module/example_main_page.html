@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block main_title %}测试页面{% endblock %}</title>
+  </head>
+  <body>
+    <h1>{% block body_title %}测试页面{% endblock %}</h1>
+    <header>
+      {% block header %}
+      <nav><a href="/">主页</a> | <a href="./index.html">测试页面</a></nav>
+      {% endblock %}
+    </header>
+    <main>
+      {% block content %}
+      <p>这是一个测试页面。</p>
+      <button onclick="alert('按钮被点击了！')">点击我</button>
+      {% endblock %}
+    </main>
+    <footer>
+      {% block footer %}
+      <p>&copy; 2024 论文AI智能体项目组</p>
+      {% endblock %}
+  </body>
+</html>

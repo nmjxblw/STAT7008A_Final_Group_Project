@@ -2,4 +2,4 @@
 
 from .logger import *
 
-__all__ = ["logger", "setup_logger"]
+__all__ = ["get_default_logger"]
