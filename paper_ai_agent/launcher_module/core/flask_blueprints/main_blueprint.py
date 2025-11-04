@@ -21,7 +21,7 @@ main_bp: Blueprint = Blueprint(
 def render_main_template() -> Any:
     """渲染主页模板"""
     try:
-        logger.debug("渲染主页模板...")
+        logger.debug("跳转到主页...")
         return render_template("index.html")
     except TemplateNotFound:
         abort(404)
