@@ -4,6 +4,7 @@ from typing import Any
 import flask
 from flask import Blueprint, jsonify, render_template, abort, Response, request
 from jinja2 import TemplateNotFound
+from ..__main__ import _database, File
 import log_module
 
 logger = log_module.get_default_logger()
@@ -23,6 +24,22 @@ def example_bp_webapi_example(input_str: str) -> Response:
     response_data = {"status": "success", "message": f"input:{input_str}"}
     try:
         logger.debug(f"样例接口响应数据: {response_data}")
+        return jsonify(response_data)
+    except TemplateNotFound:
+        abort(404)
+    except Exception as e:
+        raise e
+
+
+@example_bp.route("/<string:file_id>", methods=("GET", "POST"))
+def example_bp_webapi_file(file_id: str) -> Any:
+    """样例接口，返回文件ID"""
+    response_data = {"status": "success", "message": f"file_id:{file_id}"}
+    try:
+        logger.debug(f"样例接口响应数据: {response_data}")
+        new_file: File = File(file_id=file_id)
+        _database.session.add(new_file)
+        _database.session.commit()
         return jsonify(response_data)
     except TemplateNotFound:
         abort(404)

@@ -19,7 +19,7 @@ __all__ = [
     "answer_generator_config",
     "file_classifier_config",
 ]
-
+load_dotenv(encoding="utf-8", verbose=True)  # 从.env文件加载环境变量
 # region 项目静态信息
 PROJECT_NAME: str = os.getenv("PROJECT_NAME", "")
 """项目名称"""

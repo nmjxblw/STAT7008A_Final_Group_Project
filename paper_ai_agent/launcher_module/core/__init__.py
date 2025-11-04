@@ -4,8 +4,8 @@
 2.数据库处理器
 """
 
-from .database_handler import *
+from .database_model import *
 from .crawler_blueprint import *
 from .example_blueprint import *
 
-__all__ = ["DBHandler", "crawler_bp", "example_bp"]
+__all__ = ["crawler_bp", "example_bp"]
