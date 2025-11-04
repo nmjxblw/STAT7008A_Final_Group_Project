@@ -4,10 +4,7 @@ from typing import Any
 import flask
 from flask import Blueprint, jsonify, render_template, abort, Response, request
 from jinja2 import TemplateNotFound
-import log_module
-
-logger = log_module.get_default_logger()
-""" 全局日志记录器对象 """
+from log_module import *  # 导入全局日志模块
 
 generator_bp: Blueprint = Blueprint("generator_blueprint", __name__)
 """回答生成器蓝图模块"""

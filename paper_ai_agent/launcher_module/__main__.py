@@ -1,41 +1,71 @@
 """启动器主模块"""
 
 from pathlib import Path
-
-from lark import logger
 from flask import Blueprint, Flask
 from flask_sqlalchemy import SQLAlchemy
-import flask
 from global_module import (
-    PROJECT_NAME,
-    API_KEY,
     HOST,
     PORT,
-    DATABASE_PATH,
+    PROJECT_NAME,
 )  # 导入全局变量模块
-from crawling_module import *
-from .core import *
-import log_module
-
-logger = log_module.get_default_logger()
+from log_module import *  # 导入全局日志模块
 
 
-_flask_database: SQLAlchemy = SQLAlchemy()
-"""数据库ORM实例"""
+def create_app(
+    _config: object | str = "launcher_module.flask_config.DevelopmentFlaskConfig",
+) -> Flask:
+    """
+    创建Flask并绑定数据库
+
+    参数：
+        config (object|str): 配置对象或配置路径, 默认为开发配置
+    返回：
+        _app (Flask): Flask应用实例
+    """
+
+    logger.debug("正在创建Flask应用并绑定数据库...")
+    _app = Flask(f"{PROJECT_NAME}")
+    _app.config.from_object(_config)
+    global flask_database
+    flask_database.init_app(_app)
+    return _app
 
 
-def main(_flask_app: Flask) -> None:
-    """程序入口函数"""
+def get_app() -> Flask:
+    """获取flask应用实例"""
+    global launcher_app
+    if launcher_app is None:
+        launcher_app = create_app()
+    return launcher_app
+
+
+def get_database() -> SQLAlchemy:
+    """获取flask数据库ORM实例"""
+    global flask_database
+    if flask_database is None:
+        flask_database = SQLAlchemy()
+    return flask_database
+
+
+def run() -> None:
+    """程序运行函数"""
     logger.debug("主程序启动程序...")
-    global _crawler_instance, _flask_database, _launcher_app
-    create_tables(_flask_app)
-    register_blueprints(_flask_app)
-    _flask_app.run(debug=True, host=HOST, port=PORT, load_dotenv=True)
+    from .core.main_logic import (
+        create_tables,
+        register_blueprints,
+    )
+
+    create_tables(get_app())
+    register_blueprints(get_app())
+    get_app().run(debug=True, host=HOST, port=PORT, load_dotenv=True)
     logger.debug("主程序退出程序...")
 
 
-_launcher_app: Flask = create_app()
+flask_database: SQLAlchemy = SQLAlchemy()
+"""flask框架数据库ORM实例"""
+
+launcher_app: Flask = create_app()
 """flask应用实例"""
 
 if __name__ == "__main__":
-    main(_launcher_app)
+    run()
