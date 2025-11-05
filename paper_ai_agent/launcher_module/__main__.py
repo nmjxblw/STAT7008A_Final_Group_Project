@@ -31,22 +31,6 @@ def create_app(
     return _app
 
 
-def get_app() -> Flask:
-    """获取flask应用实例"""
-    global launcher_app
-    if launcher_app is None:
-        launcher_app = create_app()
-    return launcher_app
-
-
-def get_database() -> SQLAlchemy:
-    """获取flask数据库ORM实例"""
-    global flask_database
-    if flask_database is None:
-        flask_database = SQLAlchemy()
-    return flask_database
-
-
 def run() -> None:
     """程序运行函数"""
     logger.debug("主程序启动程序...")
@@ -55,9 +39,10 @@ def run() -> None:
         register_blueprints,
     )
 
-    create_tables(get_app())
-    register_blueprints(get_app())
-    get_app().run(debug=True, host=HOST, port=PORT, load_dotenv=True)
+    global launcher_app, flask_database
+    create_tables(launcher_app)
+    register_blueprints(launcher_app)
+    launcher_app.run(debug=True, host=HOST, port=PORT, load_dotenv=True)
     logger.debug("主程序退出程序...")
 
 

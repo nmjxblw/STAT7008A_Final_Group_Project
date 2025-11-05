@@ -111,7 +111,7 @@ class WebCrawler(metaclass=SingletonMeta):
             # 创建保存目录和日志目录
             self.resource_path.mkdir(parents=True, exist_ok=True)
 
-            for website in crawler_config.crawling_source_list:
+            for website in crawler_config.crawling_source_list.to_list():
                 self.current_crawling_web = website
                 self.crawl_website(website)
 

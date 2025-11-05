@@ -25,6 +25,7 @@ def example_bp_main_page() -> Any:
     except TemplateNotFound:
         abort(404)
     except Exception as e:
+        abort(500, description="渲染样例主页失败")
         raise e
 
 
@@ -56,6 +57,7 @@ def example_bp_add_or_update_file() -> Any:
         return jsonify(response_data)
     except Exception as e:
         # 后端数据插入异常，直接抛出异常
+        abort(500, description="添加或更新文件记录失败")
         raise e
 
 
