@@ -1,8 +1,7 @@
-import asyncio
-from concurrent.futures import thread
-from signal import raise_signal
-import threading
+"""爬虫模块 - 网页爬虫类实现"""
 
+import enum
+import threading
 from requests import Response
 import requests
 from bs4 import BeautifulSoup
@@ -16,7 +15,17 @@ from pathlib import Path
 from global_module import crawler_config
 from sympy import Basic
 from utility_mode import SingletonMeta
-from log_module import *  # 导入全局日志模块
+from log_module import logger  # 导入全局日志模块
+
+
+class State(enum.Enum):
+    """爬虫状态枚举类"""
+
+    IDLE = "IDLE"
+    CRAWLING = "CRAWLING"
+    PAUSED = "PAUSED"
+    COMPLETED = "COMPLETED"
+    ERROR = "ERROR"
 
 
 class WebCrawler(metaclass=SingletonMeta):
@@ -42,10 +51,26 @@ class WebCrawler(metaclass=SingletonMeta):
         # 设置保存路径
         self.project_root: Path = Path.cwd()
         """ 项目根目录 """
-        self.resource_path: Path = (
-            self.project_root / "Project" / "Resource" / "Unclassified"
-        )
+        self.resource_path: Path = self.project_root / "Resource" / "Unclassified"
         """ 资源保存路径 """
+
+        # 爬虫进度标识符
+        self.task_progress: float = 0.0
+        """ 爬虫任务进度 """
+        self.current_state: State = State.IDLE
+        """ 爬虫当前状态 """
+
+        # 任务时间戳
+        self.task_start_timestamp: datetime = datetime.now()
+        """ 任务开始时间戳 """
+        self.task_end_timestamp: datetime = datetime.now()
+        """ 任务结束时间戳 """
+        self.task_duration: timedelta = timedelta()
+        """ 任务持续时间 """
+
+        self.max_threads: int = os.cpu_count() or 4
+        """ 最大线程数 """
+        # 日志
         logger.debug(f"网页爬虫类实例化完成")
 
     def setup_session(self):
@@ -58,6 +83,15 @@ class WebCrawler(metaclass=SingletonMeta):
                 "Connection": "keep-alive",
             }
         )
+
+    def flush_runtime_cache_and_reset_state(self):
+        """清除运行时临时缓存数据并重置状态"""
+        self.current_crawling_web = ""
+        self.current_crawling_article = ""
+        self.crawling_log.clear()
+        self.task_progress = 0.0
+        self.current_state = State.IDLE
+        logger.debug("✔ 爬虫运行时缓存数据已清除，状态已重置")
 
     def check_robots_txt(self, url: str) -> bool:
         """检查robots.txt协议"""
@@ -119,8 +153,10 @@ class WebCrawler(metaclass=SingletonMeta):
             self.save_crawling_log()
             return True
         except Exception as e:
-            print(f"爬虫任务失败: {e}")
+            logger.debug(f"爬虫任务失败: {e}")
             return False
+        finally:
+            self.flush_runtime_cache_and_reset_state()
 
     def crawl_website(self, base_url: str):
         """爬取指定网站"""
@@ -239,18 +275,11 @@ class WebCrawler(metaclass=SingletonMeta):
             self.total_files_downloaded += 1
 
             # 记录到日志
-            self.crawling_log.append(
-                {
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "filename": filename,
-                    "url": url,
-                    "path": str(file_path),
-                }
-            )
+            logger.debug(f"✔ 保存文件:{file_path}\tURL:{url}")
 
-            print(f"成功保存: {file_path}")
         except Exception as e:
-            print(f"保存文件失败: {e}")
+            logger.debug(f"✘ 保存文件失败 {url}: {e}")
+            raise e
 
     def save_crawling_log(self):
         """保存爬取日志"""
