@@ -314,7 +314,6 @@ def _load_config_or_raise_error(
         raise RuntimeError(error_message)
 
 
-"""全局系统配置对象"""
 crawler_config: GlobalDynamicObject._Node = _load_config_or_raise_error(
     "crawler_config", "爬虫配置未找到或未正确加载。"
 )

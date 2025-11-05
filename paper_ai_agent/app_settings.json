@@ -1,5 +1,5 @@
 {
-  "webapi_config": [
+  "blueprints": [
     {
       "url": "crawler/start_crawling_task",
       "function_name": "start_crawling_task",

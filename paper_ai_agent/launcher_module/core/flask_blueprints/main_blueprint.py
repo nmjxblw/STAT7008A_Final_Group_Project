@@ -4,10 +4,8 @@ import flask
 from flask import Blueprint, jsonify, render_template, abort, Response, request
 from jinja2 import TemplateNotFound
 from pathlib import Path
-import log_module
+from log_module import *  # 导入全局日志模块
 
-logger = log_module.get_default_logger()
-""" 全局日志记录器对象 """
 
 main_bp: Blueprint = Blueprint(
     "main_blueprint",
@@ -21,7 +19,7 @@ main_bp: Blueprint = Blueprint(
 def render_main_template() -> Any:
     """渲染主页模板"""
     try:
-        logger.debug("渲染主页模板...")
+        logger.debug("跳转到主页...")
         return render_template("index.html")
     except TemplateNotFound:
         abort(404)
