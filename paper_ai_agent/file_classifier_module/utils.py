@@ -68,6 +68,6 @@ async def save_to_database(file_dic: dict[str, Any]) -> bool:
     异步操作，将文件信息保存到flask数据库中
     """
     # 延迟导入以避免循环依赖
-    from launcher_module.core.database_operations import add_or_update_file_record
+    from launcher_module.core.database_operations import add_or_update_file_to_database
 
-    return await add_or_update_file_record(file_dic)
+    return await add_or_update_file_to_database(file_dic)

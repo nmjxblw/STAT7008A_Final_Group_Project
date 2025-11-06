@@ -44,9 +44,6 @@ def run() -> None:
     register_blueprints(launcher_app)
     # 为避免 Werkzeug reloader 导致主程序重复运行（父子进程都会执行 __main__），
     # 在开发时如果仍想启用调试输出但不希望进程重复，可关闭自动重载。
-    # 如果你希望保留自动重载以便代码改动自动生效，可改用:
-    #     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    #         launcher_app.run(...)
     launcher_app.run(
         debug=True, host=HOST, port=PORT, load_dotenv=True, use_reloader=False
     )
