@@ -8,9 +8,9 @@
 """
 
 from __future__ import annotations
-from .__main__ import flask_database, get_app
+from .__main__ import flask_database, launcher_app
 
-__all__ = ["run", "get_app", "flask_database"]
+__all__ = ["run", "launcher_app", "flask_database"]
 
 
 def run() -> None:

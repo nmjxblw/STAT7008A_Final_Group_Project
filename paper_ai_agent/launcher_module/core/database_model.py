@@ -1,11 +1,6 @@
 """数据库模型模块"""
 
 from ..__main__ import flask_database
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
 
 
 class File(flask_database.Model):

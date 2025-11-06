@@ -1,7 +1,6 @@
 import sys
 import pystray
 from PIL import Image
-import threading
 
 
 def create_system_tray():

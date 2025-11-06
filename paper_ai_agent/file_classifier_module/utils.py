@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+from log_module import *  # 导入全局日志模块
 
 
 def move_files(source, target, success_filename_list):
@@ -23,38 +24,42 @@ def move_files(source, target, success_filename_list):
 
             if os.path.exists(src_path):
                 shutil.move(src_path, dst_path)
-                print(f"Moved: {filename}")
+                logger.debug(f"Moved: {filename}")
                 moved_count += 1
             else:
-                print(f"Not found: {filename}")
+                logger.debug(f"Not found: {filename}")
 
-        print(f"Finished. Moved {moved_count} files")
+        logger.debug(f"Finished. Moved {moved_count} files")
         return True
 
     except Exception as e:
-        print(f"Error occurred: {e}")
+        logger.debug(f"✖ 文件移动操作失败: {e}")
         return False
 
-def save_to_json(file_info, save_data_folder):
-        """将结果保存到简单的文件数据库中"""
-        # 如果数据库文件已存在，加载现有数据
-        db_file = os.path.join(save_data_folder, "pdf_analysis_database.json")
-        if os.path.exists(db_file):
-            with open(db_file, 'r', encoding='utf-8') as f:
-                database = json.load(f)
-        else:
-            database = {}
-        # 使用文件名作为键，保存完整元数据和文本
-        database[file_info["file_name"]] = {
-            "file_id": file_info["file_id"][:8],  # 只保存前8位
-            "file_name": file_info["file_name"],
-            "title": file_info["file_title"],  # 键名改为title
-            "summary": file_info["file_summary"],
-            "keywords": file_info["file_keywords"],
-            "full_text": file_info["file_text"],  # 保存完整文本
-            "text_length": len(file_info["file_text"]),  # 文本长度统计
-        }
 
-        # 保存到JSON文件
-        with open(db_file, 'w', encoding='utf-8') as f:
-            json.dump(database, f, ensure_ascii=False, indent=2)
+def save_to_json(file_info, save_data_folder):
+    """将结果保存到简单的文件数据库中"""
+    # 如果数据库文件已存在，加载现有数据
+    db_file = os.path.join(save_data_folder, "pdf_analysis_database.json")
+    if os.path.exists(db_file):
+        with open(db_file, "r", encoding="utf-8") as f:
+            database = json.load(f)
+    else:
+        database = {}
+    # 使用文件名作为键，保存完整元数据和文本
+    database[file_info["file_name"]] = {
+        "file_id": file_info["file_id"][:8],  # 只保存前8位
+        "file_name": file_info["file_name"],
+        "title": file_info["file_title"],  # 键名改为title
+        "summary": file_info["file_summary"],
+        "keywords": file_info["file_keywords"],
+        "full_text": file_info["file_text"],  # 保存完整文本
+        "text_length": len(file_info["file_text"]),  # 文本长度统计
+    }
+
+    # 保存到JSON文件
+    with open(db_file, "w", encoding="utf-8") as f:
+        json.dump(database, f, ensure_ascii=False, indent=2)
+
+
+def save_to_database()

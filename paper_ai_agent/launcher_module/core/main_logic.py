@@ -5,14 +5,13 @@ TODO:在这里处理flask_app的初始化、蓝图注册、数据库表创建等
 """
 
 from flask import Flask, Blueprint
-from flask_sqlalchemy import SQLAlchemy
-from global_module import PROJECT_NAME, DATABASE_PATH
-from pathlib import Path
 from log_module import *  # 导入全局日志模块
 
 
 def create_tables(_flask_app: Flask):
     """创建数据库表"""
+    from global_module import DATABASE_PATH
+
     try:
         logger.debug(f"开始创建表，数据库路径: {DATABASE_PATH} ")
         # 在应用上下文中创建所有表
@@ -28,21 +27,9 @@ def create_tables(_flask_app: Flask):
 
 def register_blueprints(_flask_app: Flask):
     """注册所有蓝图到flask应用"""
-    # 配置蓝图列表： (蓝图对象, URL前缀)
-    blueprints = [
-        (
-            "launcher_module.core.flask_blueprints.main_blueprint",
-            "main_bp",
-            "/",
-        ),
-        (
-            "launcher_module.core.flask_blueprints.example_blueprint",
-            "example_bp",
-            "/example",
-        ),
-    ]
-
     # 循环注册所有蓝图
+    from flask_config import blueprints
+
     for module_path, bp_name, url_prefix in blueprints:
         try:
             logger.debug(f"正在注册蓝图: {bp_name} 来自模块: {module_path}...")
