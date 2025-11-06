@@ -4,7 +4,7 @@ import enum
 import threading
 from requests import Response
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, PageElement, NavigableString, Tag
 import urllib.robotparser
 from urllib.parse import urljoin, urlparse
 import time
@@ -197,14 +197,17 @@ class WebCrawler(metaclass=SingletonMeta):
         """从页面提取链接"""
         links: list[str] = []
         for link in soup.find_all("a", href=True):
-            href = str(link["href"])
-            if href is None or href == "":
+            if link is None:
                 continue
-            full_url = urljoin(base_url, href)
+            if isinstance(link, Tag):
+                href = str(link.get("href", ""))
+                if href == "":
+                    continue
+                full_url = urljoin(base_url, href)
 
-            # 只爬取同域名下的链接
-            if urlparse(full_url).netloc == urlparse(base_url).netloc:
-                links.append(full_url)
+                # 只爬取同域名下的链接
+                if urlparse(full_url).netloc == urlparse(base_url).netloc:
+                    links.append(full_url)
         return links
 
     def extract_and_save_files(self, soup: BeautifulSoup, page_url: str):
@@ -213,20 +216,23 @@ class WebCrawler(metaclass=SingletonMeta):
         all_links = soup.find_all("a", href=True)
 
         for link in all_links:
-            href = str(link.get("href", ""))
-            if href is None or href == "":
+            if link is None:
                 continue
-            full_url = urljoin(page_url, href)
+            if isinstance(link, Tag):
+                href = str(link.get("href", ""))
+                if href == "":
+                    continue
+                full_url = urljoin(page_url, href)
 
-            # 检查文件类型
-            for file_type in crawler_config.file_type:
-                if full_url.lower().endswith(file_type):
-                    # 检查关键词
-                    if self.match_keywords(link.text, soup):
-                        self.current_crawling_article = link.text or os.path.basename(
-                            urlparse(full_url).path
-                        )
-                        self.download_and_save_file(full_url, file_type)
+                # 检查文件类型
+                for file_type in crawler_config.file_type:
+                    if full_url.lower().endswith(file_type):
+                        # 检查关键词
+                        if self.match_keywords(link.text, soup):
+                            self.current_crawling_article = (
+                                link.text or os.path.basename(urlparse(full_url).path)
+                            )
+                            self.download_and_save_file(full_url, file_type)
 
     def match_keywords(self, text: str, soup: BeautifulSoup) -> bool:
         """匹配关键词"""
