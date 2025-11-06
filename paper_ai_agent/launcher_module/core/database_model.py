@@ -1,6 +1,7 @@
 """数据库模型模块"""
 
 from ..__main__ import flask_database
+from datetime import datetime, date
 
 
 class File(flask_database.Model):
@@ -36,4 +37,53 @@ class File(flask_database.Model):
     # endregion
 
     def __repr__(self) -> str:
-        return f"<File id={self.file_id} title={self.title} author={self.author} publish_date={self.publish_date}>"
+        """返回文件字典表示的字符串形式"""
+        return str(self.to_dict())
+
+    def to_dict(self) -> dict:
+        """将文件对象转换为字典表示"""
+        _dict = {}
+        for key, value in self.__dict__.items():
+            if key.startswith("_"):
+                continue
+
+            if "date" in key and isinstance(value, (datetime, date)):
+                # 转换日期时间为ISO格式字符串
+                _dict[key] = value.isoformat()
+            else:
+                _dict[key] = value
+        return _dict
+
+    def update_attributes_from_dict(self, data: dict) -> None:
+        """从字典更新文件对象的属性"""
+        for key, value in data.items():
+            if hasattr(self, key):
+                if "date" in key and isinstance(value, str):
+                    value = datetime.fromisoformat(value)
+                    # 不处理报错，让exception handler捕获
+                setattr(self, key, value)
+
+    @classmethod
+    def from_object(cls, obj: object) -> "File":
+        """从对象创建文件实例"""
+        return cls.from_dict(obj.__dict__)
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "File":
+        """从字典创建文件实例"""
+        file_instance = cls()
+        for key, value in data.items():
+            if hasattr(file_instance, key):
+                if "date" in key and isinstance(value, str):
+                    value = datetime.fromisoformat(value)
+                    # 不处理报错，让exception handler捕获
+                setattr(file_instance, key, value)
+        if not file_instance.file_id:
+            raise ValueError("字典缺少file_id键，无法创建File实例")
+        return file_instance
+
+    @classmethod
+    def extract_to_file_dict(cls, obj: object) -> dict:
+        """从对象提取文件信息为字典表示"""
+        file_instance = cls.from_object(obj)
+        return file_instance.to_dict()

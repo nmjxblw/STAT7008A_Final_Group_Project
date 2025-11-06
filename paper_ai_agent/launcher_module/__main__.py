@@ -42,7 +42,11 @@ def run() -> None:
     global launcher_app, flask_database
     create_tables(launcher_app)
     register_blueprints(launcher_app)
-    launcher_app.run(debug=True, host=HOST, port=PORT, load_dotenv=True)
+    # 为避免 Werkzeug reloader 导致主程序重复运行（父子进程都会执行 __main__），
+    # 在开发时如果仍想启用调试输出但不希望进程重复，可关闭自动重载。
+    launcher_app.run(
+        debug=True, host=HOST, port=PORT, load_dotenv=True, use_reloader=False
+    )
     logger.debug("主程序退出程序...")
 
 
@@ -51,6 +55,3 @@ flask_database: SQLAlchemy = SQLAlchemy()
 
 launcher_app: Flask = create_app()
 """flask应用实例"""
-
-if __name__ == "__main__":
-    run()

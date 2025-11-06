@@ -28,7 +28,7 @@ def create_tables(_flask_app: Flask):
 def register_blueprints(_flask_app: Flask):
     """注册所有蓝图到flask应用"""
     # 循环注册所有蓝图
-    from flask_config import blueprints
+    from ..flask_config import blueprints
 
     for module_path, bp_name, url_prefix in blueprints:
         try:

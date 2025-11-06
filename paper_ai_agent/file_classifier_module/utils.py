@@ -1,7 +1,8 @@
 import json
 import os
 import shutil
-from log_module import *  # 导入全局日志模块
+from typing import Any
+from log_module import *
 
 
 def move_files(source, target, success_filename_list):
@@ -62,4 +63,11 @@ def save_to_json(file_info, save_data_folder):
         json.dump(database, f, ensure_ascii=False, indent=2)
 
 
-def save_to_database()
+async def save_to_database(file_dic: dict[str, Any]) -> bool:
+    """
+    异步操作，将文件信息保存到flask数据库中
+    """
+    # 延迟导入以避免循环依赖
+    from launcher_module.core.database_operations import add_or_update_file_to_database
+
+    return await add_or_update_file_to_database(file_dic)

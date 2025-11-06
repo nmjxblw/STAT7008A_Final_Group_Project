@@ -8,13 +8,12 @@
 """
 
 from __future__ import annotations
-from .__main__ import flask_database, launcher_app
 
-__all__ = ["run", "launcher_app", "flask_database"]
+__all__ = ["run"]
 
 
 def run() -> None:
-    # 惰性导入，避免在包导入阶段触发 __main__ 的加载
+    """程序运行函数的惰性包装器"""
     from .__main__ import run as _run
 
     return _run()
