@@ -1,5 +1,6 @@
 """数据库操作模块"""
 
+from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from ..__main__ import flask_database
 from .database_model import File
@@ -17,7 +18,7 @@ async def add_or_update_file_record(file_data: dict) -> bool:
     """
     try:
         logger.debug(f"正在添加或更新文件记录，文件ID: {file_data.get('file_id')}")
-        file_id = file_data.get("file_id")
+        file_id: str | None = file_data.get("file_id")
         if not file_id:
             logger.debug("✖ 文件数据缺少file_id，无法添加或更新记录")
             return False
@@ -26,8 +27,10 @@ async def add_or_update_file_record(file_data: dict) -> bool:
         if existing_file:
             # 更新已有记录
             for attr, value in file_data.items():
-                attr_name = attr.lower()
+                attr_name: str = attr.lower()
                 if hasattr(existing_file, attr_name):
+                    if "date" in attr_name:
+                        value = datetime.fromisoformat(value)
                     setattr(existing_file, attr_name, value)
             flask_database.session.commit()
             logger.debug(f"✔ 文件记录更新成功，文件ID: {file_id}")

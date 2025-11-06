@@ -1,9 +1,13 @@
 import json
+import os
 from pathlib import Path
 from typing import Any
 import flask
 from flask import Blueprint, jsonify, render_template, abort, Response, request
 from jinja2 import TemplateNotFound
+import asyncio
+import aiohttp  # 用于发起异步HTTP请求的库
+import time
 from ..database_model import File
 from datetime import datetime
 from log_module import *  # 导入全局日志模块
@@ -40,7 +44,7 @@ async def example_bp_add_or_update_file() -> Any:
             return abort(400, description="请求数据解析异常，请检查请求格式")
         from ..database_operations import add_or_update_file_record
 
-        if not await add_or_update_file_record(request_data):
+        if not asyncio.gather(add_or_update_file_record(request_data)):
             abort(500, description="添加或更新文件记录失败")
 
         response_data: dict[str, Any] = {
@@ -56,7 +60,7 @@ async def example_bp_add_or_update_file() -> Any:
 
 
 @example_bp.route("/<string:input_str>", methods=["GET", "POST"])
-async def example_bp_webapi_example(input_str: str) -> Response:
+def example_bp_webapi_example(input_str: str) -> Response:
     """样例接口，返回输入字符串"""
     response_data = {"status": "success", "message": f"input:{input_str}"}
     try:
