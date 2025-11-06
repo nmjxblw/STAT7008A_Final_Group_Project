@@ -44,3 +44,71 @@ def crawler_bp_start_crawling_task() -> Any:
     except Exception as e:
         abort(500, description="启动爬虫任务失败")
         raise e
+
+
+@crawler_bp.route("/get_current_crawling_web", methods=["GET"])
+def crawler_bp_get_current_crawling_web() -> Any:
+    """获取当前爬虫网页"""
+    logger.debug("收到获取当前爬虫网页请求")
+    try:
+        current_web: str = crawler.get_current_crawling_web()
+        response_data = {
+            "status": "success",
+            "current_crawling_web": current_web,
+        }
+        logger.debug(f"✔ 获取当前爬虫网页成功: {current_web}")
+        return jsonify(response_data)
+    except Exception as e:
+        logger.debug(f"✖ 获取当前爬虫网页失败: {e}")
+        abort(500, description="获取当前爬虫网页失败")
+
+
+@crawler_bp.route("/get_current_crawling_article", methods=["GET"])
+def crawler_bp_get_current_crawling_article() -> Any:
+    """获取当前爬虫文章标题"""
+    logger.debug("收到获取当前爬虫文章标题请求")
+    try:
+        current_article: str = crawler.get_current_crawling_article()
+        response_data = {
+            "status": "success",
+            "current_crawling_article": current_article,
+        }
+        logger.debug("✔ 获取当前爬虫文章标题成功")
+        return jsonify(response_data)
+    except Exception as e:
+        logger.debug(f"✖ 获取当前爬虫文章标题失败: {e}")
+        abort(500, description="获取当前爬虫文章标题失败")
+
+
+@crawler_bp.route("/get_crawling_task_progress", methods=["GET"])
+def crawler_bp_get_crawling_task_progress() -> Any:
+    """获取爬虫任务进度"""
+    logger.debug("收到获取爬虫任务进度请求")
+    try:
+        progress: float = crawler.get_crawling_task_progress()
+        response_data = {
+            "status": "success",
+            "crawling_task_progress": progress,
+        }
+        logger.debug(f"✔ 获取爬虫任务进度成功: {progress}")
+        return jsonify(response_data)
+    except Exception as e:
+        logger.debug(f"✖ 获取爬虫任务进度失败: {e}")
+        abort(500, description="获取爬虫任务进度失败")
+
+
+@crawler_bp.route("/get_block_list", methods=["GET"])
+def crawler_bp_get_block_list() -> Any:
+    """获取屏蔽网址列表"""
+    logger.debug("收到获取屏蔽网址列表请求")
+    try:
+        block_list: list[str] = crawler.get_block_list()
+        response_data = {
+            "status": "success",
+            "block_list": block_list,
+        }
+        logger.debug(f"✔ 获取屏蔽网址列表成功: {block_list}")
+        return jsonify(response_data)
+    except Exception as e:
+        logger.debug(f"✖ 获取屏蔽网址列表失败: {e}")
+        abort(500, description="获取屏蔽网址列表失败")
