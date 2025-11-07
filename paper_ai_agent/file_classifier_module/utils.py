@@ -4,6 +4,8 @@ import shutil
 from typing import Any
 from log_module import *
 
+from paper_ai_agent.file_classifier_module.pdf_split_and_embed import PDFRagWorker
+
 
 def move_files(source, target, success_filename_list):
     """
@@ -71,3 +73,11 @@ async def save_to_database(file_dic: dict[str, Any]) -> bool:
     from launcher_module.core.database_operations import add_or_update_file_to_database
 
     return await add_or_update_file_to_database(file_dic)
+
+
+
+
+def get_retrieval_content(query:str,k:int)-> list[dict]:
+    faiss_retrieval=PDFRagWorker().faiss_retrieval(query,k)
+
+    return None

@@ -13,6 +13,8 @@ import hashlib
 from log_module import *  # 导入全局日志模块
 from global_module import API_KEY
 
+from paper_ai_agent.file_classifier_module.faiss_singleton import FAISSVectorStoreSingleton
+
 
 class PDFRagWorker:
     def __init__(self, use_local_embedding=False):
@@ -145,15 +147,14 @@ class PDFRagWorker:
 
         logger.debug(f'开始尝试对{previous_file_data_dict["file_name"]}进行切分')
 
-        # 获取embedding模型（支持本地和API两种方式）
-        embeddings_model = self.__get_embedding_model()
+
 
         # 1. 获取文档切分
         splitted_docs = self.__content_split(previous_file_data_dict)
 
         # 2. 进行embedding
         # 这里需要维护一个后端全局的vector_db,要能在后端程序启动时加载,后端程序结束时保存.这里先暂时写为运行到这行代码时加载,运行结束后释放
-        self.__embed(splitted_docs, embeddings_model)
+        self.__embed(splitted_docs)
 
     def __content_split(self, previous_file_data_dict):
 
@@ -181,32 +182,24 @@ class PDFRagWorker:
         splitted_doc = text_splitter.split_documents([doc])
         return splitted_doc
 
-    def __embed(self, docs, embeddings_model):
+    def __embed(self, docs):
         # 项目根目录
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         # faiss文件保存目录
         save_embed_folder = os.path.join(project_root, "DB", "embedding")
-        os.makedirs(save_embed_folder, exist_ok=True)
+        # 获取embedding模型（支持本地和API两种方式）
+        embeddings_model = self.__get_embedding_model()
+        vector_store = FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
 
-        # 检查是否存在index文件
-        index_file = os.path.join(save_embed_folder, "index.faiss")
+        vector_store.add_documents(docs)
 
-        if os.path.exists(index_file):
-            # 加载现有索引
-            vector_db = FAISS.load_local(
-                save_embed_folder,
-                embeddings_model,
-                allow_dangerous_deserialization=True,
-            )
-            # 添加新文档
-            vector_db.add_documents(docs)
-        else:
-            # 首次创建索引
-            vector_db = FAISS.from_documents(docs, embeddings_model)
-
-        # 保存索引
-        vector_db.save_local(save_embed_folder)
-
+    def faiss_retrieval(self,query,k):
+        embeddings_model=self.__get_embedding_model()
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # faiss文件保存目录
+        save_embed_folder = os.path.join(project_root, "DB", "embedding")
+        vector_store=FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
+        vector_store.similarity_search_with_score(query,k)
     def __build_bm25_index(self, previous_file_data_dict):
         """构建BM25索引并进行词频统计
 
