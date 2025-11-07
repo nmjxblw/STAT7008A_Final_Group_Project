@@ -1,5 +1,6 @@
 from email import generator
 import json
+import sys
 from typing import Any
 import flask
 from flask import Blueprint, jsonify, render_template, abort, Response, request
@@ -14,8 +15,9 @@ generator_bp: Blueprint = Blueprint("generator_blueprint", __name__)
 def set_demand() -> Any:
     """设置用户需求接口"""
     try:
-        logger.debug(f"访问/set_demand接口...请求体为：{ request.get_data()}")
         request_data: dict[str, Any] = request.get_json()
+        logger.debug(f"{sys._getframe().f_code.co_name}接口请求数据：{ request_data }")
+
         demand = request_data.get("demand", "")
         logger.debug(f"Received demand: {demand}")
         # 这里可以添加代码将需求传递给回答生成器模块
