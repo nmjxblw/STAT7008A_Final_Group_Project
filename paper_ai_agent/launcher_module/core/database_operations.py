@@ -2,9 +2,6 @@
 
 from datetime import date, datetime
 import sys
-from typing import Any, Type
-
-from lief import Object
 from .database_model import File
 from log_module import *  # 导入全局日志模块
 

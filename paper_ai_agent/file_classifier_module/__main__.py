@@ -35,5 +35,12 @@ def start_file_classify_task(
     # 数据入库(键值库,现在先保存到json)
     # TODO:完成数据库的部署和连接
     # save_data()
-    save_to_database(pdf_info_dict)
-    move_files(unclassified_path, classified_path, [file_name])
+
+    if save_to_database(pdf_info_dict):
+        from log_module import logger
+        import sys
+
+        logger.info(
+            f"✔ {sys._getframe().f_code.co_name}:文件{pdf_info_dict['file_name']}保存到数据库成功"
+        )
+        move_files(unclassified_path, classified_path, [file_name])
