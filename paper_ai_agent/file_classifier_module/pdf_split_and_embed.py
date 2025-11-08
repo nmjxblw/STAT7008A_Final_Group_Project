@@ -26,6 +26,7 @@ class PDFRagWorker:
                 - False: 使用DashScope API（需API key，但更快）
         """
         self.use_local_embedding = use_local_embedding
+
         self.detected_language: str = "en"  # 检测到的语言（默认按照英文处理）
 
     def run(self, input_queue, output_queue):
@@ -193,13 +194,64 @@ class PDFRagWorker:
 
         vector_store.add_documents(docs)
 
-    def faiss_retrieval(self,query,k):
+    def get_faiss_retrieval(self,query,k):
         embeddings_model=self.__get_embedding_model()
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         # faiss文件保存目录
         save_embed_folder = os.path.join(project_root, "DB", "embedding")
         vector_store=FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
-        vector_store.similarity_search_with_score(query,k)
+        return vector_store.similarity_search_with_score(query,k)
+
+
+    def get_bm25_retrieval(self,query,k):
+        """从BM25索引中检索最相关的k条记录[5](@ref)
+
+        Args:
+            query: 查询文本
+            k: 返回的最相关文档数量
+            score_threshold: 分数阈值，只返回高于此阈值的结果
+
+        Returns:
+            list: 排序后的结果列表，每个元素为字典包含：
+                - document: 文档信息
+                - score: 相似度得分
+                - rank: 排名
+        """
+        if not self.corpus:
+            logger.warning("BM25语料库为空，无法进行检索")
+            return []
+
+        # 对查询进行分词
+        query_terms = self.__tokenize_text(query)
+        if not query_terms:
+            logger.warning("查询分词结果为空")
+            return []
+
+        logger.debug(f"查询分词结果: {query_terms}")
+
+        # 为每个文档计算BM25得分
+        results = []
+        for doc in self.corpus:
+            score = self._calculate_bm25_score(query_terms, doc)
+
+            if score > score_threshold:
+                results.append({
+                    "document": doc,
+                    "score": score,
+                    "file_id": doc["file_id"],
+                    "file_name": doc["file_name"]
+                })
+
+        # 按得分降序排序
+        results.sort(key=lambda x: x["score"], reverse=True)
+
+        # 添加排名信息
+        for i, result in enumerate(results[:k]):
+            result["rank"] = i + 1
+
+        logger.debug(f"BM25检索完成: 查询='{query}', 返回 {len(results[:k])} 个结果 (总分: {len(results)})")
+
+        return results[:k]
     def __build_bm25_index(self, previous_file_data_dict):
         """构建BM25索引并进行词频统计
 

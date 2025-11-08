@@ -77,7 +77,12 @@ async def save_to_database(file_dic: dict[str, Any]) -> bool:
 
 
 
-def get_retrieval_content(query:str,k:int)-> list[dict]:
-    faiss_retrieval=PDFRagWorker().faiss_retrieval(query,k)
-
-    return None
+def get_retrieval_content(query:str,k:int):
+    worker=PDFRagWorker()
+    faiss_retrieval=worker.get_faiss_retrieval(query,k)
+    bm25_retrieval=worker.get_bm25_retrieval(query,k)
+    retrieval={
+        "most_similar_paragrapghs":faiss_retrieval,
+        "most_similar_paper":bm25_retrieval
+    }
+    return retrieval
