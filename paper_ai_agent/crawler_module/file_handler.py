@@ -2,10 +2,11 @@ import os
 import shutil
 from datetime import datetime
 import hashlib
+from log_module import logger
 
 
-class FileClassifier:
-    """文件分类与保存功能"""
+class FileHandler:
+    """文件处理类，负责文件保存"""
 
     def __init__(self, base_path="./Resources"):
         self.base_path = base_path
@@ -47,7 +48,7 @@ class FileClassifier:
             self.log_download(url, filepath)
             return filepath
         except Exception as e:
-            print(f"文件保存失败: {e}")
+            logger.error(f" 文件保存失败: {e}")
             return None
 
     def log_download(self, url, filepath):
