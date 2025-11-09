@@ -1,6 +1,6 @@
 def start_file_classify_task(
     unclassified_path, file_name, classified_path, json_db_path
-):
+) -> bool:
     """
     目前数据格式如下
         "file_id",
@@ -43,4 +43,6 @@ def start_file_classify_task(
         logger.info(
             f"✔ {sys._getframe().f_code.co_name}:文件{pdf_info_dict['file_name']}保存到数据库成功"
         )
-        move_files(unclassified_path, classified_path, [file_name])
+        return move_files(unclassified_path, classified_path, [file_name])
+    else:
+        return False

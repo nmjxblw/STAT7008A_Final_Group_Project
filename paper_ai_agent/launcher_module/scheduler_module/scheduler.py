@@ -1,14 +1,13 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import re
-from crawler_module.web_crawler import *
 from global_module import crawler_config
+from crawler_module import crawler
 
 
 class TaskScheduler:
     def __init__(self):
         self.scheduler = BackgroundScheduler()
-        self.crawler = WebCrawler()
 
     def parse_trigger_time(self):
         """解析触发时间配置"""
@@ -32,7 +31,7 @@ class TaskScheduler:
 
         # 添加每日定时任务
         self.scheduler.add_job(
-            self.crawler.start_crawling_task,
+            crawler.start_crawling_task,
             "cron",
             hour=hour,
             minute=minute,
