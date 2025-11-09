@@ -4,7 +4,7 @@ import enum
 import threading
 from requests import Response
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, PageElement, NavigableString, Tag
 import urllib.robotparser
 from urllib.parse import urljoin, urlparse
 import time
@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from global_module import crawler_config
 from sympy import Basic
-from utility_mode import SingletonMeta
+from utility_module import SingletonMeta
 from log_module import logger  # 导入全局日志模块
 
 
@@ -71,7 +71,7 @@ class WebCrawler(metaclass=SingletonMeta):
         self.max_threads: int = os.cpu_count() or 4
         """ 最大线程数 """
         # 日志
-        logger.debug(f"网页爬虫类实例化完成")
+        logger.debug(f"✔ 网页爬虫类实例化完成")
 
     def setup_session(self):
         """设置请求会话参数"""
@@ -125,7 +125,7 @@ class WebCrawler(metaclass=SingletonMeta):
                     return response.content
             return None
         except Exception as e:
-            print(f"下载失败 {url}: {e}")
+            logger.debug(f"✘ 下载失败 {url}: {e}")
             return None
 
     def validate_file_type(self, content_type, expected_type):
@@ -153,7 +153,7 @@ class WebCrawler(metaclass=SingletonMeta):
             self.save_crawling_log()
             return True
         except Exception as e:
-            logger.debug(f"爬虫任务失败: {e}")
+            logger.debug(f"✘ 爬虫任务失败: {e}")
             return False
         finally:
             self.flush_runtime_cache_and_reset_state()
@@ -182,7 +182,7 @@ class WebCrawler(metaclass=SingletonMeta):
                     to_visit.extend(links)
                 time.sleep(1)  # 请求延迟
             except Exception as e:
-                print(f"访问失败 {url}: {e}")
+                logger.debug(f"✘ 访问失败 {url}: {e}")
 
     def is_blocked_site(self, url: str) -> bool:
         """检查URL是否在黑名单中"""
@@ -197,14 +197,17 @@ class WebCrawler(metaclass=SingletonMeta):
         """从页面提取链接"""
         links: list[str] = []
         for link in soup.find_all("a", href=True):
-            href = str(link["href"])
-            if href is None or href == "":
+            if link is None:
                 continue
-            full_url = urljoin(base_url, href)
+            if isinstance(link, Tag):
+                href = str(link.get("href", ""))
+                if href == "":
+                    continue
+                full_url = urljoin(base_url, href)
 
-            # 只爬取同域名下的链接
-            if urlparse(full_url).netloc == urlparse(base_url).netloc:
-                links.append(full_url)
+                # 只爬取同域名下的链接
+                if urlparse(full_url).netloc == urlparse(base_url).netloc:
+                    links.append(full_url)
         return links
 
     def extract_and_save_files(self, soup: BeautifulSoup, page_url: str):
@@ -213,20 +216,23 @@ class WebCrawler(metaclass=SingletonMeta):
         all_links = soup.find_all("a", href=True)
 
         for link in all_links:
-            href = str(link.get("href", ""))
-            if href is None or href == "":
+            if link is None:
                 continue
-            full_url = urljoin(page_url, href)
+            if isinstance(link, Tag):
+                href = str(link.get("href", ""))
+                if href == "":
+                    continue
+                full_url = urljoin(page_url, href)
 
-            # 检查文件类型
-            for file_type in crawler_config.file_type:
-                if full_url.lower().endswith(file_type):
-                    # 检查关键词
-                    if self.match_keywords(link.text, soup):
-                        self.current_crawling_article = link.text or os.path.basename(
-                            urlparse(full_url).path
-                        )
-                        self.download_and_save_file(full_url, file_type)
+                # 检查文件类型
+                for file_type in crawler_config.file_type:
+                    if full_url.lower().endswith(file_type):
+                        # 检查关键词
+                        if self.match_keywords(link.text, soup):
+                            self.current_crawling_article = (
+                                link.text or os.path.basename(urlparse(full_url).path)
+                            )
+                            self.download_and_save_file(full_url, file_type)
 
     def match_keywords(self, text: str, soup: BeautifulSoup) -> bool:
         """匹配关键词"""
@@ -248,7 +254,7 @@ class WebCrawler(metaclass=SingletonMeta):
             if file_content:
                 self.save_file(file_content, url, file_type)
         except Exception as e:
-            print(f"下载和保存文件失败 {url}: {e}")
+            logger.debug(f"✘ 下载和保存文件失败 {url}: {e}")
 
     def save_file(self, content: bytes, url: str, file_type: str):
         """保存文件到指定目录"""

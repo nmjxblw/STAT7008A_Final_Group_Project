@@ -2,7 +2,7 @@ import json
 from os import PathLike
 import threading
 from typing import Any, Dict, Optional, Union
-from utility_mode import SingletonMeta
+from utility_module import SingletonMeta
 from pathlib import Path
 import pathlib
 

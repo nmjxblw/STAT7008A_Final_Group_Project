@@ -1,17 +1,15 @@
 import os
 import pickle
 from collections import Counter
-
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from langchain_community.embeddings import DashScopeEmbeddings
 import json
-import hashlib
 from log_module import *  # 导入全局日志模块
 from global_module import API_KEY
+
+from .faiss_singleton import FAISSVectorStoreSingleton
 
 
 class PDFRagWorker:
@@ -23,7 +21,8 @@ class PDFRagWorker:
                 - True: 使用本地HuggingFace模型（需下载，但免费）
                 - False: 使用DashScope API（需API key，但更快）
         """
-        self.use_local_embedding = use_local_embedding
+        self.use_local_embedding: bool = use_local_embedding
+
         self.detected_language: str = "en"  # 检测到的语言（默认按照英文处理）
 
     def run(self, input_queue, output_queue):
@@ -145,15 +144,12 @@ class PDFRagWorker:
 
         logger.debug(f'开始尝试对{previous_file_data_dict["file_name"]}进行切分')
 
-        # 获取embedding模型（支持本地和API两种方式）
-        embeddings_model = self.__get_embedding_model()
-
         # 1. 获取文档切分
         splitted_docs = self.__content_split(previous_file_data_dict)
 
         # 2. 进行embedding
         # 这里需要维护一个后端全局的vector_db,要能在后端程序启动时加载,后端程序结束时保存.这里先暂时写为运行到这行代码时加载,运行结束后释放
-        self.__embed(splitted_docs, embeddings_model)
+        self.__embed(splitted_docs)
 
     def __content_split(self, previous_file_data_dict):
 
@@ -181,31 +177,78 @@ class PDFRagWorker:
         splitted_doc = text_splitter.split_documents([doc])
         return splitted_doc
 
-    def __embed(self, docs, embeddings_model):
+    def __embed(self, docs):
         # 项目根目录
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         # faiss文件保存目录
         save_embed_folder = os.path.join(project_root, "DB", "embedding")
-        os.makedirs(save_embed_folder, exist_ok=True)
+        # 获取embedding模型（支持本地和API两种方式）
+        embeddings_model = self.__get_embedding_model()
+        vector_store = FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
 
-        # 检查是否存在index文件
-        index_file = os.path.join(save_embed_folder, "index.faiss")
+        vector_store.add_documents(docs)
 
-        if os.path.exists(index_file):
-            # 加载现有索引
-            vector_db = FAISS.load_local(
-                save_embed_folder,
-                embeddings_model,
-                allow_dangerous_deserialization=True,
-            )
-            # 添加新文档
-            vector_db.add_documents(docs)
-        else:
-            # 首次创建索引
-            vector_db = FAISS.from_documents(docs, embeddings_model)
+    def get_faiss_retrieval(self, query, k):
+        embeddings_model = self.__get_embedding_model()
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # faiss文件保存目录
+        save_embed_folder = os.path.join(project_root, "DB", "embedding")
+        vector_store = FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
+        return vector_store.similarity_search_with_score(query, k)
 
-        # 保存索引
-        vector_db.save_local(save_embed_folder)
+    def get_bm25_retrieval(self, query, k):
+        """从BM25索引中检索最相关的k条记录[5](@ref)
+
+        Args:
+            query: 查询文本
+            k: 返回的最相关文档数量
+            score_threshold: 分数阈值，只返回高于此阈值的结果
+
+        Returns:
+            list: 排序后的结果列表，每个元素为字典包含：
+                - document: 文档信息
+                - score: 相似度得分
+                - rank: 排名
+        """
+        if not self.corpus:
+            logger.warning("BM25语料库为空，无法进行检索")
+            return []
+
+        # 对查询进行分词
+        query_terms = self.__tokenize_text(query)
+        if not query_terms:
+            logger.warning("查询分词结果为空")
+            return []
+
+        logger.debug(f"查询分词结果: {query_terms}")
+
+        # 为每个文档计算BM25得分
+        results = []
+        for doc in self.corpus:
+            score = self._calculate_bm25_score(query_terms, doc)
+
+            if score > score_threshold:
+                results.append(
+                    {
+                        "document": doc,
+                        "score": score,
+                        "file_id": doc["file_id"],
+                        "file_name": doc["file_name"],
+                    }
+                )
+
+        # 按得分降序排序
+        results.sort(key=lambda x: x["score"], reverse=True)
+
+        # 添加排名信息
+        for i, result in enumerate(results[:k]):
+            result["rank"] = i + 1
+
+        logger.debug(
+            f"BM25检索完成: 查询='{query}', 返回 {len(results[:k])} 个结果 (总分: {len(results)})"
+        )
+
+        return results[:k]
 
     def __build_bm25_index(self, previous_file_data_dict):
         """构建BM25索引并进行词频统计
@@ -249,7 +292,7 @@ class PDFRagWorker:
             # 加载现有语料库
             if os.path.exists(corpus_path):
                 with open(corpus_path, "rb") as f:
-                    corpus = pickle.load(f)
+                    corpus: list[dict] = pickle.load(f)
             else:
                 corpus = []
 

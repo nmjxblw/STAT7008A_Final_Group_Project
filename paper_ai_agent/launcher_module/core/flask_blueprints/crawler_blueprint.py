@@ -1,6 +1,6 @@
 import json
 from typing import Any
-from crawler_module import crawler
+from crawler_module import crawler  # 在模块导入时实例化全局爬虫类，单例模式
 from flask import Blueprint, jsonify, render_template, abort, request
 from jinja2 import TemplateNotFound
 from pathlib import Path
@@ -26,7 +26,7 @@ def crawler_bp_setup_crawler_config():
         return jsonify(response_data)
     except Exception as e:
         logger.debug(f"✖ 爬虫配置更新失败: {e}")
-        abort(500, description="设置爬虫配置失败")
+        abort(500, description="✖ 设置爬虫配置失败")
 
 
 @crawler_bp.route("/start_crawling_task", methods=["GET"])
@@ -42,7 +42,7 @@ def crawler_bp_start_crawling_task() -> Any:
             logger.debug("✖ 爬虫任务执行失败")
         return jsonify(response_data)
     except Exception as e:
-        abort(500, description="启动爬虫任务失败")
+        abort(500, description="✖ 启动爬虫任务失败")
         raise e
 
 
@@ -60,7 +60,7 @@ def crawler_bp_get_current_crawling_web() -> Any:
         return jsonify(response_data)
     except Exception as e:
         logger.debug(f"✖ 获取当前爬虫网页失败: {e}")
-        abort(500, description="获取当前爬虫网页失败")
+        abort(500, description="✖ 获取当前爬虫网页失败")
 
 
 @crawler_bp.route("/get_current_crawling_article", methods=["GET"])
@@ -77,7 +77,7 @@ def crawler_bp_get_current_crawling_article() -> Any:
         return jsonify(response_data)
     except Exception as e:
         logger.debug(f"✖ 获取当前爬虫文章标题失败: {e}")
-        abort(500, description="获取当前爬虫文章标题失败")
+        abort(500, description="✖ 获取当前爬虫文章标题失败")
 
 
 @crawler_bp.route("/get_crawling_task_progress", methods=["GET"])
@@ -94,7 +94,7 @@ def crawler_bp_get_crawling_task_progress() -> Any:
         return jsonify(response_data)
     except Exception as e:
         logger.debug(f"✖ 获取爬虫任务进度失败: {e}")
-        abort(500, description="获取爬虫任务进度失败")
+        abort(500, description="✖ 获取爬虫任务进度失败")
 
 
 @crawler_bp.route("/get_block_list", methods=["GET"])
@@ -111,4 +111,4 @@ def crawler_bp_get_block_list() -> Any:
         return jsonify(response_data)
     except Exception as e:
         logger.debug(f"✖ 获取屏蔽网址列表失败: {e}")
-        abort(500, description="获取屏蔽网址列表失败")
+        abort(500, description="✖ 获取屏蔽网址列表失败")

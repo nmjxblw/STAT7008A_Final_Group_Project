@@ -1,6 +1,6 @@
 def start_file_classify_task(
     unclassified_path, file_name, classified_path, json_db_path
-):
+) -> bool:
     """
     目前数据格式如下
         "file_id",
@@ -14,7 +14,7 @@ def start_file_classify_task(
     from .pdf_analysis import PDFContentAnalyzer
     from .pdf_split_and_embed import PDFRagWorker
     from .pdf_transform import PDFTransformer
-    from .utils import save_to_json, move_files
+    from .utils import save_to_database, move_files
 
     # 这里先以单文件为例顺序执行,后续可以实现根据流式处理的多线程调度
 
@@ -35,5 +35,14 @@ def start_file_classify_task(
     # 数据入库(键值库,现在先保存到json)
     # TODO:完成数据库的部署和连接
     # save_data()
-    save_to_json(pdf_info_dict, json_db_path)
-    move_files(unclassified_path, classified_path, [file_name])
+
+    if save_to_database(pdf_info_dict):
+        from log_module import logger
+        import sys
+
+        logger.info(
+            f"✔ {sys._getframe().f_code.co_name}:文件{pdf_info_dict['file_name']}保存到数据库成功"
+        )
+        return move_files(unclassified_path, classified_path, [file_name])
+    else:
+        return False

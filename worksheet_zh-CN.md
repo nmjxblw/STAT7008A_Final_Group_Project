@@ -156,3 +156,12 @@ class MyClass:
   - [ ] 1. 以 markdown 语法渲染在页面的话框内。（必须）
   - [ ] 2. 处理特殊文本标记，以便用户跳转对应的文章和内容。（e.g. `根据论文显示，实验数据呈现上升趋势。...[1:{17},3:{46,154}]` 表示第 1 篇文章第 17 段和第 3 篇文章第 46 段和 154 段提供了相应的证据。）（可选）
 - [ ] 4. 根据 [launcher](#主程序启动器-launcher) 中提供的 WebAPI Url 实现对应的接口功能。（必须）
+
+```mermaid
+graph TD
+  launcher_module[启动器模块<br>1.上位机<br>2.网页后台]
+  frontend_module[前端网页模块]
+  clawer_module[爬虫模块<br>]-->|功能|clawer_api[1.提供爬虫类单例对象<br>]
+  classifier_module[文件归档模块]
+  generator_module[回答生成器模块]
+```

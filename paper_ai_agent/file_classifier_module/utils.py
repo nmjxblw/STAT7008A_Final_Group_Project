@@ -4,6 +4,8 @@ import shutil
 from typing import Any
 from log_module import *
 
+from .pdf_split_and_embed import PDFRagWorker
+
 
 def move_files(source, target, success_filename_list):
     """
@@ -63,11 +65,28 @@ def save_to_json(file_info, save_data_folder):
         json.dump(database, f, ensure_ascii=False, indent=2)
 
 
-async def save_to_database(file_dic: dict[str, Any]) -> bool:
+def save_to_database(file_dic: dict[str, Any]) -> bool:
     """
-    异步操作，将文件信息保存到flask数据库中
+    调用异步操作，将文件信息保存到flask数据库中
+
+    参数:
+        file_dic (dict[str, Any]): 包含文件信息的字典
+    返回:
+        bool: 保存是否成功
     """
     # 延迟导入以避免循环依赖
     from launcher_module.core.database_operations import add_or_update_file_to_database
+    from asyncio import run
 
-    return await add_or_update_file_to_database(file_dic)
+    return run(add_or_update_file_to_database(file_dic))
+
+
+def get_retrieval_content(query: str, k: int):
+    worker = PDFRagWorker()
+    faiss_retrieval = worker.get_faiss_retrieval(query, k)
+    bm25_retrieval = worker.get_bm25_retrieval(query, k)
+    retrieval = {
+        "most_similar_paragrapghs": faiss_retrieval,
+        "most_similar_paper": bm25_retrieval,
+    }
+    return retrieval
