@@ -3,6 +3,7 @@ import hashlib
 import os
 import re
 from log_module import *  # 导入全局日志模块
+from pymupdf import Document, Page
 
 
 class PDFTransformer:
@@ -66,12 +67,12 @@ class PDFTransformer:
                 "comparison",
             ]
 
-            doc = fitz.open(full_path)
-            total_pages = len(doc)
+            doc: Document = fitz.open(full_path)
+            total_pages: int = len(doc)
 
-            ocr_results = []
-            pages_ocred = 0
-            max_pages = 3  # 成本保护：最多OCR 3页
+            ocr_results: list = []
+            pages_ocred: int = 0
+            max_pages: int = 3  # 成本保护：最多OCR 3页
 
             logger.debug(f" 开始智能OCR分析（{total_pages}页，最多处理{max_pages}页）")
 
@@ -80,7 +81,7 @@ class PDFTransformer:
                     logger.debug(f"️  已达OCR页数上限（{max_pages}页），停止")
                     break
 
-                page = doc[page_num]
+                page: Page = doc[page_num]
 
                 # 提取页面文本
                 page_text: dict | list | str = page.get_text()
