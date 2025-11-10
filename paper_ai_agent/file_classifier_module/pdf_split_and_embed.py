@@ -1,6 +1,6 @@
 import os
 import pickle
-from collections import Counter
+from collections import Counter, defaultdict
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -9,6 +9,7 @@ import json
 from log_module import *  # 导入全局日志模块
 from global_module import API_KEY
 
+from .corpus_singleton import CorpusSingleton
 from .faiss_singleton import FAISSVectorStoreSingleton
 
 
@@ -196,8 +197,8 @@ class PDFRagWorker:
         vector_store = FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
         return vector_store.similarity_search_with_score(query, k)
 
-    def get_bm25_retrieval(self, query, k):
-        """从BM25索引中检索最相关的k条记录[5](@ref)
+    def get_bm25_retrieval(self, query, k=10, score_threshold=0.0):
+        """从BM25索引中检索最相关的k条记录
 
         Args:
             query: 查询文本
@@ -209,8 +210,12 @@ class PDFRagWorker:
                 - document: 文档信息
                 - score: 相似度得分
                 - rank: 排名
+                - file_id: 文件ID
+                - file_name: 文件名
         """
-        if not self.corpus:
+        corpus_manager = CorpusSingleton()
+        corpus = corpus_manager.get_corpus()
+        if not corpus:
             logger.warning("BM25语料库为空，无法进行检索")
             return []
 
@@ -222,20 +227,23 @@ class PDFRagWorker:
 
         logger.debug(f"查询分词结果: {query_terms}")
 
+        # 预先计算语料库统计信息
+        if not hasattr(self, 'doc_freq'):
+            self._calculate_corpus_statistics()
+
         # 为每个文档计算BM25得分
         results = []
-        for doc in self.corpus:
+        for doc in corpus:
             score = self._calculate_bm25_score(query_terms, doc)
 
             if score > score_threshold:
-                results.append(
-                    {
-                        "document": doc,
-                        "score": score,
-                        "file_id": doc["file_id"],
-                        "file_name": doc["file_name"],
-                    }
-                )
+                results.append({
+                    "document": doc,
+                    "score": score,
+                    "file_id": doc["file_id"],
+                    "file_name": doc["file_name"],
+                    "matched_terms": self._find_matched_terms(query_terms, doc.get("tokens", []))
+                })
 
         # 按得分降序排序
         results.sort(key=lambda x: x["score"], reverse=True)
@@ -249,6 +257,10 @@ class PDFRagWorker:
         )
 
         return results[:k]
+
+    def _find_matched_terms(self, query_terms, doc_tokens):
+        """找出查询中与文档匹配的词项"""
+        return [term for term in query_terms if term in doc_tokens]
 
     def __build_bm25_index(self, previous_file_data_dict):
         """构建BM25索引并进行词频统计
@@ -283,18 +295,7 @@ class PDFRagWorker:
             term_frequency = self.__calculate_term_frequency(tokens)
 
             # 3. 加载或创建语料库（存储在DB/BM25目录下）
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            bm25_folder = os.path.join(project_root, "DB", "BM25")
-            os.makedirs(bm25_folder, exist_ok=True)
-
-            corpus_path = os.path.join(bm25_folder, "bm25_corpus.pkl")
-
-            # 加载现有语料库
-            if os.path.exists(corpus_path):
-                with open(corpus_path, "rb") as f:
-                    corpus: list[dict] = pickle.load(f)
-            else:
-                corpus = []
+            corpus_manager = CorpusSingleton()
 
             # 4. 添加新文档到语料库
             doc_entry = {
@@ -309,25 +310,15 @@ class PDFRagWorker:
                 },
             }
 
-            # 检查是否已存在（避免重复）
-            existing_ids = [doc["file_id"] for doc in corpus]
-            if doc_entry["file_id"] in existing_ids:
-                # 更新已存在的文档
-                for i, doc in enumerate(corpus):
-                    if doc["file_id"] == doc_entry["file_id"]:
-                        corpus[i] = doc_entry
-                        logger.debug(f"更新现有文档: {doc_entry['file_name']}")
-                        break
-            else:
-                # 添加新文档
-                corpus.append(doc_entry)
-                logger.debug(f"添加新文档到BM25语料库: {doc_entry['file_name']}")
+            corpus_manager.add_document(doc_entry)
 
-            # 5. 保存语料库
-            with open(corpus_path, "wb") as f:
-                pickle.dump(corpus, f)
+            corpus = corpus_manager.get_corpus()
 
-            # 6. 保存词频统计到JSON（便于查看）
+            # 6. 保存词频统计到JSON（便于查看）- 这部分可以保留
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            bm25_folder = os.path.join(project_root, "DB", "BM25")
+            os.makedirs(bm25_folder, exist_ok=True)
+
             term_freq_path = os.path.join(bm25_folder, "term_freq.json")
 
             # 加载现有词频统计
@@ -693,3 +684,106 @@ class PDFRagWorker:
         sorted_terms = sorted(term_counts.items(), key=lambda x: x[1], reverse=True)
 
         return sorted_terms
+
+    def _calculate_bm25_score(self, query_terms, doc):
+        """计算查询与文档的BM25相关性得分
+
+        Args:
+            query_terms: 查询词项列表
+            doc: 文档数据（包含tokens和元数据）
+
+        Returns:
+            float: BM25得分
+        """
+        try:
+            # 获取文档的分词结果
+            doc_tokens = doc.get("tokens", [])
+            if not doc_tokens:
+                return 0.0
+
+            # 获取文档长度
+            doc_length = len(doc_tokens)
+
+            # 计算平均文档长度（如果尚未计算）
+            if not hasattr(self, 'avg_doc_length'):
+                self._calculate_corpus_statistics()
+
+            # BM25参数（可调整）
+            k1 = 1.5  # 词频饱和度参数，通常范围[1.2, 2.0]
+            b = 0.75  # 文档长度归一化参数，通常范围[0.5, 0.8]
+
+            score = 0.0
+
+            for term in query_terms:
+                # 跳过不在文档中的词项
+                if term not in doc_tokens:
+                    continue
+
+                # 计算词项在文档中的频率(TF)
+                term_frequency = doc_tokens.count(term)
+
+                # 计算逆文档频率(IDF)
+                idf = self._calculate_idf(term)
+                if idf <= 0:
+                    continue
+
+                # BM25公式计算
+                numerator = term_frequency * (k1 + 1)
+                denominator = term_frequency + k1 * (1 - b + b * (doc_length / self.avg_doc_length))
+
+                term_score = idf * (numerator / denominator)
+                score += term_score
+
+            return score
+
+        except Exception as e:
+            logger.debug(f"BM25得分计算失败: {e}")
+            return 0.0
+
+    def _calculate_idf(self, term):
+        """计算词项的逆文档频率(IDF)
+
+        Args:
+            term: 词项
+
+        Returns:
+            float: IDF值
+        """
+        if not hasattr(self, 'doc_freq'):
+            self._calculate_corpus_statistics()
+
+        # 如果词项不在语料库中，返回0
+        if term not in self.doc_freq:
+            return 0
+
+        # 包含该词项的文档数
+        n_qi = self.doc_freq[term]
+        # 总文档数
+        N = len(self.corpus)
+
+        # 标准BM25 IDF公式（避免除零）
+        idf = math.log((N - n_qi + 0.5) / (n_qi + 0.5) + 1.0)
+        return idf
+
+    def _calculate_corpus_statistics(self):
+        """计算语料库统计信息（文档频率、平均文档长度等）"""
+        if not self.corpus:
+            self.doc_freq = {}
+            self.avg_doc_length = 0
+            return
+
+        # 计算文档频率（每个词项出现在多少文档中）
+        self.doc_freq = defaultdict(int)
+        total_length = 0
+
+        for doc in self.corpus:
+            doc_tokens = doc.get("tokens", [])
+            total_length += len(doc_tokens)
+
+            # 每个文档中每个词项只计一次（使用set去重）
+            unique_terms = set(doc_tokens)
+            for term in unique_terms:
+                self.doc_freq[term] += 1
+
+        # 计算平均文档长度
+        self.avg_doc_length = total_length / len(self.corpus) if self.corpus else 0
