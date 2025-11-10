@@ -11,6 +11,7 @@ from global_module import API_KEY
 
 from .corpus_singleton import CorpusSingleton
 from .faiss_singleton import FAISSVectorStoreSingleton
+import math
 
 
 class PDFRagWorker:
@@ -228,22 +229,26 @@ class PDFRagWorker:
         logger.debug(f"查询分词结果: {query_terms}")
 
         # 预先计算语料库统计信息
-        if not hasattr(self, 'doc_freq'):
-            self._calculate_corpus_statistics()
+        if not hasattr(self, "doc_freq"):
+            self._calculate_corpus_statistics(corpus)
 
         # 为每个文档计算BM25得分
         results = []
         for doc in corpus:
-            score = self._calculate_bm25_score(query_terms, doc)
+            score = self._calculate_bm25_score(query_terms, doc, corpus)
 
             if score > score_threshold:
-                results.append({
-                    "document": doc,
-                    "score": score,
-                    "file_id": doc["file_id"],
-                    "file_name": doc["file_name"],
-                    "matched_terms": self._find_matched_terms(query_terms, doc.get("tokens", []))
-                })
+                results.append(
+                    {
+                        "document": doc,
+                        "score": score,
+                        "file_id": doc["file_id"],
+                        "file_name": doc["file_name"],
+                        "matched_terms": self._find_matched_terms(
+                            query_terms, doc.get("tokens", [])
+                        ),
+                    }
+                )
 
         # 按得分降序排序
         results.sort(key=lambda x: x["score"], reverse=True)
@@ -685,7 +690,7 @@ class PDFRagWorker:
 
         return sorted_terms
 
-    def _calculate_bm25_score(self, query_terms, doc):
+    def _calculate_bm25_score(self, query_terms, doc, corpus):
         """计算查询与文档的BM25相关性得分
 
         Args:
@@ -705,8 +710,8 @@ class PDFRagWorker:
             doc_length = len(doc_tokens)
 
             # 计算平均文档长度（如果尚未计算）
-            if not hasattr(self, 'avg_doc_length'):
-                self._calculate_corpus_statistics()
+            if not hasattr(self, "avg_doc_length"):
+                self._calculate_corpus_statistics(corpus)
 
             # BM25参数（可调整）
             k1 = 1.5  # 词频饱和度参数，通常范围[1.2, 2.0]
@@ -723,13 +728,15 @@ class PDFRagWorker:
                 term_frequency = doc_tokens.count(term)
 
                 # 计算逆文档频率(IDF)
-                idf = self._calculate_idf(term)
+                idf = self._calculate_idf(term, corpus)
                 if idf <= 0:
                     continue
 
                 # BM25公式计算
                 numerator = term_frequency * (k1 + 1)
-                denominator = term_frequency + k1 * (1 - b + b * (doc_length / self.avg_doc_length))
+                denominator = term_frequency + k1 * (
+                    1 - b + b * (doc_length / self.avg_doc_length)
+                )
 
                 term_score = idf * (numerator / denominator)
                 score += term_score
@@ -740,7 +747,7 @@ class PDFRagWorker:
             logger.debug(f"BM25得分计算失败: {e}")
             return 0.0
 
-    def _calculate_idf(self, term):
+    def _calculate_idf(self, term, corpus):
         """计算词项的逆文档频率(IDF)
 
         Args:
@@ -749,8 +756,8 @@ class PDFRagWorker:
         Returns:
             float: IDF值
         """
-        if not hasattr(self, 'doc_freq'):
-            self._calculate_corpus_statistics()
+        if not hasattr(self, "doc_freq"):
+            self._calculate_corpus_statistics(corpus)
 
         # 如果词项不在语料库中，返回0
         if term not in self.doc_freq:
@@ -759,15 +766,15 @@ class PDFRagWorker:
         # 包含该词项的文档数
         n_qi = self.doc_freq[term]
         # 总文档数
-        N = len(self.corpus)
+        N = len(corpus)
 
         # 标准BM25 IDF公式（避免除零）
         idf = math.log((N - n_qi + 0.5) / (n_qi + 0.5) + 1.0)
         return idf
 
-    def _calculate_corpus_statistics(self):
+    def _calculate_corpus_statistics(self, corpus):
         """计算语料库统计信息（文档频率、平均文档长度等）"""
-        if not self.corpus:
+        if not corpus:
             self.doc_freq = {}
             self.avg_doc_length = 0
             return
@@ -776,7 +783,7 @@ class PDFRagWorker:
         self.doc_freq = defaultdict(int)
         total_length = 0
 
-        for doc in self.corpus:
+        for doc in corpus:
             doc_tokens = doc.get("tokens", [])
             total_length += len(doc_tokens)
 
@@ -786,4 +793,4 @@ class PDFRagWorker:
                 self.doc_freq[term] += 1
 
         # 计算平均文档长度
-        self.avg_doc_length = total_length / len(self.corpus) if self.corpus else 0
+        self.avg_doc_length = total_length / len(corpus) if corpus else 0

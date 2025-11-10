@@ -1,8 +1,8 @@
 import os
 import pickle
 from pathlib import Path
-
-from paper_ai_agent.utility_module import SingletonMeta
+from pymupdf import Document
+from utility_module import SingletonMeta
 
 
 class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您的单例元类
@@ -24,7 +24,7 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
         self.bm25_folder.mkdir(parents=True, exist_ok=True)  # 确保目录存在
 
         self.corpus_path = self.bm25_folder / corpus_filename
-        self._corpus = None  # 内部变量，存储实际的语料库数据
+        self._corpus: list = []  # 内部变量，存储实际的语料库数据
 
         # 单例初始化：在实例化时自动加载已有语料库
         self._load_corpus()
@@ -33,9 +33,11 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
         """从文件加载语料库到内存。如果文件不存在，则初始化一个空列表。"""
         try:
             if self.corpus_path.exists():
-                with open(self.corpus_path, 'rb') as f:
+                with open(self.corpus_path, "rb") as f:
                     self._corpus = pickle.load(f)
-                print(f"已从 {self.corpus_path} 加载语料库，包含 {len(self._corpus)} 个文档。")
+                print(
+                    f"已从 {self.corpus_path} 加载语料库，包含 {len(self._corpus)} 个文档。"
+                )
             else:
                 self._corpus = []
                 print("未找到现有语料库文件，已初始化一个空语料库。")
@@ -51,8 +53,13 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
             document_data (dict): 要添加的文档数据，必须包含 'file_id' 等唯一标识符。
         """
         # 检查文档是否已存在（基于 file_id）
-        file_id = document_data.get('file_id')
-        existing_index = next((i for i, doc in enumerate(self._corpus) if doc.get('file_id') == file_id), None)
+        file_id = document_data.get("file_id")
+        if not isinstance(self._corpus, list):
+            raise ValueError("语料库数据结构异常，预期为列表。")
+        existing_index = next(
+            (i for i, doc in enumerate(self._corpus) if doc.get("file_id") == file_id),
+            None,
+        )
 
         if existing_index is not None:
             # 更新已存在的文档
@@ -78,13 +85,13 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
     def save_corpus(self):
         """将当前的语料库保存到文件。"""
         try:
-            with open(self.corpus_path, 'wb') as f:
+            with open(self.corpus_path, "wb") as f:
                 pickle.dump(self._corpus, f)
             print(f"语料库已保存至 {self.corpus_path}。")
         except Exception as e:
             print(f"保存语料库时出错: {e}")
 
-    def get_document_by_id(self, file_id):
+    def get_document_by_id(self, file_id: str) -> dict | None:
         """
         根据文件ID查找文档。
 
@@ -94,11 +101,17 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
         Returns:
             dict or None: 找到的文档，未找到则返回 None。
         """
+        if not isinstance(self._corpus, list):
+            return None
         for doc in self._corpus:
-            if doc.get('file_id') == file_id:
+            if not isinstance(doc, dict):
+                continue
+            if doc.get("file_id") == file_id:
                 return doc
         return None
 
     def __len__(self):
         """返回语料库中的文档数量。"""
+        if not isinstance(self._corpus, list):
+            return 0
         return len(self._corpus)
