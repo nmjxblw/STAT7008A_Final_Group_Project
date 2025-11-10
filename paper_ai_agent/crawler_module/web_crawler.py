@@ -3,8 +3,11 @@
 import enum
 import random
 import threading
+from typing import Sequence
 from requests import Response
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import queue
 from bs4 import BeautifulSoup, PageElement, NavigableString, Tag
 import urllib.robotparser
 from urllib.parse import ParseResult, ParseResultBytes, urljoin, urlparse
@@ -13,8 +16,7 @@ import os
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from global_module import crawler_config
-from sympy import Basic
+from global_module import crawler_config, USING_PROXY
 from utility_module import SingletonMeta
 from log_module import logger  # 导入全局日志模块
 
@@ -29,33 +31,33 @@ class State(enum.Enum):
     ERROR = "ERROR"
 
 
-_my_headers: list[str] = [
-    "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:30.0) Gecko/20100101 Firefox/30.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/537.75.14",
-    "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Win64; x64; Trident/6.0)",
-    "Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
-    "Opera/9.25 (Windows NT 5.1; U; en)",
-    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
-    "Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.5 (like Gecko) (Kubuntu)",
-    "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12",
-    "Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9",
-    "Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Ubuntu/11.04 Chromium/16.0.912.77 Chrome/16.0.912.77 Safari/535.7",
-    "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0 ",
-]
-"""爬虫请求头列表"""
-
-
 class WebCrawler(metaclass=SingletonMeta):
     """网页爬虫类"""
 
     def __init__(self):
+        # 代理相关配置
+        self.use_proxy: bool = USING_PROXY
+        """ 是否使用代理 """
+        print(f"代理功能启用状态: {self.use_proxy}")
+        self.proxy_pool: list[str] = []
+        """ 代理池 """
+        self.current_proxy: str = ""
+        """ 当前使用的代理 """
+        self._init_proxy_pool()
         self.session: requests.Session = requests.Session()
-        """ 请求会话 """
+        """ 请求会话（主线程用） """
         self.setup_session()
+        self.origin_url: str = ""
+        """ 原始源节点URL """
+
+        # 线程安全的数据结构
+        self._pending_urls: queue.Queue = queue.Queue()
+        """ 待访问的URL队列（线程安全） """
         self.visited_urls: set[str] = set()
         """ 已访问的URL集合 """
+        self._visited_urls_lock: threading.RLock = threading.RLock()
+        """ 已访问URL集合的锁 """
+
         self.respect_robots_txt: bool = True
         """ 是否遵守robots.txt协议 """
         self.current_crawling_web: str = ""
@@ -64,8 +66,12 @@ class WebCrawler(metaclass=SingletonMeta):
         """ 当前正在爬取的文章 """
         self.total_files_downloaded: int = 0
         """ 已下载的文件总数 """
+        self._download_count_lock: threading.RLock = threading.RLock()
+        """ 下载计数锁 """
         self.crawling_log: list[dict] = []
         """ 爬取日志列表 """
+        self._log_lock: threading.RLock = threading.RLock()
+        """ 日志列表锁 """
 
         # 设置保存路径
         self.project_root: Path = Path.cwd()
@@ -87,58 +93,75 @@ class WebCrawler(metaclass=SingletonMeta):
         self.task_duration: timedelta = timedelta()
         """ 任务持续时间 """
 
-        self.max_threads: int = os.cpu_count() or 4
+        self.max_threads: int = min(
+            os.cpu_count() or 4, 8
+        )  # 限制最大线程数避免过多并发
         """ 最大线程数 """
+        self._thread_pool: ThreadPoolExecutor | None = None
+        """ 线程池实例 """
+        self._active_futures: list = []
+        """ 活跃的 Future 对象列表 """
+
         # robots.txt 解析器缓存: netloc -> RobotFileParser
         self._robots_parsers = {}
+        """ robots.txt 解析器缓存 """
+        self._robots_cache_lock: threading.RLock = threading.RLock()
+        """ robots.txt 缓存锁 """
+
         # site-specific rules cache: netloc -> {crawl_delay: float|None, disallow_all: bool}
         self._site_rules = {}
+        """ 站点特定规则缓存 """
 
-        # 代理相关配置
-        self.use_proxy: bool = True
-        """ 是否使用代理 """
-        self.proxy_pool: list[str] = []
-        """ 代理池 """
-        self.current_proxy: str | None = None
-        """ 当前使用的代理 """
-        self._init_proxy_pool()
-
-        # 日志
         logger.debug(f"✔ 网页爬虫类实例化完成")
 
     def setup_session(self):
         """设置请求会话参数"""
-        self.session.headers.update({"User-Agent": random.choice(_my_headers)})
+        self.session.headers.update(
+            {"User-Agent": random.choice(crawler_config.headers.to_list())}
+        )
 
         # 设置代理
         if self.use_proxy:
             self._set_random_proxy()
+        else:
+            logger.debug("✔ 代理功能未启用，跳过代理设置")
+
+    def _create_worker_session(self) -> requests.Session:
+        """为工作线程创建独立的 requests.Session"""
+        session = requests.Session()
+        session.headers.update(
+            {"User-Agent": random.choice(crawler_config.headers.to_list())}
+        )
+
+        # 为工作线程设置随机代理
+        if self.use_proxy and self.proxy_pool:
+            proxy = random.choice(self.proxy_pool)
+            proxy_dict = {
+                "http": f"http://{proxy}",
+                "https": f"http://{proxy}",
+            }
+            session.proxies.update(proxy_dict)
+
+        return session
 
     def _init_proxy_pool(self):
         """初始化代理池 - 生成随机IP地址作为代理"""
+        if not self.use_proxy:
+            logger.debug("✔ 代理功能未启用，跳过代理池初始化")
+            return
         try:
-            # 生成一些常用的代理IP地址（这里使用模拟的内网IP范围）
             # 在实际使用中，你可能需要从代理服务商获取真实的代理IP
-            proxy_ips = []
+            proxy_ips: list[str] = []
 
             # 生成一些随机的IP地址（模拟代理池）
             for _ in range(10):
-                # 生成192.168.x.x范围的IP（仅用于演示，实际使用需要真实代理）
-                ip = f"192.168.{random.randint(1, 254)}.{random.randint(1, 254)}"
+                ip = self._generate_random_ip()
                 port = random.choice([8080, 3128, 8888, 9999, 1080])
                 proxy_ips.append(f"{ip}:{port}")
 
             # 也可以添加一些公开的代理IP（需要验证可用性）
-            # 注意：以下是示例IP，实际使用时需要替换为可用的代理
-            public_proxies = [
-                "103.152.112.162:80",
-                "103.155.54.185:83",
-                "103.159.46.25:83",
-                "103.159.46.34:83",
-                "103.159.46.46:83",
-            ]
 
-            self.proxy_pool = proxy_ips + public_proxies
+            self.proxy_pool = proxy_ips + crawler_config.public_proxies.to_list()
             logger.debug(f"✔ 代理池初始化完成，共 {len(self.proxy_pool)} 个代理")
 
         except Exception as e:
@@ -167,7 +190,7 @@ class WebCrawler(metaclass=SingletonMeta):
 
         except Exception as e:
             logger.debug(f"✘ 设置代理失败: {e}")
-            self.current_proxy = None
+            self.current_proxy = ""
 
     def _generate_random_ip(self) -> str:
         """生成随机IP地址"""
@@ -224,12 +247,12 @@ class WebCrawler(metaclass=SingletonMeta):
         if not self.use_proxy:
             # 清除代理设置
             self.session.proxies.clear()
-            self.current_proxy = None
+            self.current_proxy = ""
             logger.debug("✔ 代理功能已关闭")
         else:
             logger.debug("✔ 代理功能已开启")
 
-    def get_current_proxy(self) -> str | None:
+    def get_current_proxy(self) -> str:
         """获取当前使用的代理"""
         return self.current_proxy
 
@@ -237,27 +260,84 @@ class WebCrawler(metaclass=SingletonMeta):
         """清除运行时临时缓存数据并重置状态"""
         self.current_crawling_web = ""
         self.current_crawling_article = ""
-        self.crawling_log.clear()
+
+        # 清空队列
+        while not self._pending_urls.empty():
+            try:
+                self._pending_urls.get_nowait()
+            except queue.Empty:
+                break
+
+        # 清空其他数据结构
+        with self._visited_urls_lock:
+            self.visited_urls.clear()
+        with self._log_lock:
+            self.crawling_log.clear()
+        with self._download_count_lock:
+            self.total_files_downloaded = 0
+
         self.task_progress = 0.0
         self.current_state = State.IDLE
+
+        # 清理线程池
+        if self._thread_pool:
+            self._thread_pool.shutdown(wait=False)
+            self._thread_pool = None
+        self._active_futures.clear()
+
         # 重置代理相关状态
         if hasattr(self, "use_proxy"):
-            self.current_proxy = None
+            self.current_proxy = ""
         logger.debug("✔ 爬虫运行时缓存数据已清除，状态已重置")
 
+    def _add_url_to_pending(self, url: str) -> None:
+        """线程安全地添加URL到待处理队列"""
+        self._pending_urls.put(url)
+
+    def _add_urls_to_pending(self, urls: set[str]) -> None:
+        """线程安全地批量添加URL到待处理队列"""
+        for url in urls:
+            self._pending_urls.put(url)
+
+    def _is_url_visited(self, url: str) -> bool:
+        """线程安全地检查URL是否已被访问"""
+        with self._visited_urls_lock:
+            return url in self.visited_urls
+
+    def _mark_url_visited(self, url: str) -> bool:
+        """线程安全地标记URL为已访问，返回True如果是首次访问"""
+        with self._visited_urls_lock:
+            if url in self.visited_urls:
+                return False
+            self.visited_urls.add(url)
+            return True
+
+    def _increment_download_count(self) -> None:
+        """线程安全地增加下载计数"""
+        with self._download_count_lock:
+            self.total_files_downloaded += 1
+
+    def _add_to_crawling_log(self, log_entry: dict) -> None:
+        """线程安全地添加爬取日志"""
+        with self._log_lock:
+            self.crawling_log.append(log_entry)
+
     def check_robots_txt(self, url: str) -> bool:
-        """检查robots.txt协议"""
+        """检查robots.txt协议（线程安全）"""
         if not self.respect_robots_txt:
             return True
         parsed = urlparse(url)
         netloc = parsed.netloc
 
         # 使用缓存的解析器，如果不存在则尝试去拉取并解析 robots.txt
-        rp = self._robots_parsers.get(netloc)
+        with self._robots_cache_lock:
+            rp = self._robots_parsers.get(netloc)
+
         if rp is None:
             try:
                 self._fetch_and_parse_robots(netloc, parsed.scheme)
-                rp = self._robots_parsers.get(netloc)
+                with self._robots_cache_lock:
+                    rp = self._robots_parsers.get(netloc)
             except Exception:
                 # 如果解析 robots.txt 发生错误，为了健壮性允许抓取
                 return True
@@ -272,67 +352,75 @@ class WebCrawler(metaclass=SingletonMeta):
             return True
 
     def _fetch_and_parse_robots(self, netloc: str, scheme: str = "https") -> None:
-        """拉取并解析指定站点的 robots.txt，缓存解析器和常用规则。
+        """拉取并解析指定站点的 robots.txt，缓存解析器和常用规则（线程安全）。
 
         netloc: 域名 (包含端口时也包含端口部分)
         scheme: 协议，默认 https（在有些站点上 robots 文件在 http 下）
         """
-        base_url = f"{scheme}://{netloc}"
-        robots_url = urljoin(base_url, "/robots.txt")
+        # 使用锁避免重复获取同一站点的 robots.txt
+        with self._robots_cache_lock:
+            # 双重检查避免重复工作
+            if netloc in self._robots_parsers:
+                return
 
-        rp = urllib.robotparser.RobotFileParser()
-        rp.set_url(robots_url)
+            base_url = f"{scheme}://{netloc}"
+            robots_url = urljoin(base_url, "/robots.txt")
 
-        try:
-            rp.read()
-            # 缓存解析器
-            self._robots_parsers[netloc] = rp
+            rp = urllib.robotparser.RobotFileParser()
+            rp.set_url(robots_url)
 
-            # 解析 crawl-delay 和 disallow: 若站点对 '*' 有 disallow: /
-            # urllib 的 RobotFileParser 没有直接暴露 crawl-delay，因此我们手动获取文本
-            crawl_delay = None
-            disallow_all = False
             try:
-                # 直接请求 robots.txt 内容以解析 Crawl-delay
-                resp = self.session.get(robots_url, timeout=5)
-                if resp.status_code == 200 and resp.text:
-                    ua = None
-                    lines = [ln.strip() for ln in resp.text.splitlines()]
-                    for line in lines:
-                        if not line or line.startswith("#"):
-                            continue
-                        parts = [p.strip() for p in line.split(":", 1)]
-                        if len(parts) != 2:
-                            continue
-                        key, val = parts[0].lower(), parts[1].strip()
-                        if key == "user-agent":
-                            ua = val
-                        elif key == "crawl-delay" and (ua == "*" or ua is None):
-                            try:
-                                crawl_delay = float(val)
-                            except Exception:
-                                try:
-                                    crawl_delay = int(val)
-                                except Exception:
-                                    crawl_delay = None
-                        elif key == "disallow" and (ua == "*" or ua is None):
-                            # 如果对 '*' 标记了 disallow: / 则视为禁止整个站点
-                            if val == "/":
-                                disallow_all = True
-            except Exception:
-                # 忽略解析错误，继续以 rp 的结果为准
+                # 使用临时session避免影响主session
+                temp_session = self._create_worker_session()
+                rp.read()
+                # 缓存解析器
+                self._robots_parsers[netloc] = rp
+
+                # 解析 crawl-delay 和 disallow: 若站点对 '*' 有 disallow: /
+                # urllib 的 RobotFileParser 没有直接暴露 crawl-delay，因此我们手动获取文本
                 crawl_delay = None
                 disallow_all = False
+                try:
+                    # 直接请求 robots.txt 内容以解析 Crawl-delay
+                    resp = temp_session.get(robots_url, timeout=5)
+                    if resp.status_code == 200 and resp.text:
+                        ua = None
+                        lines = [ln.strip() for ln in resp.text.splitlines()]
+                        for line in lines:
+                            if not line or line.startswith("#"):
+                                continue
+                            parts = [p.strip() for p in line.split(":", 1)]
+                            if len(parts) != 2:
+                                continue
+                            key, val = parts[0].lower(), parts[1].strip()
+                            if key == "user-agent":
+                                ua = val
+                            elif key == "crawl-delay" and (ua == "*" or ua is None):
+                                try:
+                                    crawl_delay = float(val)
+                                except Exception:
+                                    try:
+                                        crawl_delay = int(val)
+                                    except Exception:
+                                        crawl_delay = None
+                            elif key == "disallow" and (ua == "*" or ua is None):
+                                # 如果对 '*' 标记了 disallow: / 则视为禁止整个站点
+                                if val == "/":
+                                    disallow_all = True
+                except Exception:
+                    # 忽略解析错误，继续以 rp 的结果为准
+                    crawl_delay = None
+                    disallow_all = False
 
-            self._site_rules[netloc] = {
-                "crawl_delay": crawl_delay,
-                "disallow_all": disallow_all,
-            }
-        except Exception:
-            # 在无法读取 robots.txt 时不缓存，调用方会默认允许抓取
-            if netloc in self._robots_parsers:
-                del self._robots_parsers[netloc]
-            self._site_rules.pop(netloc, None)
+                self._site_rules[netloc] = {
+                    "crawl_delay": crawl_delay,
+                    "disallow_all": disallow_all,
+                }
+            except Exception:
+                # 在无法读取 robots.txt 时不缓存，调用方会默认允许抓取
+                if netloc in self._robots_parsers:
+                    del self._robots_parsers[netloc]
+                self._site_rules.pop(netloc, None)
 
     def download_file(self, url: str, file_type: str) -> bytes | None:
         """下载特定类型文件"""
@@ -367,10 +455,15 @@ class WebCrawler(metaclass=SingletonMeta):
         return expected_mime in content_type
 
     def start_crawling_task(self) -> bool:
-        """启动爬虫任务"""
+        """启动爬虫任务（多线程版本）"""
         try:
             # 创建保存目录和日志目录
             self.resource_path.mkdir(parents=True, exist_ok=True)
+
+            # 创建线程池
+            self._thread_pool = ThreadPoolExecutor(
+                max_workers=self.max_threads, thread_name_prefix="crawler_worker"
+            )
 
             for website in crawler_config.crawling_source_list.to_list():
                 self.current_crawling_web = website
@@ -383,60 +476,113 @@ class WebCrawler(metaclass=SingletonMeta):
                     rules = self._site_rules.get(parsed.netloc, {})
                     if rules.get("disallow_all"):
                         logger.info(
-                            f"站点 {parsed.netloc} 在 robots.txt 中禁止抓取，已跳过"
+                            f"✘ 站点 {parsed.netloc} 在 robots.txt 中禁止抓取，已跳过..."
                         )
                         continue
                 except Exception as e:
                     logger.debug(f"拉取 robots.txt 失败，继续尝试抓取 {website}: {e}")
 
-                self.crawl_website(website)
+                self.current_state = State.CRAWLING
+                self._add_url_to_pending(website)
+                self.origin_url = website
+                self.crawl_website_multithread()
 
             return True
         except Exception as e:
             logger.debug(f"✘ 爬虫任务失败: {e}")
             return False
         finally:
+            # 清理线程池
+            if self._thread_pool:
+                self._thread_pool.shutdown(wait=True)
             self.flush_runtime_cache_and_reset_state()
 
-    def crawl_website(self, base_url: str):
-        """爬取指定网站"""
-        to_visit: set[str] = {base_url}
-        while len(to_visit) > 0:
-            self.current_state = State.CRAWLING
-            url = to_visit.pop()
+    def crawl_website_multithread(self):
+        """多线程爬取指定网站"""
+        processed_count = 0
 
-            if url in self.visited_urls:
-                continue
+        while not self._pending_urls.empty():
+            # 批量获取待处理的URL
+            batch_urls = []
+            batch_size = min(self.max_threads * 2, 20)  # 每批处理的URL数量
 
-            # 检查是否在黑名单中
-            if self.is_blocked_site(url):
-                continue
+            for _ in range(batch_size):
+                try:
+                    url = self._pending_urls.get_nowait()
+                    if not self._is_url_visited(url) and not self.is_blocked_site(url):
+                        batch_urls.append(url)
+                    processed_count += 1
+                except queue.Empty:
+                    break
 
-            self.visited_urls.add(url)
-            try:
-                logger.debug(f'正在访问URL: "{url}"')
-                self.setup_session()  # 每次请求前更新User-Agent
-                response: Response = self.session.get(
-                    url, timeout=crawler_config.request_timeout
-                )
-                if response.status_code == 200:
-                    logger.debug(f'✔ "{url}"访问成功')
-                    soup: BeautifulSoup = BeautifulSoup(response.text, "html.parser")
-                    # 将文件提取和保存逻辑分离
-                    self.extract_and_save_files(soup, url)
-                    # 提取链接以继续爬取
-                    links: set[str] = self.extract_links(soup, base_url)
-                    to_visit.update(links)
-                else:
-                    logger.debug(f'✘ "{url}"访问失败, 状态码: {response.status_code}')
-                time.sleep(random.uniform(1, 3))  # 请求延迟
+            if not batch_urls:
+                break
 
-                # 每隔几个请求更换一次代理IP
-                if self.use_proxy and len(self.visited_urls) % 3 == 0:
-                    self._set_random_proxy()
-            except Exception as e:
-                logger.debug(f"✘ 访问失败 {url}: {e}")
-        self.current_state = State.IDLE
+            # 提交批量任务到线程池
+            futures = []
+            for url in batch_urls:
+                if self._thread_pool:
+                    future = self._thread_pool.submit(self._crawl_single_url, url)
+                    futures.append(future)
+                    self._active_futures.append(future)
+
+            # 等待所有任务完成并处理结果
+            for future in as_completed(futures):
+                try:
+                    extracted_links = future.result(timeout=30)  # 30秒超时
+                    if extracted_links:
+                        self._add_urls_to_pending(extracted_links)
+                except Exception as e:
+                    logger.debug(f"✘ 爬取任务执行失败: {e}")
+                finally:
+                    # 清理已完成的future
+                    if future in self._active_futures:
+                        self._active_futures.remove(future)
+
+            # 添加批处理间的延迟，避免过于频繁的请求
+            time.sleep(random.uniform(0.5, 2.0))
+
+        self.current_state = State.COMPLETED
+        logger.debug(f"✔ 网站爬取完成，处理了 {processed_count} 个URL")
+
+    def _crawl_single_url(self, url: str) -> set[str] | None:
+        """单个URL爬取工作函数（工作线程执行）"""
+        try:
+            # 标记URL为已访问
+            if not self._mark_url_visited(url):
+                return None  # URL已被其他线程处理
+
+            # 检查robots.txt
+            if not self.check_robots_txt(url):
+                logger.debug(f'✘ "{url}" 被 robots.txt 禁止抓取')
+                return None
+
+            # 创建工作线程专用的session
+            session = self._create_worker_session()
+
+            logger.debug(f'正在处理URL: "{url}"')
+            response: Response = session.get(
+                url, stream=True, timeout=crawler_config.request_timeout
+            )
+
+            if response.status_code == 200:
+                logger.debug(f'✔ "{url}"访问成功')
+                soup: BeautifulSoup = BeautifulSoup(response.text, "html.parser")
+                # 将文件提取和保存逻辑分离
+                self.extract_and_save_files(soup, url)
+                # 提取链接以继续爬取
+                links: set[str] = self.extract_links(soup)
+
+                # 添加请求延迟
+                time.sleep(random.uniform(1, 3))
+                return links
+            else:
+                logger.debug(f'✘ "{url}"访问失败, 状态码: {response.status_code}')
+                return None
+
+        except Exception as e:
+            logger.debug(f"✘ 访问失败 {url}: {e}")
+            return None
 
     def is_blocked_site(self, url: str) -> bool:
         """检查URL是否在黑名单中"""
@@ -447,7 +593,7 @@ class WebCrawler(metaclass=SingletonMeta):
                 return True
         return False
 
-    def extract_links(self, soup: BeautifulSoup, base_url: str) -> set[str]:
+    def extract_links(self, soup: BeautifulSoup) -> set[str]:
         """从页面提取链接"""
         links: set[str] = set()
         for link in soup.find_all("a", href=True):
@@ -457,10 +603,10 @@ class WebCrawler(metaclass=SingletonMeta):
                 href = str(link.get("href", ""))
                 if href == "":
                     continue
-                full_url = urljoin(base_url, href)
+                full_url = urljoin(self.origin_url, href)
 
                 # 只爬取同域名下的链接
-                if urlparse(full_url).netloc == urlparse(base_url).netloc:
+                if urlparse(full_url).netloc == urlparse(self.origin_url).netloc:
                     logger.debug(f'发现链接: "{full_url}"')
                     links.add(full_url)
         return links
@@ -468,7 +614,7 @@ class WebCrawler(metaclass=SingletonMeta):
     def extract_and_save_files(self, soup: BeautifulSoup, page_url: str):
         """提取并保存文件"""
         # 查找所有可能的文件链接
-        all_links: list[Tag | PageElement | NavigableString] | None = soup.find_all(
+        all_links: Sequence[Tag | PageElement | NavigableString] = soup.find_all(
             "a", href=True
         )
 
@@ -484,14 +630,19 @@ class WebCrawler(metaclass=SingletonMeta):
 
                 # 检查url中是否携带目标文件类型
                 for file_type in crawler_config.file_type:
-                    if file_type in full_url.lower():
-                        # 检查关键词
-                        if self.match_keywords(link.text, soup):
-                            self.current_crawling_article = (
-                                link.text or os.path.basename(urlparse(full_url).path)
-                            )
-                            logger.debug(f"正在处理文件链接: {full_url}")
-                            self.download_and_save_file(full_url, file_type)
+                    if isinstance(file_type, str):
+                        file_type = file_type.lower().replace(".", "")
+                        if file_type in full_url.lower():
+                            # 检查关键词
+                            if self.match_keywords(link.text, soup):
+                                self.current_crawling_article = (
+                                    link.text
+                                    or os.path.basename(urlparse(full_url).path)
+                                )
+                                logger.debug(f"正在处理文件链接: {full_url}")
+                                self.download_and_save_file(full_url, file_type)
+                            # 只处理第一个匹配的文件类型
+                            break
 
     def match_keywords(self, text: str, soup: BeautifulSoup) -> bool:
         """匹配关键词"""
@@ -501,7 +652,7 @@ class WebCrawler(metaclass=SingletonMeta):
         # 获取链接文本和周围文本
         search_text = text + " " + soup.get_text()
 
-        for keyword in crawler_config.crawling_keywords.to_list():
+        for keyword in crawler_config.crawling_keywords:
             if re.search(keyword, search_text, re.IGNORECASE):
                 return True
         return False
@@ -518,7 +669,7 @@ class WebCrawler(metaclass=SingletonMeta):
             logger.debug(f"✘ 下载和保存文件失败 {url}: {e}")
 
     def save_file(self, content: bytes, url: str, file_type: str):
-        """保存文件到指定目录"""
+        """保存文件到指定目录（线程安全）"""
         try:
             # 生成时间戳
             timestamp: str = datetime.now().strftime("%Y%m%d")
@@ -528,18 +679,25 @@ class WebCrawler(metaclass=SingletonMeta):
             save_dir: Path = self.resource_path / file_type_name / timestamp
             save_dir.mkdir(parents=True, exist_ok=True)
 
-            # 生成文件名
+            # 生成文件名（使用当前计数值避免线程竞争）
             filename: str = os.path.basename(urlparse(url).path)
             if not filename or filename == "":
-                filename = f"{self.total_files_downloaded}{file_type}"
-
+                with self._download_count_lock:
+                    filename = f"{self.total_files_downloaded}.{file_type}"
+            # 确保文件名有正确的扩展名
+            if not filename.endswith(f".{file_type}"):
+                filename = f"{filename}.{file_type}"
             file_path: Path = save_dir / filename
 
+            if file_path.exists():
+                logger.debug(f'✘ 文件已存在，跳过保存: "{file_path}"')
+                return
             # 保存文件
             with open(file_path, "wb") as f:
                 f.write(content)
 
-            self.total_files_downloaded += 1
+            # 线程安全地增加计数
+            self._increment_download_count()
 
             # 记录到日志
             logger.debug(f'✔ 保存文件:"{file_path}"\tURL:"{url}"')
@@ -567,17 +725,18 @@ class WebCrawler(metaclass=SingletonMeta):
         return self.current_crawling_article
 
     def get_crawling_task_progress(self) -> float:
-        """获取爬取工作进度"""
+        """获取爬取工作进度（线程安全）"""
         if not crawler_config.crawling_source_list:
             return 0.0
+
+        with self._visited_urls_lock:
+            visited_count = len(self.visited_urls)
+
         # 简单的进度计算: 已访问URL数 / 预估总URL数
         # 这是一个简化的实现
         return min(
             100.0,
-            (
-                len(self.visited_urls)
-                / max(1, len(crawler_config.crawling_source_list) * 10)
-            )
+            (visited_count / max(1, len(crawler_config.crawling_source_list) * 10))
             * 100,
         )
 
