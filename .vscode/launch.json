@@ -1,0 +1,70 @@
+{
+  "configurations": [
+    {
+      "args": [],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/paper_ai_agent",
+      "justMyCode": false,
+      "name": "Python: Current File",
+      "program": "${file}",
+      "request": "launch",
+      "stopOnEntry": false,
+      "type": "debugpy"
+    },
+    {
+      "args": [],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/paper_ai_agent",
+      "justMyCode": false,
+      "name": "Python: Main Application",
+      "program": "${workspaceFolder}/paper_ai_agent/__main__.py",
+      "request": "launch",
+      "stopOnEntry": false,
+      "type": "debugpy"
+    },
+    {
+      "args": [],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/paper_ai_agent",
+      "justMyCode": false,
+      "name": "Python: Crawler Module",
+      "program": "${workspaceFolder}/paper_ai_agent/crawler_module/__main__.py",
+      "request": "launch",
+      "stopOnEntry": false,
+      "type": "debugpy"
+    },
+    {
+      "args": [],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/paper_ai_agent",
+      "justMyCode": false,
+      "name": "Python: File Classifier Module",
+      "program": "${workspaceFolder}/paper_ai_agent/file_classifier_module/__main__.py",
+      "request": "launch",
+      "stopOnEntry": false,
+      "type": "debugpy"
+    },
+    {
+      "args": [],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/paper_ai_agent",
+      "justMyCode": false,
+      "name": "Python: Answer Generator Module",
+      "program": "${workspaceFolder}/paper_ai_agent/answer_generator_module/__main__.py",
+      "request": "launch",
+      "stopOnEntry": false,
+      "type": "debugpy"
+    },
+    {
+      "args": ["-v", "--tb=short"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/paper_ai_agent",
+      "justMyCode": false,
+      "module": "pytest",
+      "name": "Python: Module Test (with args)",
+      "request": "launch",
+      "type": "debugpy"
+    }
+  ],
+  "version": "0.2.0"
+}

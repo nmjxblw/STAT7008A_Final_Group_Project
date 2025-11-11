@@ -383,10 +383,11 @@ class WebCrawler(metaclass=SingletonMeta):
     def download_file(self, url: str, file_type: str) -> bytes | None:
         """下载特定类型文件"""
         if not self.check_robots_txt(url):
-            logger.debug(f'✘ "{url}" 被 robots.txt 禁止抓取')
+            logger.debug(f'✘ 尝试下载 "{url}" ，但被 robots.txt 禁止抓取')
             return None
 
         try:
+            logger.debug(f'正在下载文件: "{url}" 类型[ {file_type} ]')
             response: requests.Response = self.session.get(url, stream=True, timeout=30)
             if response.status_code == 200:
                 # 文件内容类型验证
@@ -413,10 +414,10 @@ class WebCrawler(metaclass=SingletonMeta):
     def validate_file_type(self, content_type: str, expected_type: str) -> bool:
         """验证文件类型匹配"""
         type_mapping: dict[str, str] = {
-            ".pdf": "application/pdf",
-            ".txt": "text/plain",
-            ".jpg": "image/jpeg",
-            ".png": "image/png",
+            "pdf": "application/pdf",
+            "txt": "text/plain",
+            "jpg": "image/jpeg",
+            "png": "image/png",
         }
         expected_mime = type_mapping.get(expected_type, "")
         return expected_mime in content_type
@@ -582,10 +583,10 @@ class WebCrawler(metaclass=SingletonMeta):
 
     def extract_and_save_files(self, soup: BeautifulSoup, page_url: str) -> None:
         """提取并保存文件"""
-        logger.debug(f'正在从"{page_url}"中提取文件链接...')
+        logger.debug(f'正在从"{page_url}"中提取链接...')
         # 查找所有可能的文件链接
         all_links: Sequence[Tag | PageElement | NavigableString] = soup.find_all(
-            "a", href=True
+            name="a", href=True
         )
         if len(all_links) == 0:
             logger.debug(f'✘ "{page_url}"中未发现任何文件链接')
@@ -604,7 +605,7 @@ class WebCrawler(metaclass=SingletonMeta):
                 for file_type in crawler_config.file_type.to_list():
                     if isinstance(file_type, str):
                         file_type = file_type.lower().replace(r"[^a-z0-9]", "")
-                        if file_type in full_url.lower():
+                        if file_type in full_url.strip().lower():
                             # 检查关键词
                             if self.match_keywords(link.text, soup):
                                 self.current_crawling_article = (
@@ -617,13 +618,14 @@ class WebCrawler(metaclass=SingletonMeta):
 
     def match_keywords(self, text: str, soup: BeautifulSoup) -> bool:
         """匹配关键词"""
-        if not crawler_config.crawling_keywords:
+        keywords_list: list[str] = crawler_config.crawling_keywords.to_list()
+        if len(keywords_list) == 0:
             return True  # 如果没有设置关键词,则匹配所有
 
         # 获取链接文本和周围文本
         search_text = text + " " + soup.get_text()
 
-        for keyword in crawler_config.crawling_keywords:
+        for keyword in keywords_list:
             if re.search(keyword, search_text, re.IGNORECASE):
                 return True
         return False
@@ -631,7 +633,6 @@ class WebCrawler(metaclass=SingletonMeta):
     def download_and_save_file(self, url: str, file_type: str):
         """下载并保存文件"""
         try:
-            logger.debug(f'正在下载文件: "{url}" 类型[ {file_type} ]')
             file_content: bytes | None = self.download_file(url, file_type)
             if isinstance(file_content, bytes):
                 self.save_file(file_content, url, file_type)
