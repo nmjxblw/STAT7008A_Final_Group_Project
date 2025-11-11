@@ -478,7 +478,9 @@ class WebCrawler(metaclass=SingletonMeta):
                     url = self._pending_urls.get_nowait()
                     if not self._is_url_visited(url) and not self.is_blocked_site(url):
                         batch_urls.append(url)
-                    processed_count += 1
+                        processed_count += 1
+                    else:
+                        logger.debug(f'✘ "{url}"已访问或在黑名单中，跳过...')
                 except queue.Empty:
                     break
 
@@ -578,13 +580,16 @@ class WebCrawler(metaclass=SingletonMeta):
                     links.add(full_url)
         return links
 
-    def extract_and_save_files(self, soup: BeautifulSoup, page_url: str):
+    def extract_and_save_files(self, soup: BeautifulSoup, page_url: str) -> None:
         """提取并保存文件"""
+        logger.debug(f'正在从"{page_url}"中提取文件链接...')
         # 查找所有可能的文件链接
         all_links: Sequence[Tag | PageElement | NavigableString] = soup.find_all(
             "a", href=True
         )
-
+        if len(all_links) == 0:
+            logger.debug(f'✘ "{page_url}"中未发现任何文件链接')
+            return
         for link in all_links:
             if link is None:
                 continue
@@ -596,9 +601,9 @@ class WebCrawler(metaclass=SingletonMeta):
                 full_url: str = urljoin(page_url, href)
 
                 # 检查url中是否携带目标文件类型
-                for file_type in crawler_config.file_type:
+                for file_type in crawler_config.file_type.to_list():
                     if isinstance(file_type, str):
-                        file_type = file_type.lower().replace(".", "")
+                        file_type = file_type.lower().replace(r"[^a-z0-9]", "")
                         if file_type in full_url.lower():
                             # 检查关键词
                             if self.match_keywords(link.text, soup):
@@ -606,7 +611,6 @@ class WebCrawler(metaclass=SingletonMeta):
                                     link.text
                                     or os.path.basename(urlparse(full_url).path)
                                 )
-                                logger.debug(f"正在处理文件链接: {full_url}")
                                 self.download_and_save_file(full_url, file_type)
                             # 只处理第一个匹配的文件类型
                             break
@@ -627,6 +631,7 @@ class WebCrawler(metaclass=SingletonMeta):
     def download_and_save_file(self, url: str, file_type: str):
         """下载并保存文件"""
         try:
+            logger.debug(f'正在下载文件: "{url}" 类型[ {file_type} ]')
             file_content: bytes | None = self.download_file(url, file_type)
             if isinstance(file_content, bytes):
                 self.save_file(file_content, url, file_type)
@@ -634,6 +639,8 @@ class WebCrawler(metaclass=SingletonMeta):
                 logger.debug(f'✘ 文件下载失败或类型不匹配 "{url}"')
         except Exception as e:
             logger.debug(f"✘ 下载和保存文件失败 {url}: {e}")
+        finally:
+            self._mark_url_visited(url)
 
     def save_file(self, content: bytes, url: str, file_type: str):
         """保存文件到指定目录（线程安全）"""
@@ -642,7 +649,7 @@ class WebCrawler(metaclass=SingletonMeta):
             timestamp: str = datetime.now().strftime("%Y%m%d")
 
             # 创建按类型和时间分类的目录
-            file_type_name: str = file_type.upper().replace(".", "")
+            file_type_name: str = file_type.upper().replace(r"[^A-Z0-9]", "")
             save_dir: Path = self.resource_path / file_type_name / timestamp
             save_dir.mkdir(parents=True, exist_ok=True)
 
