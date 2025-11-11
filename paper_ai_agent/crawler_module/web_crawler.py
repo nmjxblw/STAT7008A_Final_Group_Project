@@ -6,7 +6,7 @@ import threading
 from typing import Sequence
 from requests import Response
 import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 import queue
 from bs4 import BeautifulSoup, PageElement, NavigableString, Tag
 import urllib.robotparser
@@ -103,7 +103,7 @@ class WebCrawler(metaclass=SingletonMeta):
         """ 活跃的 Future 对象列表 """
 
         # robots.txt 解析器缓存: netloc -> RobotFileParser
-        self._robots_parsers = {}
+        self._robots_parsers: dict[str, urllib.robotparser.RobotFileParser] = {}
         """ robots.txt 解析器缓存 """
         self._robots_cache_lock: threading.RLock = threading.RLock()
         """ robots.txt 缓存锁 """
@@ -150,18 +150,8 @@ class WebCrawler(metaclass=SingletonMeta):
             logger.debug("✔ 代理功能未启用，跳过代理池初始化")
             return
         try:
-            # 在实际使用中，你可能需要从代理服务商获取真实的代理IP
-            proxy_ips: list[str] = []
 
-            # 生成一些随机的IP地址（模拟代理池）
-            for _ in range(10):
-                ip = self._generate_random_ip()
-                port = random.choice([8080, 3128, 8888, 9999, 1080])
-                proxy_ips.append(f"{ip}:{port}")
-
-            # 也可以添加一些公开的代理IP（需要验证可用性）
-
-            self.proxy_pool = proxy_ips + crawler_config.public_proxies.to_list()
+            self.proxy_pool = crawler_config.public_proxies.to_list()
             logger.debug(f"✔ 代理池初始化完成，共 {len(self.proxy_pool)} 个代理")
 
         except Exception as e:
@@ -176,7 +166,7 @@ class WebCrawler(metaclass=SingletonMeta):
 
         try:
             # 随机选择一个代理
-            proxy = random.choice(self.proxy_pool)
+            proxy: str = random.choice(self.proxy_pool)
             self.current_proxy = proxy
 
             # 设置代理配置
@@ -191,46 +181,6 @@ class WebCrawler(metaclass=SingletonMeta):
         except Exception as e:
             logger.debug(f"✘ 设置代理失败: {e}")
             self.current_proxy = ""
-
-    def _generate_random_ip(self) -> str:
-        """生成随机IP地址"""
-        # 生成随机IP地址（避免使用保留IP段）
-        # 这里使用一些常见的公网IP段
-        ip_ranges = [(1, 126), (128, 191), (192, 223)]  # A类地址  # B类地址  # C类地址
-
-        range_choice = random.choice(ip_ranges)
-        first_octet = random.randint(range_choice[0], range_choice[1])
-
-        # 避免一些特殊用途的IP段
-        while first_octet in [
-            127,
-            169,
-            172,
-            192,
-            224,
-            225,
-            226,
-            227,
-            228,
-            229,
-            230,
-            231,
-            232,
-            233,
-            234,
-            235,
-            236,
-            237,
-            238,
-            239,
-        ]:
-            first_octet = random.randint(range_choice[0], range_choice[1])
-
-        second_octet = random.randint(0, 255)
-        third_octet = random.randint(0, 255)
-        fourth_octet = random.randint(1, 254)
-
-        return f"{first_octet}.{second_octet}.{third_octet}.{fourth_octet}"
 
     def refresh_proxy_pool(self):
         """刷新代理池"""
@@ -326,12 +276,14 @@ class WebCrawler(metaclass=SingletonMeta):
         """检查robots.txt协议（线程安全）"""
         if not self.respect_robots_txt:
             return True
-        parsed = urlparse(url)
-        netloc = parsed.netloc
+        parsed: ParseResult = urlparse(url)
+        netloc: str = parsed.netloc
 
         # 使用缓存的解析器，如果不存在则尝试去拉取并解析 robots.txt
         with self._robots_cache_lock:
-            rp = self._robots_parsers.get(netloc)
+            rp: urllib.robotparser.RobotFileParser | None = self._robots_parsers.get(
+                netloc
+            )
 
         if rp is None:
             try:
@@ -340,22 +292,24 @@ class WebCrawler(metaclass=SingletonMeta):
                     rp = self._robots_parsers.get(netloc)
             except Exception:
                 # 如果解析 robots.txt 发生错误，为了健壮性允许抓取
-                return True
-
-        if rp is None:
+                logger.debug(f"✘ 解析 robots.txt 失败，允许抓取 {url}")
+                pass
             return True
 
         try:
             # 使用 '*' 作为 user-agent 的默认策略
             return rp.can_fetch("*", url)
         except Exception:
+            # 出现异常时允许抓取
+            logger.debug(f"✘ 检查 robots.txt 失败，允许抓取 {url}")
             return True
 
     def _fetch_and_parse_robots(self, netloc: str, scheme: str = "https") -> None:
         """拉取并解析指定站点的 robots.txt，缓存解析器和常用规则（线程安全）。
 
-        netloc: 域名 (包含端口时也包含端口部分)
-        scheme: 协议，默认 https（在有些站点上 robots 文件在 http 下）
+        参数:
+            netloc: 域名 (包含端口时也包含端口部分)
+            scheme: 协议，默认 https（在有些站点上 robots 文件在 http 下）
         """
         # 使用锁避免重复获取同一站点的 robots.txt
         with self._robots_cache_lock:
@@ -366,7 +320,9 @@ class WebCrawler(metaclass=SingletonMeta):
             base_url = f"{scheme}://{netloc}"
             robots_url = urljoin(base_url, "/robots.txt")
 
-            rp = urllib.robotparser.RobotFileParser()
+            rp: urllib.robotparser.RobotFileParser = (
+                urllib.robotparser.RobotFileParser()
+            )
             rp.set_url(robots_url)
 
             try:
@@ -378,19 +334,23 @@ class WebCrawler(metaclass=SingletonMeta):
 
                 # 解析 crawl-delay 和 disallow: 若站点对 '*' 有 disallow: /
                 # urllib 的 RobotFileParser 没有直接暴露 crawl-delay，因此我们手动获取文本
-                crawl_delay = None
-                disallow_all = False
+                crawl_delay: float = 1.0
+                disallow_all: bool = False
                 try:
                     # 直接请求 robots.txt 内容以解析 Crawl-delay
-                    resp = temp_session.get(robots_url, timeout=5)
+                    resp: requests.Response = temp_session.get(robots_url, timeout=5)
                     if resp.status_code == 200 and resp.text:
-                        ua = None
-                        lines = [ln.strip() for ln in resp.text.splitlines()]
+                        ua: str | None = None
+                        lines: list[str] = [ln.strip() for ln in resp.text.splitlines()]
                         for line in lines:
                             if not line or line.startswith("#"):
+                                # 跳过空行和注释
                                 continue
-                            parts = [p.strip() for p in line.split(":", 1)]
+                            parts = [
+                                p.strip() for p in line.split(":", 1)
+                            ]  # 分割成键值对,最多分割一次
                             if len(parts) != 2:
+                                # 格式错误，跳过
                                 continue
                             key, val = parts[0].lower(), parts[1].strip()
                             if key == "user-agent":
@@ -399,17 +359,15 @@ class WebCrawler(metaclass=SingletonMeta):
                                 try:
                                     crawl_delay = float(val)
                                 except Exception:
-                                    try:
-                                        crawl_delay = int(val)
-                                    except Exception:
-                                        crawl_delay = None
+                                    crawl_delay = 1.0
+
                             elif key == "disallow" and (ua == "*" or ua is None):
                                 # 如果对 '*' 标记了 disallow: / 则视为禁止整个站点
                                 if val == "/":
                                     disallow_all = True
                 except Exception:
                     # 忽略解析错误，继续以 rp 的结果为准
-                    crawl_delay = None
+                    crawl_delay = 1.0
                     disallow_all = False
 
                 self._site_rules[netloc] = {
@@ -429,16 +387,25 @@ class WebCrawler(metaclass=SingletonMeta):
             return None
 
         try:
-            response = self.session.get(url, stream=True, timeout=30)
+            response: requests.Response = self.session.get(url, stream=True, timeout=30)
             if response.status_code == 200:
                 # 文件内容类型验证
                 content_type: str = response.headers.get("content-type", "")
                 if self.validate_file_type(content_type, file_type):
-                    return response.content
-                logger.debug(f'✘ "{url}"文件类型不匹配, 实际文件类型: {content_type}')
+                    if isinstance(response.content, bytes):
+                        logger.debug(f'✔ "{url}"流式二进制数据下载成功')
+                        return response.content
+                    else:
+                        logger.debug(f'✘ "{url}"文件内容非二进制数据')
+                        return None
+                else:
+                    logger.debug(
+                        f'✘ "{url}"文件类型不匹配, 实际文件类型: {content_type}'
+                    )
+                    return None
+            else:
+                logger.debug(f'✘ "{url}"响应状态异常')
                 return None
-            logger.debug(f'✘ "{url}"响应状态异常')
-            return None
         except Exception as e:
             logger.debug(f'✘ "{url}"下载失败 : {e}')
             return None
@@ -503,8 +470,8 @@ class WebCrawler(metaclass=SingletonMeta):
 
         while not self._pending_urls.empty():
             # 批量获取待处理的URL
-            batch_urls = []
-            batch_size = min(self.max_threads * 2, 20)  # 每批处理的URL数量
+            batch_urls: list[str] = []
+            batch_size: int = min(self.max_threads * 2, 20)  # 每批处理的URL数量
 
             for _ in range(batch_size):
                 try:
@@ -519,7 +486,7 @@ class WebCrawler(metaclass=SingletonMeta):
                 break
 
             # 提交批量任务到线程池
-            futures = []
+            futures: list[Future] = []
             for url in batch_urls:
                 if self._thread_pool:
                     future = self._thread_pool.submit(self._crawl_single_url, url)
@@ -690,7 +657,7 @@ class WebCrawler(metaclass=SingletonMeta):
             file_path: Path = save_dir / filename
 
             if file_path.exists():
-                logger.debug(f'✘ 文件已存在，跳过保存: "{file_path}"')
+                logger.debug(f'✘ 同名文件已存在，跳过保存: "{file_path}"')
                 return
             # 保存文件
             with open(file_path, "wb") as f:
