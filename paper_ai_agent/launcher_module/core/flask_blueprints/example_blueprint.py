@@ -31,7 +31,7 @@ async def example_bp_main_page() -> Any:
         abort(404)
     except Exception as e:
         logger.debug(f"✖ 渲染样例主页失败: {e}")
-        abort(500, description="渲染样例主页失败")
+        abort(500, description="✖ 渲染样例主页失败")
 
 
 @example_bp.route("/add_or_update_file", methods=["POST"])
@@ -42,11 +42,12 @@ async def example_bp_add_or_update_file() -> Any:
         logger.debug(f"{sys._getframe().f_code.co_name}接口请求数据: {request_data}")
         if request_data is None:
             logger.debug("请求数据解析异常...")
-            return abort(400, description="请求数据解析异常，请检查请求格式")
+            return abort(400, description="✖ 请求数据解析异常，请检查请求格式")
         from ..database_operations import add_or_update_file_to_database
 
-        if not asyncio.gather(add_or_update_file_to_database(request_data)):
-            abort(500, description="添加或更新文件记录失败")
+        # 执行添加或更新文件记录操作，异步等待结果
+        if not await add_or_update_file_to_database(request_data):
+            abort(500, description="✖ 添加或更新文件记录失败")
 
         response_data: dict[str, Any] = {
             "status": "success",
@@ -57,7 +58,7 @@ async def example_bp_add_or_update_file() -> Any:
     except Exception as e:
         # 后端数据插入异常，直接抛出异常
         logger.debug(f"✖ 添加或更新文件记录失败: {e}")
-        abort(500, description="添加或更新文件记录失败")
+        abort(500, description="✖ 添加或更新文件记录失败")
 
 
 @example_bp.route("/query_files_by_attributes", methods=["POST"])
@@ -68,7 +69,7 @@ async def example_bp_query_files_by_attributes() -> Any:
         logger.debug(f"{sys._getframe().f_code.co_name}接口请求数据: {request_data}")
         if request_data is None:
             logger.debug("✖ 请求数据解析异常")
-            return abort(400, description="请求数据解析异常，请检查请求格式")
+            return abort(400, description="✖ 请求数据解析异常，请检查请求格式")
         from ..database_operations import query_files_by_attributes
         from ..database_model import File
 
@@ -81,7 +82,7 @@ async def example_bp_query_files_by_attributes() -> Any:
                     value = datetime.fromisoformat(value)
                 query_attributes[attr_name] = value
         # 执行查询，异步获取结果
-        (files,) = await asyncio.gather(query_files_by_attributes(query_attributes))
+        files = await query_files_by_attributes(query_attributes)
         response_data = {
             "status": "success",
             "files": [file.to_dict() for file in files],
@@ -91,10 +92,10 @@ async def example_bp_query_files_by_attributes() -> Any:
     except Exception as e:
         # 后端查询异常，直接抛出异常
         logger.debug(f"✖ 查询文件记录失败: {e}")
-        abort(500, description="查询文件记录失败")
+        abort(500, description="✖ 查询文件记录失败")
 
 
-@example_bp.route("/<string:input_str>", methods=["GET", "POST"])
+@example_bp.route("/<string:input_str>", methods=["GET"])
 def example_bp_webapi_example(input_str: str) -> Response:
     """样例接口，返回输入字符串"""
 
@@ -107,4 +108,4 @@ def example_bp_webapi_example(input_str: str) -> Response:
         abort(404)
     except Exception as e:
         logger.debug(f"✖ 处理输入字符串失败: {e}")
-        abort(500, description="处理输入字符串失败")
+        abort(500, description="✖ 处理输入字符串失败")

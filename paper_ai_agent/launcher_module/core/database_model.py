@@ -5,7 +5,7 @@ from datetime import datetime, date
 
 
 class File(flask_database.Model):
-    """文件模型类，表示存储在数据库中的文件信息"""
+    """文件数据库模型类，表示存储在数据库中的文件信息"""
 
     __tablename__ = "file"
     """ 数据库表名称 """
@@ -72,13 +72,8 @@ class File(flask_database.Model):
     def from_dict(cls, data: dict) -> "File":
         """从字典创建文件实例"""
         file_instance = cls()
-        for key, value in data.items():
-            if hasattr(file_instance, key):
-                if "date" in key and isinstance(value, str):
-                    value = datetime.fromisoformat(value)
-                    # 不处理报错，让exception handler捕获
-                setattr(file_instance, key, value)
-        if not file_instance.file_id:
+        file_instance.update_attributes_from_dict(data)
+        if file_instance.file_id is None or file_instance.file_id == "":
             raise ValueError("字典缺少file_id键，无法创建File实例")
         return file_instance
 

@@ -1,6 +1,7 @@
 import json
 
 from langchain_openai import OpenAI
+from log_module import logger
 
 
 class PDFContentAnalyzer:
@@ -58,7 +59,7 @@ class PDFContentAnalyzer:
 
         # 如果没有API key，返回默认值
         if not api_key:
-            print("️  DeepSeek API Key未配置，跳过AI分析")
+            logger.debug("️✖ DeepSeek API Key未配置，跳过AI分析")
             return {"title": "", "summary": "", "keywords": []}
 
         try:
@@ -121,7 +122,7 @@ class PDFContentAnalyzer:
             return result
 
         except Exception as e:
-            print(f"调用AI API时出错: {e}")
+            logger.debug(f"✖ 调用AI API时出错: {e}")
             return {"title": "", "summary": "", "keywords": []}
 
     def __extract_key_sections(self, text, max_chars=10000):
