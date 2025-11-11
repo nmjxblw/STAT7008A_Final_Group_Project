@@ -5,6 +5,6 @@ if __name__ == "__main__":
 
     cProfile.run(
         statement="run()",
-        filename=f"{__package__}{__name__}_result.out",
+        filename=f"{__package__}{__name__}_result.stats",
         sort="cumulative",
     )

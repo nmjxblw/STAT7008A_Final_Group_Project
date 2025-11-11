@@ -28,10 +28,10 @@ def create_app(
 
     # 修改 Jinja2 定界符以避免与 Vue.js 语法冲突
     # Jinja2 使用 {[ ]},Vue.js 使用 {{ }}
-    _app.jinja_env.variable_start_string = '{['
-    _app.jinja_env.variable_end_string = ']}'
-    _app.jinja_env.comment_start_string = '{#'
-    _app.jinja_env.comment_end_string = '#}'
+    _app.jinja_env.variable_start_string = "{["
+    _app.jinja_env.variable_end_string = "]}"
+    _app.jinja_env.comment_start_string = "{#"
+    _app.jinja_env.comment_end_string = "#}"
 
     _app.config.from_object(_config)
     global flask_database

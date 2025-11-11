@@ -35,5 +35,6 @@ PORT: int = int(os.getenv("PORT", 8080))
 """端口号"""
 API_KEY: str = os.getenv("API_KEY", "")
 """API密钥"""
-WERKZEUG_RUN_MAIN: bool = bool(os.getenv("WERKZEUG_RUN_MAIN", False))
+USING_PROXY: bool = os.getenv("USING_PROXY", "").lower() in ("1", "true", "yes")
+"""是否使用代理"""
 # endregion
