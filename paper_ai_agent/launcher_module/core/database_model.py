@@ -23,16 +23,10 @@ class File(flask_database.Model):
     """ 文件关键词 """
     author = flask_database.Column(flask_database.String(50), nullable=True)
     """ 文件作者 """
-    publish_date = flask_database.Column(flask_database.DateTime, nullable=True)
-    """ 文件发布日期 """
-    download_date = flask_database.Column(flask_database.DateTime, nullable=True)
-    """ 文件下载日期 """
-    total_tokens = flask_database.Column(flask_database.Integer, nullable=True)
-    """ 文件总令牌数 """
-    unique_tokens = flask_database.Column(flask_database.Integer, nullable=True)
-    """ 文件唯一令牌数 """
     text_length = flask_database.Column(flask_database.Integer, nullable=True)
     """ 文件文本长度 """
+    file_name = flask_database.Column(flask_database.String(256), nullable=True)
+    """ 文件名 """
 
     # endregion
 
