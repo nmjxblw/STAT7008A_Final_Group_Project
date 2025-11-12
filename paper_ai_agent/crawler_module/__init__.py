@@ -8,7 +8,6 @@ __all__ = [
 ]
 
 # 导出核心类
-import os
 from .web_crawler import *
 
 crawler: WebCrawler = WebCrawler()

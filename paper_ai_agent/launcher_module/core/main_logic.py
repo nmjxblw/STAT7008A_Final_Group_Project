@@ -32,17 +32,17 @@ def register_blueprints(_flask_app: Flask):
 
     for module_path, bp_name, url_prefix in blueprints:
         try:
-            logger.debug(f"正在注册蓝图: {bp_name} 来自模块: {module_path}...")
+            logger.debug(f"正在注册蓝图[{bp_name}] 来自模块: {{{module_path}}}")
             # 动态导入模块
             module = __import__(module_path, fromlist=[bp_name])
             # 获取蓝图对象
             blueprint: Blueprint = getattr(module, bp_name)
             if not isinstance(blueprint, Blueprint):
-                raise TypeError(f"{bp_name} 不是一个有效的Flask蓝图对象")
-            logger.debug(f"✔ 蓝图模块导入成功: {bp_name}")
+                raise TypeError(f"[{bp_name}] 不是一个有效的Flask蓝图对象")
+            logger.debug(f"✔ 蓝图[{bp_name}]加载成功")
             # 注册到应用
             _flask_app.register_blueprint(blueprint, url_prefix=url_prefix)
-            logger.debug(f'✔ 注册蓝图: {bp_name} 成功！ Url前缀: "{url_prefix}"')
+            logger.debug(f'✔ 注册蓝图[{bp_name}] 成功！ Url前缀: "{url_prefix}"')
         except Exception as e:
-            logger.debug(f"✘ 注册蓝图失败: {bp_name}")
+            logger.debug(f"✘ 注册蓝图[{bp_name}]失败")
             raise e

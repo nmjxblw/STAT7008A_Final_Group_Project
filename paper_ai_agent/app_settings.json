@@ -1,99 +1,121 @@
 {
-  "blueprints": [
-    {
-      "url": "crawler/start_crawling_task",
-      "function_name": "start_crawling_task",
-      "method": "POST"
-    },
-    {
-      "url": "crawler/stop_crawling_task",
-      "function_name": "stop_crawling_task",
-      "method": "POST"
-    },
-    {
-      "url": "crawler/current_crawling_web",
-      "function_name": "current_crawling_web",
-      "method": "GET"
-    },
-    {
-      "url": "crawler/current_crawling_progress",
-      "function_name": "current_crawling_progress",
-      "method": "GET"
-    },
-    {
-      "url": "classifier/start_classify_task",
-      "function_name": "start_classify_task",
-      "method": "POST"
-    },
-    {
-      "url": "classifier/stop_classify_task",
-      "function_name": "stop_classify_task",
-      "method": "POST"
-    },
-    {
-      "url": "classifier/get_classify_progress",
-      "function_name": "get_classify_progress",
-      "method": "GET"
-    },
-    {
-      "url": "classifier/export_analysis_to_excel",
-      "function_name": "export_analysis_to_excel",
-      "method": "POST"
-    },
-    {
-      "url": "generator/set_demand",
-      "function_name": "set_demand",
-      "method": "POST"
-    },
-    {
-      "url": "generator/get_query_files",
-      "function_name": "get_query_files",
-      "method": "GET"
-    },
-    {
-      "url": "generator/get_qualified_files_info/<int:top_n>",
-      "function_name": "get_qualified_files_info",
-      "method": "GET"
-    },
-    {
-      "url": "generator/get_query_task_result",
-      "function_name": "get_query_task_result",
-      "method": "GET"
-    },
-    {
-      "url": "generator/get_LLM_reply",
-      "function_name": "get_LLM_reply",
-      "method": "GET"
-    }
-  ],
-  "crawler_config": {
-    "trigger_time": "8:00AM,UTC+08:00",
-    "crawling_source_list": [
-      "https://arxiv.org/catchup/cs.CV/2025-09-30?abs=True"
-    ],
-    "blocked_sites": ["None"],
-    "crawling_keywords": ["[Pp]aper", "[Ee]ssay"],
-    "file_type": [".pdf"],
-    "timeliness": 365,
-    "max_workers": 5,
-    "request_timeout": 30,
-    "retry_attempts": 3,
-    "save_directory": "Resource/Unclassified"
-  },
   "answer_generator_config": {
     "apikey_file_name": "api_key.txt",
     "base_url": "https://api.deepseek.com/v1",
-    "model": "deepseek-chat",
-    "temperature": 1.0,
     "max_tokens": null,
-    "system_prompt": "你是一个有帮助的AI助手。请用中文回答问题，保持友好和专业。",
+    "model": "deepseek-chat",
+    "response_save_dir": "DeepSeek_Responses",
     "save_responses": true,
-    "response_save_dir": "DeepSeek_Responses"
+    "system_prompt": "你是一个有帮助的AI助手。请用中文回答问题，保持友好和专业。",
+    "temperature": 1.0
+  },
+  "blueprints": [
+    {
+      "function_name": "start_crawling_task",
+      "method": "POST",
+      "url": "crawler/start_crawling_task"
+    },
+    {
+      "function_name": "stop_crawling_task",
+      "method": "POST",
+      "url": "crawler/stop_crawling_task"
+    },
+    {
+      "function_name": "current_crawling_web",
+      "method": "GET",
+      "url": "crawler/current_crawling_web"
+    },
+    {
+      "function_name": "current_crawling_progress",
+      "method": "GET",
+      "url": "crawler/current_crawling_progress"
+    },
+    {
+      "function_name": "start_classify_task",
+      "method": "POST",
+      "url": "classifier/start_classify_task"
+    },
+    {
+      "function_name": "stop_classify_task",
+      "method": "POST",
+      "url": "classifier/stop_classify_task"
+    },
+    {
+      "function_name": "get_classify_progress",
+      "method": "GET",
+      "url": "classifier/get_classify_progress"
+    },
+    {
+      "function_name": "export_analysis_to_excel",
+      "method": "POST",
+      "url": "classifier/export_analysis_to_excel"
+    },
+    {
+      "function_name": "set_demand",
+      "method": "POST",
+      "url": "generator/set_demand"
+    },
+    {
+      "function_name": "get_query_files",
+      "method": "GET",
+      "url": "generator/get_query_files"
+    },
+    {
+      "function_name": "get_qualified_files_info",
+      "method": "GET",
+      "url": "generator/get_qualified_files_info/<int:top_n>"
+    },
+    {
+      "function_name": "get_query_task_result",
+      "method": "GET",
+      "url": "generator/get_query_task_result"
+    },
+    {
+      "function_name": "get_LLM_reply",
+      "method": "GET",
+      "url": "generator/get_LLM_reply"
+    }
+  ],
+  "crawler_config": {
+    "blocked_sites": ["None"],
+    "crawling_keywords": [],
+    "crawling_source_list": [
+      "https://arxiv.org/catchup/cs.CV/2025-09-30?abs=True"
+    ],
+    "file_type": ["pdf"],
+    "headers": [
+      "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:30.0) Gecko/20100101 Firefox/30.0",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/537.75.14",
+      "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Win64; x64; Trident/6.0)",
+      "Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+      "Opera/9.25 (Windows NT 5.1; U; en)",
+      "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+      "Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.5 (like Gecko) (Kubuntu)",
+      "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.12) Gecko/20070731 Ubuntu/dapper-security Firefox/1.5.0.12",
+      "Lynx/2.8.5rel.1 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/1.2.9",
+      "Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Ubuntu/11.04 Chromium/16.0.912.77 Chrome/16.0.912.77 Safari/535.7",
+      "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0 "
+    ],
+    "max_workers": 5,
+    "public_proxies": [
+      "103.152.112.162:80",
+      "103.155.54.185:83",
+      "103.159.46.25:83",
+      "103.159.46.34:83",
+      "103.159.46.46:83"
+    ],
+    "request_timeout": 30,
+    "retry_attempts": 3,
+    "save_directory": "Resource/Unclassified",
+    "timeliness": 365,
+    "trigger_time": "8:00AM,UTC+08:00"
   },
   "file_classifier_config": {
-    "model": "file-classifier",
     "api_key": "YOUR_FILE_CLASSIFIER_API_KEY_HERE",
     "base_url": "https://api.fileclassifier.com/v1",
+    "model": "file-classifier",
     "timeout": 30
   }
 }
