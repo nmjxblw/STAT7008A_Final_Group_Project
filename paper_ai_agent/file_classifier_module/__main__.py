@@ -1,5 +1,5 @@
 def start_file_classify_task(
-    unclassified_path, file_name, classified_path, json_db_path
+    unclassified_path, file_name, classified_path
 ) -> bool:
     """
     目前数据格式如下
@@ -37,7 +37,7 @@ def start_file_classify_task(
     # save_data()
 
     if save_to_database(pdf_info_dict):
-        from log_module import logger
+        from paper_ai_agent.log_module import logger
         import sys
 
         logger.info(
@@ -46,3 +46,13 @@ def start_file_classify_task(
         return move_files(unclassified_path, classified_path, [file_name])
     else:
         return False
+
+
+
+
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+# parent_dir_A = os.path.dirname(current_dir)
+# resource_dir = os.path.abspath(os.path.join(parent_dir_A, '/Resource'))
+# unclassified_dir = os.path.abspath(os.path.join(parent_dir_A, '/unclassified'))
+# classified_dir = os.path.abspath(os.path.join(parent_dir_A, '/Classified'))
+# start_file_classify_task(unclassified_dir,"Attention Is All You Need.pdf",classified_dir)
