@@ -568,7 +568,9 @@ class WebCrawler(metaclass=SingletonMeta):
         logger.debug(f'正在从"{page_url}"中提取链接...')
         links: set[str] = set()
         # 查找所有可能的文件链接
-        anchors: Sequence[Tag] = soup.find_all(name="a", href=True)
+        anchors: Sequence[Tag | PageElement | NavigableString] = soup.find_all(
+            name="a", href=True
+        )
         """ HTML锚点元素列表 """
         if len(anchors) == 0:
             logger.debug(f'✘ "{page_url}"中未发现任何<a>标签，跳过文件提取...')
@@ -576,30 +578,30 @@ class WebCrawler(metaclass=SingletonMeta):
         for anchor in anchors:
             if anchor is None:
                 continue
-            href: str = str(anchor.get("href", ""))
-            # 跳过空链接和锚点链接
-            if href == "" or href.startswith("#"):
-                continue
-            _downloadable: bool = anchor.get("download") is not None
-            full_url: str = urljoin(page_url, href)
-            _is_file_link: bool = False
-            # 检查url中是否携带目标文件类型
-            for file_type in crawler_config.file_type.to_list():
-                if isinstance(file_type, str):
-                    file_type = file_type.lower().replace(r"[^a-z0-9]", "")
-                    if file_type in full_url.strip().lower():
-                        _is_file_link = True  # 识别为文件链接
-                        # 检查关键词
-                        if self.match_keywords(anchor.text, soup):
-                            self.download_and_save_file(full_url, file_type)
-                        # 只处理第一个匹配的文件类型
-                        break
-            if (
-                urlparse(full_url).netloc == urlparse(self.origin_url).netloc
-                and not _is_file_link
-            ):
-                logger.debug(f'从"{page_url}"发现新链接: "{full_url}"')
-                links.add(full_url)
+            if isinstance(anchor, Tag):  # 确保是Tag对象
+                href: str = str(anchor.get("href", ""))
+                # 跳过空链接和锚点链接
+                if href == "" or href.startswith("#"):
+                    continue
+                full_url: str = urljoin(page_url, href)
+                _is_file_link: bool = anchor.get("download") is not None
+                # 检查url中是否携带目标文件类型
+                for file_type in crawler_config.file_type.to_list():
+                    if isinstance(file_type, str):
+                        file_type = file_type.lower().replace(r"[^a-z0-9]", "")
+                        if file_type in full_url.strip().lower():
+                            _is_file_link = True  # 识别为文件链接
+                            # 检查关键词
+                            if self.match_keywords(anchor.text, soup):
+                                self.download_and_save_file(full_url, file_type)
+                            # 只处理第一个匹配的文件类型
+                            break
+                if (
+                    urlparse(full_url).netloc == urlparse(self.origin_url).netloc
+                    and not _is_file_link
+                ):
+                    logger.debug(f'从"{page_url}"发现新链接: "{full_url}"')
+                    links.add(full_url)
         return links
 
     def match_keywords(self, text: str, soup: BeautifulSoup) -> bool:
