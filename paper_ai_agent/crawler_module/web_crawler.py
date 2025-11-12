@@ -580,9 +580,8 @@ class WebCrawler(metaclass=SingletonMeta):
             # 跳过空链接和锚点链接
             if href == "" or href.startswith("#"):
                 continue
-            _downloadable: bool = anchor.get("download") is not None
             full_url: str = urljoin(page_url, href)
-            _is_file_link: bool = False
+            _is_file_link: bool = anchor.get("download") is not None
             # 检查url中是否携带目标文件类型
             for file_type in crawler_config.file_type.to_list():
                 if isinstance(file_type, str):
