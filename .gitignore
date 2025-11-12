@@ -225,3 +225,7 @@ __marimo__/
 # profile output files
 *.out
 *.stats
+
+# Resource
+[Rr]esource/[Cc]lassified/
+[Rr]esource/[Uu]classified/
