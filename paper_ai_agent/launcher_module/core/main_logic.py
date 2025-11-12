@@ -1,7 +1,7 @@
 """
 主要逻辑模块
 
-TODO:在这里处理flask_app的初始化、蓝图注册、数据库表创建等主要逻辑
+在这里处理flask_app的初始化、蓝图注册、数据库表创建等主要逻辑
 """
 
 from flask import Flask, Blueprint
