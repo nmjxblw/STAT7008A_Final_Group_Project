@@ -6,61 +6,121 @@ from .data_models import DemandType, Document, QueryResult, LLMConfig
 from .deepseek_api import load_llm_config, build_deepseek_client
 from .compute_relevance import relevance_calculator  # 导入独立的相关性计算器
 
+from datetime import datetime
 def mock_documents() -> List[Document]:
-    """模拟文档数据"""
+    """Mock documents for testing the new database schema."""
     return [
         Document(
-            file_id="75ac7d52",
-            file_name="Attention Is All You Need.pdf",
-            title="Attention Is All You Need: The Transformer Revolution in Sequence Modeling",
+            file_id="doc_rag_qa_001",
+            title="Designing a RAG-based Question Answering System",
             summary=(
-                "This paper introduces the Transformer, a neural network architecture based solely on attention, "
-                "removing recurrence and convolution, enabling high parallelization and SOTA results on WMT14."
+                "An overview of Retrieval-Augmented Generation (RAG) architectures for LLM-based "
+                "question answering, covering retrieval pipelines, vector databases, and response synthesis."
             ),
-            keywords=[
-                "transformer",
-                "attention",
-                "sequence",
-                "machine translation",
-                "parallelization",
-            ],
-            text_length=39448,
-            file_type="pdf",
-            extra_fields={"author": "Vaswani et al.", "year": "2017"},
+            content=(
+                "This document describes a practical design for a RAG-based question answering system. "
+                "We first discuss document ingestion and chunking strategies, then describe how to build "
+                "a vector store using dense embeddings. The retrieval layer selects top-k relevant passages, "
+                "which are then passed as context to a large language model. We also compare different "
+                "prompting templates, discuss latency/throughput trade-offs, and outline evaluation "
+                "metrics such as answer correctness, faithfulness, and grounding."
+            ),
+            keywords=["rag", "llm", "question answering", "retrieval", "vector database", "system design"],
+            author="Alice Smith",
+            publish_date=datetime(2024, 5, 12, 10, 30, 0),
+            download_date=datetime(2024, 5, 13, 9, 15, 0),
+            total_tokens=3200,
+            unique_tokens=780,
+            text_length=14500,
         ),
         Document(
-            file_id="9f3a21aa",
-            file_name="Company Policy 2025.pdf",
+            file_id="doc_arch_002",
+            title="LLM Application Architecture for Enterprise Search",
+            summary=(
+                "A system design note for integrating large language models with enterprise search, "
+                "including RAG, caching strategies, and access control."
+            ),
+            content=(
+                "This internal design document explains how to combine an existing enterprise search "
+                "stack with LLM-powered summarization and RAG-style question answering. We describe "
+                "the API gateway, authentication and authorization layers, the search backend, and "
+                "an LLM service that performs answer generation. The document also covers result "
+                "reranking, safety filters, prompt logging, and observability dashboards."
+            ),
+            keywords=["enterprise search", "llm", "rag", "system architecture", "observability"],
+            author="Bob Lee",
+            publish_date=datetime(2024, 6, 3, 14, 0, 0),
+            download_date=datetime(2024, 6, 3, 16, 45, 0),
+            total_tokens=2700,
+            unique_tokens=650,
+            text_length=12000,
+        ),
+        Document(
+            file_id="doc_policy_003",
             title="Company Policy and Approval Flow 2025",
             summary=(
-                "This document describes internal approval flows, reimbursement rules, HR processes, and policy updates for 2025."
+                "Describes internal approval flows, reimbursement rules, HR processes, and policy updates "
+                "for fiscal year 2025."
             ),
-            keywords=["policy", "approval", "hr", "reimbursement"],
-            text_length=6800,
-            file_type="pdf",
-            extra_fields={"department": "HR", "created_at": "2025-10-20"},
+            content=(
+                "This policy document defines the official approval flow for expenses, travel, procurement, "
+                "and headcount requests. It also describes the reimbursement process, required documentation, "
+                "standard processing times, and escalation paths. HR-related policy updates for 2025 include "
+                "revisions to remote work guidelines, learning budgets, and performance review cycles."
+            ),
+            keywords=["policy", "approval", "hr", "reimbursement", "remote work"],
+            author="HR Department",
+            publish_date=datetime(2025, 1, 10, 9, 0, 0),
+            download_date=datetime(2025, 1, 11, 11, 30, 0),
+            total_tokens=1800,
+            unique_tokens=420,
+            text_length=8000,
         ),
         Document(
-            file_id="abcdef",
-            file_name="Deep Reinforcement Curriculum",
-            title="Deep Reinforcement Learning & Curriculum Learning",
+            file_id="doc_eval_004",
+            title="Evaluation of RAG vs Vanilla LLM Question Answering",
             summary=(
-                "This fake document introduces deep learning, reinforcement learning, curriculum learning."
+                "An empirical comparison between vanilla LLM QA and RAG-based QA across multiple datasets, "
+                "evaluating accuracy, hallucination rate, and latency."
             ),
-            keywords=["deep learning", "reinforcement learning", "curriculum"],
-            text_length=1000,
-            file_type="pdf",
-            extra_fields={},
+            content=(
+                "We benchmark a vanilla LLM question answering baseline against a RAG pipeline that augments "
+                "the model with retrieved context. Using open-domain QA datasets, internal knowledge-base QA, "
+                "and FAQ-style corpora, we measure exact match, F1, and human-rated faithfulness. Results "
+                "show that RAG significantly reduces hallucinations while maintaining comparable latency when "
+                "proper caching and batching strategies are applied."
+            ),
+            keywords=["rag", "evaluation", "hallucination", "benchmark", "question answering"],
+            author="Carol Nguyen",
+            publish_date=datetime(2024, 9, 21, 15, 0, 0),
+            download_date=datetime(2024, 9, 22, 10, 20, 0),
+            total_tokens=3500,
+            unique_tokens=900,
+            text_length=16000,
+        ),
+        Document(
+            file_id="doc_notes_005",
+            title="Design Review Minutes: RAG-based Knowledge Assistant",
+            summary=(
+                "Meeting minutes from the design review for a RAG-based internal knowledge assistant, "
+                "including decisions, open questions, and follow-up items."
+            ),
+            content=(
+                "These minutes summarize the architecture review meeting for the new RAG-based knowledge assistant. "
+                "We discussed document ingestion pipelines, metadata enrichment, retrieval strategies (BM25 vs dense), "
+                "and prompt design for the answer generation step. The team agreed to start with a hybrid retriever, "
+                "implement guardrails for personally identifiable information, and run an A/B test against the existing "
+                "FAQ chatbot before full rollout."
+            ),
+            keywords=["rag", "meeting minutes", "knowledge assistant", "hybrid retrieval", "guardrails"],
+            author="Design Review Board",
+            publish_date=datetime(2024, 7, 5, 13, 30, 0),
+            download_date=datetime(2024, 7, 5, 14, 5, 0),
+            total_tokens=1500,
+            unique_tokens=500,
+            text_length=7000,
         ),
     ]
-'''
-file_id, title, summary, content, keywords, author, publish_date, download_date, total_tokens, unique_tokens, text_length.
-
-
-
-
-'''
-
 
 
 class SemanticService:
@@ -118,7 +178,7 @@ class SemanticService:
                 "title": r.title,
                 "relevance_percent": f"{r.relevance:.2f}%",
                 "summary": r.summary,
-                "key_fields_summary": r.key_fields_summary,
+                #"key_fields_summary": r.key_fields_summary,
                 "high_freq_terms": ", ".join([f"{k}:{v}" for k, v in r.high_freq_terms.items()]),
             })
         return results
@@ -286,8 +346,8 @@ class SemanticService:
                     doc_id=doc.file_id,
                     title=doc.title,
                     relevance=relevance_percent,
-                    summary=self._summarize_document(doc),
-                    key_fields_summary=self._summarize_key_fields(doc),
+                    summary=doc.summary,
+                    #key_fields_summary=self._summarize_key_fields(doc),
                     high_freq_terms=self._extract_high_freq_terms(doc, query_tokens),
                 )
             )
@@ -295,28 +355,6 @@ class SemanticService:
         # 按相关性排序
         results.sort(key=lambda x: x.relevance, reverse=True)
         return results
-
-    # ======================
-    # 内部方法：结果摘要
-    # ======================
-
-    def _summarize_document(self, doc: Document) -> str:
-        """生成文档摘要"""
-        if doc.file_type == "text":
-            short_summary = doc.summary[:120]
-            return short_summary + ("..." if len(doc.summary) > 120 else "")
-        else:
-            base = f"This file is of type '{doc.file_type}', with title '{doc.title}'."
-            if doc.extra_fields:
-                extra_str = ", ".join([f"{k}: {v}" for k, v in doc.extra_fields.items()])
-                base += f" Extra fields: {extra_str}"
-            return base
-
-    def _summarize_key_fields(self, doc: Document) -> str:
-        """生成文档关键字段摘要"""
-        if not doc.extra_fields:
-            return "No key fields."
-        return "; ".join([f"{k}={v}" for k, v in doc.extra_fields.items()])
 
     def _extract_high_freq_terms(
         self, doc: Document, query_tokens: List[str], top_k: int = 5
@@ -343,7 +381,8 @@ class SemanticService:
     def _build_llm_prompt(self, *, query: str, context: str) -> str:
         """构建LLM提示词"""
         return f"""
-You are an enterprise internal knowledge-base assistant. You can ONLY use the information in the following DOCUMENTS to answer the user's question. If the documents do not contain enough information, you MUST answer: "No valid reference."
+You are an enterprise internal knowledge-base assistant. You can ONLY use the information in the following DOCUMENTS to answer the user's question.
+If the documents do not contain enough information, you MUST answer: "No valid reference."
 
 [Answering rules]
 1. Be concise and accurate.
@@ -359,3 +398,38 @@ You are an enterprise internal knowledge-base assistant. You can ONLY use the in
 
 Start answering now:
 """.strip()
+
+#========================================================================================================================#
+#========================================================================================================================#
+
+# 1. query - 分类 - 查相似度 - 返回文件
+# 2. FILE: 结束
+# 3. QA: 文件id - summary/... - api - 返回回答
+
+def answer_generator(user_queries=None):
+    service = SemanticService()
+
+    if user_queries is None:
+        user_queries = [
+            "Find me documents about RAG-based LLM question answering system design.",
+            "What is the difference between RAG and standard LLM QA? Please explain based on documents.",
+            "Show me the company policy for 2025.",
+            "Explain the Transformer architecture.",
+        ]
+
+    answers = list()
+    for q in user_queries:
+
+        service.set_demand(q)
+        resp = service.get_LLM_reply()
+
+        if resp.get("type") == "file_query":
+            all_doc = ''
+            for item in resp.get("results", []):
+                all_doc += f"{item['title']} (relevance={item['relevance_percent']})"
+                all_doc += '\n'
+            answers.append(('FILE', all_doc))
+        else:
+            answers.append(('QA', resp.get("reply", "")))
+
+    return answers
