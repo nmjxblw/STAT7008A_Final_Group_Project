@@ -1,15 +1,17 @@
 from typing import List, Set
 import re
 from .data_models import Document
+from utility_module import SingletonMeta
 
-class RelevanceCalculator:
+
+class RelevanceCalculator(metaclass=SingletonMeta):
     """独立的文档相关性计算工具类"""
-    
+
     @staticmethod
     def tokenize(text: str) -> List[str]:
         """文本分词（仅保留字母数字，转为小写）"""
         return [t for t in re.split(r"[^0-9a-zA-Z]+", text.lower()) if t]
-    
+
     @staticmethod
     def compute_relevance(query_tokens: List[str], doc: Document) -> float:
         """
@@ -43,6 +45,7 @@ class RelevanceCalculator:
         # 加权求和得到总得分
         total_score = (keyword_score * 0.6) + tag_score + title_score
         return min(total_score, 1.0)  # 限制得分不超过1.0
+
 
 # 提供单例实例（方便全局使用）
 relevance_calculator = RelevanceCalculator()

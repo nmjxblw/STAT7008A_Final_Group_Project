@@ -1,14 +1,16 @@
+from curses import meta
+from tkinter.filedialog import Open
 from typing import List, Dict, Any, Optional, AsyncGenerator
 from collections import Counter
 import asyncio
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 from .data_models import DemandType, Document, QueryResult, LLMConfig
-from .deepseek_api import build_deepseek_client
 from .compute_relevance import relevance_calculator  # 导入独立的相关性计算器
 
 from datetime import datetime
 from global_module import answer_generator_config, API_KEY
+from utility_module import SingletonMeta
 
 
 def mock_documents() -> List[Document]:
@@ -152,12 +154,14 @@ def mock_documents() -> List[Document]:
     ]
 
 
-class SemanticService:
+class Generator(metaclass=SingletonMeta):
     """
-    语义服务层：
-    1. 自动识别意图（文件查询/问答）
-    2. 文档搜索与富集
-    3. 基于上下文的LLM问答
+    问答生成器实例 (单例)
+
+    功能包括：
+        1. 自动识别意图（文件查询/问答）
+        2. 文档搜索与富集
+        3. 基于上下文的LLM问答
     """
 
     def __init__(self, documents: Optional[List[Document]] = None):
@@ -170,7 +174,10 @@ class SemanticService:
         self._stopped: bool = False
 
         # LLM配置与客户端
-        self._client: Optional[OpenAI] = build_deepseek_client()
+        self._client: Optional[OpenAI] = OpenAI(
+            api_key=API_KEY,
+            base_url=answer_generator_config.base_url,
+        )
 
     # ======================
     # 公共API
@@ -294,7 +301,10 @@ class SemanticService:
             answer_generator_config.temperature = temperature
         if base_url is not None:
             answer_generator_config.base_url = base_url
-        self._client = build_deepseek_client()
+        self._client = OpenAI(
+            api_key=API_KEY,
+            base_url=answer_generator_config.base_url,
+        )
         return True
 
     # ======================
@@ -469,7 +479,7 @@ Start answering now:
 
 
 def answer_generator(user_queries=None) -> list[tuple[str, str]]:
-    service = SemanticService()
+    service = Generator()
 
     if user_queries is None:
         user_queries = [
