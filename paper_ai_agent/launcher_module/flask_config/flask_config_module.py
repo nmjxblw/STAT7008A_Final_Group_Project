@@ -7,7 +7,7 @@ from pathlib import Path
 class DefaultFlaskConfig(object):
     """默认的Flask配置类"""
 
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{Path.joinpath(Path.cwd(), DATABASE_PATH)}"
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{DATABASE_PATH}"
     """ 数据库连接URI """
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     """ 是否追踪对象修改 """

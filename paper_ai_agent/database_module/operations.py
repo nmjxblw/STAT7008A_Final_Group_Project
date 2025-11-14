@@ -3,24 +3,25 @@
 from datetime import date, datetime
 import sys
 from typing import Any
-from .database_model import File, session
+from .models import File
+from .core import session
 from log_module import *  # 导入全局日志模块
 
 
-def query_files_by_attributes(filed_set: dict) -> list[dict[str, Any]]:
+def query_files_by_attributes(attributes: dict[str, Any]) -> list[dict[str, Any]]:
     """
     根据指定字段查询文件，以字典格式返回
 
     参数：
-        filed_set (dict): 包含查询属性的字典
+        attributes (dict): 包含查询属性的字典
     返回：
         files (list[dict[str, Any]]): 符合条件的文件记录列表
     """
     try:
-        logger.debug(f"正在根据属性查询文件记录，查询条件: {filed_set}")
+        logger.debug(f"正在根据属性查询文件记录，查询条件: {attributes}")
 
         query = session.query(File)
-        for attr, value in filed_set.items():
+        for attr, value in attributes.items():
             attr_name: str = attr.lower()
             if hasattr(File, attr_name):
                 query = query.filter(getattr(File, attr_name) == value)

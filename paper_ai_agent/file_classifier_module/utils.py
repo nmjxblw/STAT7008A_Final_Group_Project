@@ -67,24 +67,34 @@ def save_to_json(file_info, save_data_folder):
 
 def save_to_database(file_dic: dict[str, Any]) -> bool:
     """
-    调用异步操作，将文件信息保存到flask数据库中
+    将文件信息保存到flask数据库中
 
     参数:
         file_dic (dict[str, Any]): 包含文件信息的字典
     返回:
         bool: 保存是否成功
     """
-    # 延迟导入以避免循环依赖
-    from paper_ai_agent.database_module.database_operations import (
-        add_or_update_file_to_database,
-    )
-    from asyncio import run
+    from database_module import add_or_update_file_to_database
 
-    return run(add_or_update_file_to_database(file_dic))
+    return add_or_update_file_to_database(file_dic)
 
 
-def get_retrieval_content(query: str, k_segments: int=20, k_articles:int=5):
-    embedding_model=get_local_embedding_model()
+def query_files_by_attributes(attributes: dict[str, Any]) -> list[dict[str, Any]]:
+    """
+    根据指定属性查询文件记录
+
+    参数:
+        attributes (dict[str, Any]): 包含查询属性的字典
+    返回:
+        files (list[dict[str, Any]]): 符合条件的文件列表（字典对象）
+    """
+    from database_module import query_files_by_attributes
+
+    return query_files_by_attributes(attributes)
+
+
+def get_retrieval_content(query: str, k_segments: int = 20, k_articles: int = 5):
+    embedding_model = get_local_embedding_model()
     worker = PDFRagWorker(embedding_model)
     faiss_retrieval = worker.get_faiss_retrieval(query, k_segments)
     bm25_retrieval = worker.get_bm25_retrieval(query, k_articles)
@@ -104,9 +114,7 @@ def get_local_embedding_model():
 
         # 根据检测到的语言选择模型
 
-        model_name = (
-            "sentence-transformers/all-MiniLM-L6-v2"  # 英文模型，约90MB
-        )
+        model_name = "sentence-transformers/all-MiniLM-L6-v2"  # 英文模型，约90MB
         logger.debug(f"  选择模型: {model_name}")
 
         # 检查模型是否已下载
@@ -118,9 +126,7 @@ def get_local_embedding_model():
             logger.debug(f"  本地模型已缓存: {model_path}")
         else:
             logger.debug(f"  本地模型未找到，开始自动下载...")
-            logger.debug(
-                f"  模型大小: { '~90MB'}"
-            )
+            logger.debug(f"  模型大小: { '~90MB'}")
             logger.debug(f"  下载位置: {cache_dir}")
 
         # 加载模型（如果不存在会自动下载）
@@ -137,4 +143,3 @@ def get_local_embedding_model():
         logger.debug("首次使用需要下载模型，请确保网络连接")
         logger.debug("或安装: pip install sentence-transformers")
         return None
-
