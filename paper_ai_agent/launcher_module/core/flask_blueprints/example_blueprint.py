@@ -12,6 +12,11 @@ import aiohttp  # 用于发起异步HTTP请求的库
 import time
 from datetime import datetime
 from log_module import *  # 导入全局日志模块
+from database_module import (
+    File,
+    query_files_by_attributes,
+    add_or_update_file_to_database,
+)
 
 example_bp: Blueprint = Blueprint(
     "example_blueprint",
@@ -35,7 +40,7 @@ async def example_bp_main_page() -> Any:
 
 
 @example_bp.route("/add_or_update_file", methods=["POST"])
-async def example_bp_add_or_update_file() -> Any:
+def example_bp_add_or_update_file() -> Any:
     """样例接口，添加或更新文件记录"""
     try:
         request_data: dict[str, Any] = request.get_json()
@@ -43,10 +48,9 @@ async def example_bp_add_or_update_file() -> Any:
         if request_data is None:
             logger.debug("请求数据解析异常...")
             return abort(400, description="✖ 请求数据解析异常，请检查请求格式")
-        from ..database_operations import add_or_update_file_to_database
 
         # 执行添加或更新文件记录操作，异步等待结果
-        if not await add_or_update_file_to_database(request_data):
+        if not add_or_update_file_to_database(request_data):
             abort(500, description="✖ 添加或更新文件记录失败")
 
         response_data: dict[str, Any] = {
@@ -70,8 +74,6 @@ async def example_bp_query_files_by_attributes() -> Any:
         if request_data is None:
             logger.debug("✖ 请求数据解析异常")
             return abort(400, description="✖ 请求数据解析异常，请检查请求格式")
-        from ..database_operations import query_files_by_attributes
-        from ..database_model import File
 
         # 提取查询属性
         query_attributes: dict = {}
@@ -82,10 +84,10 @@ async def example_bp_query_files_by_attributes() -> Any:
                     value = datetime.fromisoformat(value)
                 query_attributes[attr_name] = value
         # 执行查询，异步获取结果
-        files = await query_files_by_attributes(query_attributes)
+        files = query_files_by_attributes(query_attributes)
         response_data = {
             "status": "success",
-            "files": [file.to_dict() for file in files],
+            "files": files,
         }
         logger.debug(f"{sys._getframe().f_code.co_name}接口响应数据: {response_data}")
         return jsonify(response_data)

@@ -16,12 +16,12 @@ classifier_bp = Blueprint(
 """分类器蓝图模块"""
 
 
-@classifier_bp.route("/start_file_classify_task", methods=["POST"])
+@classifier_bp.route("/start_file_classify_task", methods=["GET", "POST"])
 def classifier_bp_start_file_classify_task() -> Any:
     """启动文件分类任务"""
     logger.debug(f"{sys._getframe().f_code.co_name}接口收到启动文件分类任务请求...")
     try:
-        request_data: dict = request.get_json()
+        params: dict = {}
         if start_file_classify_task(**request_data):
             response_data = {"status": "success", "message": "文件分类任务已执行完毕"}
             logger.debug("✔ 文件分类任务执行成功")

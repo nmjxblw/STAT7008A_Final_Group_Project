@@ -75,7 +75,9 @@ def save_to_database(file_dic: dict[str, Any]) -> bool:
         bool: 保存是否成功
     """
     # 延迟导入以避免循环依赖
-    from launcher_module.core.database_operations import add_or_update_file_to_database
+    from paper_ai_agent.database_module.database_operations import (
+        add_or_update_file_to_database,
+    )
     from asyncio import run
 
     return run(add_or_update_file_to_database(file_dic))

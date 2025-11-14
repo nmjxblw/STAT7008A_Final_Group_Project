@@ -1,13 +1,9 @@
 {
   "answer_generator_config": {
-    "apikey_file_name": "api_key.txt",
-    "base_url": "https://api.deepseek.com/v1",
-    "max_tokens": null,
+    "base_url": "https://api.deepseek.com",
+    "max_tokens": 512,
     "model": "deepseek-chat",
-    "response_save_dir": "DeepSeek_Responses",
-    "save_responses": true,
-    "system_prompt": "你是一个有帮助的AI助手。请用中文回答问题，保持友好和专业。",
-    "temperature": 1.0
+    "temperature": 0.2
   },
   "blueprints": [
     {

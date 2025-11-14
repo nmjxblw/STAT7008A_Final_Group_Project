@@ -3,7 +3,7 @@
 import enum
 import random
 import threading
-from typing import Sequence
+from typing import Any, Sequence
 from requests import Response
 import requests
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
@@ -679,6 +679,25 @@ class WebCrawler(metaclass=SingletonMeta):
                 logger.info(log_line.strip())
         except Exception as e:
             raise e  # 抛出异常，让日志来定位报错
+
+    def update_crawler_config(self, **kwargs) -> bool:
+        """更新爬虫配置
+
+        参数:
+            **kwargs: 爬虫配置参数键值对
+        """
+        try:
+            for key, value in kwargs.items():
+                if key.startswith("_"):
+                    # 跳过私有属性
+                    continue
+                if hasattr(crawler_config, key):
+                    setattr(crawler_config, key, value)
+            logger.debug("✔ 爬虫配置已更新")
+            return True
+        except Exception as e:
+            logger.debug(f"✘ 更新爬虫配置失败: {e}")
+            return False
 
     # API接口方法
     def get_current_crawling_web(self) -> str:
