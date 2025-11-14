@@ -2,4 +2,4 @@
 
 from .__main__ import *
 
-__all__ = ["start_file_classify_task"]
+__all__ = ["start_file_classify_task","run","test_retrieval"]
