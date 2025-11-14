@@ -68,7 +68,7 @@
     },
     {
       "function_name": "get_LLM_reply",
-      "method": "GET",
+      "method": "POST",
       "url": "generator/get_LLM_reply"
     }
   ],
