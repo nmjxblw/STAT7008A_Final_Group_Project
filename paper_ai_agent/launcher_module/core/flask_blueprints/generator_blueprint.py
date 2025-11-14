@@ -29,3 +29,21 @@ def set_demand() -> Any:
     except Exception as e:
         logger.debug(f"✖ 设置用户需求失败: {e}")
         abort(500, description="✖ 设置用户需求失败")
+
+
+@generator_bp.route("/get_LLM_reply", methods=("POST",))
+def get_LLM_reply() -> Response:
+    """获取LLM回复接口"""
+    try:
+        request_data: dict[str, Any] = request.get_json()
+        logger.debug(f"{sys._getframe().f_code.co_name}接口请求数据：{ request_data }")
+
+        question = request_data.get("question", "")
+        logger.debug(f"Received question: {question}")
+        # 这里可以添加代码将问题传递给回答生成器模块并获取回复
+        reply = generator.get_LLM_reply()
+        response_data = {"status": "success", "message": reply}
+        return jsonify(response_data)
+    except Exception as e:
+        logger.debug(f"✖ 获取LLM回复失败: {e}")
+        abort(500, description="✖ 获取LLM回复失败")
