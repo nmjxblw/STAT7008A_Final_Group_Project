@@ -48,7 +48,6 @@ class QueryResult:
 class LLMConfig:
     """LLM-related runtime config."""
 
-    __slots__ = ("model", "max_tokens", "temperature", "base_url")
     model: str = "deepseek-chat"
     max_tokens: int = 512
     temperature: float = 0.2

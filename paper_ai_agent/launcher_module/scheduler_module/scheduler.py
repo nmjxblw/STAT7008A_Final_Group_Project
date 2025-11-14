@@ -11,7 +11,7 @@ class TaskScheduler:
 
     def parse_trigger_time(self):
         """解析触发时间配置"""
-        time_str = crawler_config.trigger_time
+        time_str: str = crawler_config.trigger_time
         match = re.match(r"(\d{1,2}):(\d{2})(AM|PM),UTC([+-])(\d{2}):(\d{2})", time_str)
 
         if match:

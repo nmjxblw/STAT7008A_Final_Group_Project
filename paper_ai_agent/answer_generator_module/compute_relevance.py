@@ -2,6 +2,7 @@ from typing import List, Set
 import re
 from .data_models import Document
 from utility_module import SingletonMeta
+from database_module import File
 
 
 class RelevanceCalculator(metaclass=SingletonMeta):
@@ -13,7 +14,7 @@ class RelevanceCalculator(metaclass=SingletonMeta):
         return [t for t in re.split(r"[^0-9a-zA-Z]+", text.lower()) if t]
 
     @staticmethod
-    def compute_relevance(query_tokens: List[str], doc: Document) -> float:
+    def compute_relevance(query_tokens: List[str], doc: File) -> float:
         """
         计算查询与文档的相关性得分（0-1之间）
         得分由三部分组成：关键词重叠得分（60%）、标签匹配加分（20%）、标题匹配加分（30%）
@@ -22,7 +23,7 @@ class RelevanceCalculator(metaclass=SingletonMeta):
             return 0.0
 
         # 合并文档所有文本字段（摘要+标题+关键词）
-        doc_text = f"{doc.summary} {doc.title} {' '.join(doc.keywords)}"
+        doc_text = f"{doc.summary} {doc.title} {doc.keywords}"
         doc_tokens = RelevanceCalculator.tokenize(doc_text)
 
         # 转换为集合用于快速匹配
@@ -38,7 +39,7 @@ class RelevanceCalculator(metaclass=SingletonMeta):
         tag_score = min(tag_matches, 2) * 0.2  # 限制最多匹配2个标签
 
         # 3) 标题匹配加分（每个匹配词加0.3分，占比30%）
-        title_tokens = RelevanceCalculator.tokenize(doc.title)
+        title_tokens = RelevanceCalculator.tokenize(str(doc.title))
         title_matched = len(query_set & set(title_tokens))
         title_score = title_matched * 0.3
 

@@ -1,31 +1,63 @@
-"""数据库模型模块"""
+"""数据库模型"""
 
-from ..__main__ import flask_database
+from cv2 import log
+from sqlalchemy import Engine, create_engine, Column, Integer, String, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from datetime import datetime, date
+from global_module import DATABASE_PATH
+from log_module import *  # 导入全局日志模块
+
+_engine: Engine = create_engine(f"sqlite:///{DATABASE_PATH}", echo=True)
+"""数据库引擎实例"""
+
+# 定义基类
+_Base = declarative_base()
+""" 数据库模型基类 """
+
+# 创建表
+try:
+    logger.debug(f"开始创建表，数据库路径: {DATABASE_PATH} ")
+    _Base.metadata.create_all(_engine)
+    logger.debug("✔ 数据库表创建完成")
+except Exception as e:
+    logger.debug(f"✘ 创建表失败: {e}")
+    raise e
+
+# 创建会话
+try:
+    logger.debug("正在创建数据库会话...")
+    _Session = sessionmaker(bind=_engine)
+    session = _Session()
+    """ 数据库会话实例 """
+    logger.debug("✔ 数据库会话创建成功")
+except Exception as e:
+    logger.debug(f"✘ 创建数据库会话失败: {e}")
+    raise e
 
 
-class File(flask_database.Model):
-    """文件数据库模型类，表示存储在数据库中的文件信息"""
+class File(_Base):
+    """文件数据库模型数据结构，表示存储在数据库中的文件信息"""
 
     __tablename__ = "file"
     """ 数据库表名称 """
 
     # region 数据库字段定义
-    file_id = flask_database.Column(flask_database.String(50), primary_key=True)
+    file_id = Column(String(50), primary_key=True)
     """ 文件ID """
-    title = flask_database.Column(flask_database.String(256), nullable=True)
+    title = Column(String(256), nullable=True)
     """ 文件标题 """
-    summary = flask_database.Column(flask_database.Text, nullable=True)
+    summary = Column(Text, nullable=True)
     """ 文件摘要 """
-    content = flask_database.Column(flask_database.Text, nullable=True)
+    content = Column(Text, nullable=True)
     """ 文件内容 """
-    keywords = flask_database.Column(flask_database.Text, nullable=True)
+    keywords = Column(Text, nullable=True)
     """ 文件关键词 """
-    author = flask_database.Column(flask_database.String(50), nullable=True)
+    author = Column(String(50), nullable=True)
     """ 文件作者 """
-    text_length = flask_database.Column(flask_database.Integer, nullable=True)
+    text_length = Column(Integer, nullable=True)
     """ 文件文本长度 """
-    file_name = flask_database.Column(flask_database.String(256), nullable=True)
+    file_name = Column(String(256), nullable=True)
     """ 文件名 """
 
     # endregion
@@ -65,10 +97,10 @@ class File(flask_database.Model):
     @classmethod
     def from_dict(cls, data: dict) -> "File":
         """从字典创建文件实例"""
+        if data.get("file_id") == "":
+            raise ValueError("字典缺少file_id键，无法创建File实例")
         file_instance = cls()
         file_instance.update_attributes_from_dict(data)
-        if file_instance.file_id is None or file_instance.file_id == "":
-            raise ValueError("字典缺少file_id键，无法创建File实例")
         return file_instance
 
     @classmethod

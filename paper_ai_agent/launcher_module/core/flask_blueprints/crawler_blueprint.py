@@ -20,8 +20,9 @@ def crawler_bp_setup_crawler_config():
     """设置爬虫配置"""
     logger.debug(f"{sys._getframe().f_code.co_name}收到设置爬虫配置请求")
     try:
-        config_data = request.get_json()
+        config_data: dict[str, Any] = request.get_json()
         logger.debug(f"爬虫配置请求数据: {config_data}")
+        crawler.update_crawler_config(**config_data)
         response_data = {"status": "success", "message": "爬虫配置已更新"}
         logger.debug("✔ 爬虫配置更新成功")
         return jsonify(response_data)

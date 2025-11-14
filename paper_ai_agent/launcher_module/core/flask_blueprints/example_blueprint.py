@@ -12,6 +12,11 @@ import aiohttp  # 用于发起异步HTTP请求的库
 import time
 from datetime import datetime
 from log_module import *  # 导入全局日志模块
+from database_module import (
+    File,
+    query_files_by_attributes,
+    add_or_update_file_to_database,
+)
 
 example_bp: Blueprint = Blueprint(
     "example_blueprint",
@@ -43,7 +48,6 @@ async def example_bp_add_or_update_file() -> Any:
         if request_data is None:
             logger.debug("请求数据解析异常...")
             return abort(400, description="✖ 请求数据解析异常，请检查请求格式")
-        from ..database_operations import add_or_update_file_to_database
 
         # 执行添加或更新文件记录操作，异步等待结果
         if not await add_or_update_file_to_database(request_data):
@@ -70,8 +74,6 @@ async def example_bp_query_files_by_attributes() -> Any:
         if request_data is None:
             logger.debug("✖ 请求数据解析异常")
             return abort(400, description="✖ 请求数据解析异常，请检查请求格式")
-        from ..database_operations import query_files_by_attributes
-        from ..database_model import File
 
         # 提取查询属性
         query_attributes: dict = {}

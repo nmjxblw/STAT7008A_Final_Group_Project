@@ -1,5 +1,3 @@
-from curses import meta
-from tkinter.filedialog import Open
 from typing import List, Dict, Any, Optional, AsyncGenerator
 from collections import Counter
 import asyncio
@@ -11,147 +9,7 @@ from .compute_relevance import relevance_calculator  # 导入独立的相关性�
 from datetime import datetime
 from global_module import answer_generator_config, API_KEY
 from utility_module import SingletonMeta
-
-
-def mock_documents() -> List[Document]:
-    """Mock documents for testing the new database schema."""
-    return [
-        Document(
-            file_id="doc_rag_qa_001",
-            title="Designing a RAG-based Question Answering System",
-            summary=(
-                "An overview of Retrieval-Augmented Generation (RAG) architectures for LLM-based "
-                "question answering, covering retrieval pipelines, vector databases, and response synthesis."
-            ),
-            content=(
-                "This document describes a practical design for a RAG-based question answering system. "
-                "We first discuss document ingestion and chunking strategies, then describe how to build "
-                "a vector store using dense embeddings. The retrieval layer selects top-k relevant passages, "
-                "which are then passed as context to a large language model. We also compare different "
-                "prompting templates, discuss latency/throughput trade-offs, and outline evaluation "
-                "metrics such as answer correctness, faithfulness, and grounding."
-            ),
-            keywords=[
-                "rag",
-                "llm",
-                "question answering",
-                "retrieval",
-                "vector database",
-                "system design",
-            ],
-            author="Alice Smith",
-            publish_date=datetime(2024, 5, 12, 10, 30, 0),
-            download_date=datetime(2024, 5, 13, 9, 15, 0),
-            total_tokens=3200,
-            unique_tokens=780,
-            text_length=14500,
-        ),
-        Document(
-            file_id="doc_arch_002",
-            title="LLM Application Architecture for Enterprise Search",
-            summary=(
-                "A system design note for integrating large language models with enterprise search, "
-                "including RAG, caching strategies, and access control."
-            ),
-            content=(
-                "This internal design document explains how to combine an existing enterprise search "
-                "stack with LLM-powered summarization and RAG-style question answering. We describe "
-                "the API gateway, authentication and authorization layers, the search backend, and "
-                "an LLM service that performs answer generation. The document also covers result "
-                "reranking, safety filters, prompt logging, and observability dashboards."
-            ),
-            keywords=[
-                "enterprise search",
-                "llm",
-                "rag",
-                "system architecture",
-                "observability",
-            ],
-            author="Bob Lee",
-            publish_date=datetime(2024, 6, 3, 14, 0, 0),
-            download_date=datetime(2024, 6, 3, 16, 45, 0),
-            total_tokens=2700,
-            unique_tokens=650,
-            text_length=12000,
-        ),
-        Document(
-            file_id="doc_policy_003",
-            title="Company Policy and Approval Flow 2025",
-            summary=(
-                "Describes internal approval flows, reimbursement rules, HR processes, and policy updates "
-                "for fiscal year 2025."
-            ),
-            content=(
-                "This policy document defines the official approval flow for expenses, travel, procurement, "
-                "and headcount requests. It also describes the reimbursement process, required documentation, "
-                "standard processing times, and escalation paths. HR-related policy updates for 2025 include "
-                "revisions to remote work guidelines, learning budgets, and performance review cycles."
-            ),
-            keywords=["policy", "approval", "hr", "reimbursement", "remote work"],
-            author="HR Department",
-            publish_date=datetime(2025, 1, 10, 9, 0, 0),
-            download_date=datetime(2025, 1, 11, 11, 30, 0),
-            total_tokens=1800,
-            unique_tokens=420,
-            text_length=8000,
-        ),
-        Document(
-            file_id="doc_eval_004",
-            title="Evaluation of RAG vs Vanilla LLM Question Answering",
-            summary=(
-                "An empirical comparison between vanilla LLM QA and RAG-based QA across multiple datasets, "
-                "evaluating accuracy, hallucination rate, and latency."
-            ),
-            content=(
-                "We benchmark a vanilla LLM question answering baseline against a RAG pipeline that augments "
-                "the model with retrieved context. Using open-domain QA datasets, internal knowledge-base QA, "
-                "and FAQ-style corpora, we measure exact match, F1, and human-rated faithfulness. Results "
-                "show that RAG significantly reduces hallucinations while maintaining comparable latency when "
-                "proper caching and batching strategies are applied."
-            ),
-            keywords=[
-                "rag",
-                "evaluation",
-                "hallucination",
-                "benchmark",
-                "question answering",
-            ],
-            author="Carol Nguyen",
-            publish_date=datetime(2024, 9, 21, 15, 0, 0),
-            download_date=datetime(2024, 9, 22, 10, 20, 0),
-            total_tokens=3500,
-            unique_tokens=900,
-            text_length=16000,
-        ),
-        Document(
-            file_id="doc_notes_005",
-            title="Design Review Minutes: RAG-based Knowledge Assistant",
-            summary=(
-                "Meeting minutes from the design review for a RAG-based internal knowledge assistant, "
-                "including decisions, open questions, and follow-up items."
-            ),
-            content=(
-                "These minutes summarize the architecture review meeting for the new RAG-based knowledge assistant. "
-                "We discussed document ingestion pipelines, metadata enrichment, retrieval strategies (BM25 vs dense), "
-                "and prompt design for the answer generation step. The team agreed to start with a hybrid retriever, "
-                "implement guardrails for personally identifiable information, and run an A/B test against the existing "
-                "FAQ chatbot before full rollout."
-            ),
-            keywords=[
-                "rag",
-                "meeting minutes",
-                "knowledge assistant",
-                "hybrid retrieval",
-                "guardrails",
-            ],
-            author="Design Review Board",
-            publish_date=datetime(2024, 7, 5, 13, 30, 0),
-            download_date=datetime(2024, 7, 5, 14, 5, 0),
-            total_tokens=1500,
-            unique_tokens=500,
-            text_length=7000,
-        ),
-    ]
+from database_module import *
 
 
 class Generator(metaclass=SingletonMeta):
@@ -164,9 +22,9 @@ class Generator(metaclass=SingletonMeta):
         3. 基于上下文的LLM问答
     """
 
-    def __init__(self, documents: Optional[List[Document]] = None):
-        self._documents: List[Document] = documents or mock_documents()
+    def __init__(self):
 
+        self._documents: List[File]
         # 运行时状态
         self._current_demand_raw: str = ""
         self._current_demand_type: Optional[DemandType] = None

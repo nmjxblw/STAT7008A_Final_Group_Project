@@ -2,9 +2,6 @@ from email import generator
 import json
 import sys
 from typing import Any
-
-from anyio import getnameinfo
-import flask
 from flask import Blueprint, jsonify, render_template, abort, Response, request
 from jinja2 import TemplateNotFound
 from log_module import *  # 导入全局日志模块
@@ -30,6 +27,5 @@ def set_demand() -> Any:
             response_data = {"status": "failure", "message": "Failed to set demand"}
         return jsonify(response_data)
     except Exception as e:
-        logger.error(f"Error in set_demand: {e}")
-        response_data = {"status": "error", "message": str(e)}
-        return jsonify(response_data), 500
+        logger.debug(f"✖ 设置用户需求失败: {e}")
+        abort(500, description="✖ 设置用户需求失败")
