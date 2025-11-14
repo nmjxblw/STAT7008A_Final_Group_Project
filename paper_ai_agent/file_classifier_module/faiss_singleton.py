@@ -22,6 +22,7 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         if embeddings_model is not None and save_path is not None:
             self._embeddings_model = embeddings_model
             self._save_path = save_path
+            self._vector_db = None
             os.makedirs(save_path, exist_ok=True)  # 确保目录存在
             # 注册退出处理函数，确保只注册一次
             try:
@@ -30,7 +31,7 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
             except Exception as e:
                 logger.error(f"✘ FAISS向量数据库自动保存方法注册失败：{e}")
 
-    def _lazy_initialize(self, docs: list[Document] = []):
+    def _lazy_initialize(self, docs: list[Document] | None = None):
         """
         懒加载初始化向量数据库。
         docs: 仅在需要创建新索引时提供。
@@ -47,6 +48,8 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
                 allow_dangerous_deserialization=True,
             )
             logger.debug("✔ 检测到现有索引文件，已加载。")
+            record_count = self._vector_db.index.ntotal
+            logger.debug(f"当前索引数量：{record_count}")
         else:
             # 首次创建索引，此时必须提供docs
             if not docs:
@@ -55,6 +58,8 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
                 )
             self._vector_db = FAISS.from_documents(docs, self._embeddings_model)
             logger.debug("✔ 未找到现有索引，已从文档创建新索引。")
+            record_count = self._vector_db.index.ntotal
+            logger.debug(f"当前索引数量：{record_count}")
         # 标记初始化完成
         self._initialized = True
 
@@ -67,7 +72,8 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
             self._vector_db.add_documents(docs)
         # 注意：添加文档后不立即保存，由退出时统一保存以提高性能
         logger.debug(f"✔ 已添加 {len(docs)} 个文档到索引（更改暂存于内存）。")
-
+        record_count = self._vector_db.index.ntotal
+        logger.debug(f"当前索引数量：{record_count}")
     def similarity_search_with_score(self, query, k=4):
         """
         执行相似性搜索并返回文档及其分数。
@@ -75,6 +81,8 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         """
         if not self._initialized or self._vector_db is None:
             self._lazy_initialize()
+
+        logger.debug(f"正在进行FAISS Retrieval检索")
         return self._vector_db.similarity_search_with_score(query, k=k)
 
     def _auto_save_on_exit(self):
@@ -83,8 +91,10 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         在程序退出前自动调用，保存向量数据库索引。
         """
         if self._vector_db is not None and self._initialized:
+            record_count = self._vector_db.index.ntotal
+
             self._vector_db.save_local(self._save_path)
-            logger.debug(f"✔ 程序退出，向量索引已自动保存至 {self._save_path}。")
+            logger.debug(f"✔ 程序退出，向量索引已自动保存至 {self._save_path}。当前有{record_count}个索引。")
         else:
             logger.debug("✔ 程序退出，无需保存（向量数据库未初始化或为空）。")
 

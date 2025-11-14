@@ -15,7 +15,7 @@ class PDFTransformer:
         """
 
     def transform(self, folder_path, file_name):
-        full_path = folder_path + file_name
+        full_path = folder_path +'\\'+ file_name
         """基于文件名生成md5 id"""
         file_id = self.__generate_file_unique_id(file_name)
 

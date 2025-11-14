@@ -15,7 +15,7 @@ import math
 
 
 class PDFRagWorker:
-    def __init__(self, use_local_embedding=False):
+    def __init__(self, embedding_model=None):
         """初始化PDFRagWorker
 
         Args:
@@ -23,7 +23,8 @@ class PDFRagWorker:
                 - True: 使用本地HuggingFace模型（需下载，但免费）
                 - False: 使用DashScope API（需API key，但更快）
         """
-        self.use_local_embedding: bool = use_local_embedding
+
+        self.embedding_model = embedding_model
 
         self.detected_language: str = "en"  # 检测到的语言（默认按照英文处理）
 
@@ -36,11 +37,6 @@ class PDFRagWorker:
         """
         在这里将原文进行语义转换和存储
         """
-        # 自动检测文档语言
-        self.detected_language = self.__detect_language(
-            previous_file_data_dict.get("file_text", "")
-        )
-        logger.debug(f" 检测到文档语言: {self.detected_language}")
 
         # 这里基于embedding和faiss存储
         self.__pdf_split_and_embed(previous_file_data_dict)
@@ -74,59 +70,12 @@ class PDFRagWorker:
         else:
             return "en"
 
-    def __get_embedding_model(self):
+    def __get_api_embedding_model(self):
         """获取embedding模型（根据语言自动选择合适模型）
 
         Returns:
-            embeddings_model: LangChain的embedding模型对象
+            api_embeddings_model: 使用api调用的embedding对象
         """
-        if self.use_local_embedding:
-            # 使用本地HuggingFace模型
-            logger.debug("使用本地Embedding模型")
-            try:
-                from langchain_community.embeddings import HuggingFaceEmbeddings
-                import os.path
-
-                # 根据检测到的语言选择模型
-                if self.detected_language == "zh":
-                    model_name = "BAAI/bge-small-zh-v1.5"  # 中文模型，约400MB
-                    logger.debug(f"  选择中文模型: {model_name}")
-                else:
-                    model_name = (
-                        "sentence-transformers/all-MiniLM-L6-v2"  # 英文模型，约90MB
-                    )
-                    logger.debug(f"  选择英文模型: {model_name}")
-
-                # 检查模型是否已下载
-                cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
-                model_dir_name = f"models--{model_name.replace('/', '--')}"
-                model_path = os.path.join(cache_dir, model_dir_name)
-
-                if os.path.exists(model_path):
-                    logger.debug(f"  本地模型已缓存: {model_path}")
-                else:
-                    logger.debug(f"  本地模型未找到，开始自动下载...")
-                    logger.debug(
-                        f"  模型大小: {'~400MB' if self.detected_language == 'zh' else '~90MB'}"
-                    )
-                    logger.debug(f"  下载位置: {cache_dir}")
-
-                # 加载模型（如果不存在会自动下载）
-                embeddings_model = HuggingFaceEmbeddings(
-                    model_name=model_name,
-                    model_kwargs={"device": "cpu"},  # 使用CPU，如有GPU可改为'cuda'
-                    encode_kwargs={"normalize_embeddings": True},
-                )
-                logger.debug(f"本地模型加载成功: {model_name}")
-                return embeddings_model
-
-            except Exception as e:
-                logger.debug(f"本地模型加载失败: {e}")
-                logger.debug("首次使用需要下载模型，请确保网络连接")
-                logger.debug("或安装: pip install sentence-transformers")
-                logger.debug("降级使用API模式")
-                # 降级到API模式
-                self.use_local_embedding = False
 
         # 使用API（默认或降级）
         logger.debug("使用DashScope API进行Embedding")
@@ -185,13 +134,15 @@ class PDFRagWorker:
         # faiss文件保存目录
         save_embed_folder = os.path.join(project_root, "DB", "embedding")
         # 获取embedding模型（支持本地和API两种方式）
-        embeddings_model = self.__get_embedding_model()
-        vector_store = FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
+        if self.embedding_model is None:
+            logger.warning("实例化PDFRagWorker时未传入本地embeeding模型，fallback调用api模型")
+            self.embeddings_model = self.__get_api_embedding_model()
+        vector_store = FAISSVectorStoreSingleton(self.embedding_model, save_embed_folder)
 
         vector_store.add_documents(docs)
 
     def get_faiss_retrieval(self, query, k):
-        embeddings_model = self.__get_embedding_model()
+        embeddings_model = self.embedding_model
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         # faiss文件保存目录
         save_embed_folder = os.path.join(project_root, "DB", "embedding")
@@ -735,7 +686,7 @@ class PDFRagWorker:
                 # BM25公式计算
                 numerator = term_frequency * (k1 + 1)
                 denominator = term_frequency + k1 * (
-                    1 - b + b * (doc_length / self.avg_doc_length)
+                        1 - b + b * (doc_length / self.avg_doc_length)
                 )
 
                 term_score = idf * (numerator / denominator)
