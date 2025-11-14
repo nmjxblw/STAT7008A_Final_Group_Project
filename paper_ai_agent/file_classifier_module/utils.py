@@ -83,12 +83,58 @@ def save_to_database(file_dic: dict[str, Any]) -> bool:
     return run(add_or_update_file_to_database(file_dic))
 
 
-def get_retrieval_content(query: str, k: int):
-    worker = PDFRagWorker()
-    faiss_retrieval = worker.get_faiss_retrieval(query, k)
-    bm25_retrieval = worker.get_bm25_retrieval(query, k)
+def get_retrieval_content(query: str, k_segments: int=20, k_articles:int=5):
+    embedding_model=get_local_embedding_model()
+    worker = PDFRagWorker(embedding_model)
+    faiss_retrieval = worker.get_faiss_retrieval(query, k_segments)
+    bm25_retrieval = worker.get_bm25_retrieval(query, k_articles)
     retrieval = {
         "most_similar_paragrapghs": faiss_retrieval,
         "most_similar_paper": bm25_retrieval,
     }
     return retrieval
+
+
+def get_local_embedding_model():
+    # 使用本地HuggingFace模型
+    logger.debug("获取本地Embedding模型")
+    try:
+        from langchain_community.embeddings import HuggingFaceEmbeddings
+        import os.path
+
+        # 根据检测到的语言选择模型
+
+        model_name = (
+            "sentence-transformers/all-MiniLM-L6-v2"  # 英文模型，约90MB
+        )
+        logger.debug(f"  选择模型: {model_name}")
+
+        # 检查模型是否已下载
+        cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
+        model_dir_name = f"models--{model_name.replace('/', '--')}"
+        model_path = os.path.join(cache_dir, model_dir_name)
+
+        if os.path.exists(model_path):
+            logger.debug(f"  本地模型已缓存: {model_path}")
+        else:
+            logger.debug(f"  本地模型未找到，开始自动下载...")
+            logger.debug(
+                f"  模型大小: { '~90MB'}"
+            )
+            logger.debug(f"  下载位置: {cache_dir}")
+
+        # 加载模型（如果不存在会自动下载）
+        embeddings_model = HuggingFaceEmbeddings(
+            model_name=model_name,
+            model_kwargs={"device": "cpu"},  # 使用CPU，如有GPU可改为'cuda'
+            encode_kwargs={"normalize_embeddings": True},
+        )
+        logger.debug(f"本地模型加载成功: {model_name}")
+        return embeddings_model
+
+    except Exception as e:
+        logger.debug(f"本地模型加载失败: {e}")
+        logger.debug("首次使用需要下载模型，请确保网络连接")
+        logger.debug("或安装: pip install sentence-transformers")
+        return None
+
