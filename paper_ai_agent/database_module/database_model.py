@@ -51,7 +51,7 @@ class File(_Base):
     """ 文件摘要 """
     content = Column(Text, nullable=True)
     """ 文件内容 """
-    keywords = Column(Text, nullable=True)
+    keywords = Column(Text, nullable=True)  # "keywords|name"
     """ 文件关键词 """
     author = Column(String(50), nullable=True)
     """ 文件作者 """

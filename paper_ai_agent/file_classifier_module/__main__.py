@@ -1,6 +1,4 @@
-def start_file_classify_task(
-    unclassified_path, file_name, classified_path, json_db_path
-) -> bool:
+def start_file_classify_task(unclassified_path, file_name, classified_path) -> bool:
     """
     目前数据格式如下
         "file_id",

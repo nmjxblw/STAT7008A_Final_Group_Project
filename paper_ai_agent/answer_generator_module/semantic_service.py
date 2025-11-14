@@ -4,7 +4,6 @@ import asyncio
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 from .data_models import DemandType, Document, QueryResult, LLMConfig
-from .compute_relevance import relevance_calculator  # 导入独立的相关性计算器
 
 from datetime import datetime
 from global_module import answer_generator_config, API_KEY
@@ -250,13 +249,13 @@ class Generator(metaclass=SingletonMeta):
     def _search_and_enrich(self, query: str) -> List[QueryResult]:
         """基于关键词的搜索与结果富集"""
         # 调用独立模块的分词方法
-        query_tokens = relevance_calculator.tokenize(query)
+        query_tokens = ...
         results: List[QueryResult] = []
 
         # 计算文档相关性得分（调用独立模块）
         scored_docs = []
         for doc in self._documents:
-            score = relevance_calculator.compute_relevance(query_tokens, doc)
+            score: int = ...
             if score > 0:
                 scored_docs.append((doc, score))
 
@@ -289,7 +288,7 @@ class Generator(metaclass=SingletonMeta):
     ) -> Dict[str, int]:
         """提取高频词汇"""
         all_tokens = (
-            relevance_calculator.tokenize(doc.summary)  # 调用独立模块的分词方法
+            ...  # TODO:调用独立模块的分词方法
             + query_tokens
             + [t.lower() for t in doc.keywords]
         )
@@ -354,10 +353,9 @@ def answer_generator(user_queries=None) -> list[tuple[str, str]]:
         resp = service.get_LLM_reply()
 
         if resp.get("type") == "file_query":
-            all_doc = ""
+            all_doc: list[File] = []
             for item in resp.get("results", []):
-                all_doc += f"{item['title']} (relevance={item['relevance_percent']})"
-                all_doc += "\n"
+                all_doc += f"{item['title']} (relevance={item['relevance_percent']})\n"
             answers.append(("FILE", all_doc))
         else:
             answers.append(("QA", resp.get("reply", "")))
