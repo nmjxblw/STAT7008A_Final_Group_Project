@@ -2,7 +2,7 @@ import json
 
 from langchain_openai import OpenAI
 from log_module import logger
-
+import os
 
 class PDFContentAnalyzer:
     def run(self, input_queue, output_queue):
@@ -37,6 +37,7 @@ class PDFContentAnalyzer:
         """
         根据文本,让llm生成信息
         """
+        logger.debug("正在生成关键词和总结")
         file_text_content = file_data_dict["file_text"]
         ai_result = self.__call_ai_model(file_text_content)
 
@@ -55,7 +56,7 @@ class PDFContentAnalyzer:
         return file_data_dict
 
     def __call_ai_model(self, text):
-        api_key = ""
+        api_key = os.getenv("API_KEY")
 
         # 如果没有API key，返回默认值
         if not api_key:
@@ -84,7 +85,7 @@ class PDFContentAnalyzer:
                     "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"]
                 }}
                 """
-
+            logger.debug("开始调用大模型生成关键词和总结")
             response = client.chat.completions.create(
                 model="deepseek-chat",
                 messages=[
