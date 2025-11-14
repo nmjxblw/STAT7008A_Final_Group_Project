@@ -27,7 +27,7 @@ PROJECT_DESCRIPTION: str = os.getenv("PROJECT_DESCRIPTION", "")
 """项目描述"""
 PROJECT_AUTHOR: str = os.getenv("PROJECT_AUTHOR", "")
 """项目作者"""
-DATABASE_PATH: str = os.getenv("DATABASE_PATH", "")
+DATABASE_PATH: Path = Path.joinpath(Path.cwd(), os.getenv("DATABASE_PATH", ""))
 """数据库路径"""
 HOST: str = os.getenv("HOST", "0.0.0.0")
 """主机名"""

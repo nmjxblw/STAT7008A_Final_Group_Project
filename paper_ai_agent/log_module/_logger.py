@@ -13,7 +13,7 @@ from typing import Optional
 from global_module import PROJECT_NAME
 
 
-class TimedDirectoryFileHandler(logging.Handler):
+class _FileHandler(logging.Handler):
     """
     自定义日志处理器
     按日期创建目录，按启动时间创建日志文件
@@ -175,7 +175,7 @@ class LoggerConfig:
         formatter = logging.Formatter(fmt=self.log_format, datefmt=self.date_format)
         """日志格式化器"""
         # 添加文件处理器
-        file_handler = TimedDirectoryFileHandler(
+        file_handler = _FileHandler(
             base_dir=self.base_dir, encoding=self.encoding, level=self.level
         )
         """文件处理器"""

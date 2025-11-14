@@ -35,14 +35,7 @@ def internal_server_error(error: Exception) -> tuple[Response, int]:
     launcher_app.logger.error(f"后端处理异常: {error}")
     # 返回JSON格式的错误信息
     return (
-        jsonify(
-            {
-                "status": "error",
-                "message": "后端处理异常。操作未成功完成。",
-                "error": str(error),
-                "error_code": 500,
-            }
-        ),
+        jsonify({"status": "error", "message": {}}),
         500,
     )
 
@@ -74,14 +67,6 @@ def method_not_allowed(error: Exception) -> tuple[Response, int]:
 
     # 返回JSON格式的错误信息
     return (
-        jsonify(
-            {
-                "status": "error",
-                "message": message,
-                "error": str(error),
-                "error_code": 405,
-                "allowed_methods": valid_methods,
-            }
-        ),
+        jsonify({"status": "error", "message": {}}),
         405,
     )

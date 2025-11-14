@@ -1,39 +1,17 @@
-"""数据库模型"""
+"""数据库模型定义模块"""
 
-from cv2 import log
-from sqlalchemy import Engine, create_engine, Column, Integer, String, Text
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from datetime import datetime, date
-from global_module import DATABASE_PATH
-from log_module import *  # 导入全局日志模块
-
-_engine: Engine = create_engine(f"sqlite:///{DATABASE_PATH}", echo=True)
-"""数据库引擎实例"""
 
 # 定义基类
 _Base = declarative_base()
 """ 数据库模型基类 """
-
-# 创建表
-try:
-    logger.debug(f"开始创建表，数据库路径: {DATABASE_PATH} ")
-    _Base.metadata.create_all(_engine)
-    logger.debug("✔ 数据库表创建完成")
-except Exception as e:
-    logger.debug(f"✘ 创建表失败: {e}")
-    raise e
-
-# 创建会话
-try:
-    logger.debug("正在创建数据库会话...")
-    _Session = sessionmaker(bind=_engine)
-    session = _Session()
-    """ 数据库会话实例 """
-    logger.debug("✔ 数据库会话创建成功")
-except Exception as e:
-    logger.debug(f"✘ 创建数据库会话失败: {e}")
-    raise e
 
 
 class File(_Base):

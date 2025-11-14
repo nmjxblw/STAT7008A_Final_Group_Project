@@ -44,7 +44,7 @@ def run() -> None:
         register_blueprints,
     )
 
-    global launcher_app, flask_database
+    global launcher_app
     register_blueprints(launcher_app)
     launcher_app.run(
         debug=True, host=HOST, port=PORT, load_dotenv=True, use_reloader=False

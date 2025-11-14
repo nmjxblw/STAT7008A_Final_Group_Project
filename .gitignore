@@ -225,6 +225,7 @@ __marimo__/
 # profile output files
 *.out
 *.stats
+profile_readable.txt
 
 # Resource
 [Rr]esource/[Cc]lassified/

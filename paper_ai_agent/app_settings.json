@@ -109,7 +109,6 @@
     "trigger_time": "8:00AM,UTC+08:00"
   },
   "file_classifier_config": {
-    "api_key": "YOUR_FILE_CLASSIFIER_API_KEY_HERE",
     "base_url": "https://api.fileclassifier.com/v1",
     "model": "file-classifier",
     "timeout": 30
