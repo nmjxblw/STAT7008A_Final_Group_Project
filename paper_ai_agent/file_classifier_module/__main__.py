@@ -52,14 +52,25 @@ def start_file_classify_task(
 
         # 数据入库(键值库,现在先保存到json)
 
-        if save_to_database(pdf_info_dict):
+        save_dict={
+            "file_id":pdf_info_dict["file_id"],
+            "title":pdf_info_dict["file_title"],
+            "summary": pdf_info_dict["file_summary"],
+            "content":pdf_info_dict["file_text"],
+            "keywords":','.join(pdf_info_dict["file_keywords"]),
+            "author":"",
+            "text_length":len(pdf_info_dict["file_text"]),
+            "file_name":pdf_info_dict["file_name"],
+        }
+
+        if save_to_database(save_dict):
             from paper_ai_agent.log_module import logger
             import sys
 
             logger.info(
                 f"✔ {sys._getframe().f_code.co_name}:文件{pdf_info_dict['file_name']}保存到数据库成功"
             )
-            move_files(unclassified_path, classified_path, [file_name])
+            move_files(unclassified_path, classified_path, [name])
 
 
 def run():
