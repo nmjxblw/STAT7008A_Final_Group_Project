@@ -54,6 +54,8 @@ class File(_Base):
             if "date" in key and isinstance(value, (datetime, date)):
                 # 转换日期时间为ISO格式字符串
                 _dict[key] = value.isoformat()
+            elif "keywords" == key and isinstance(value, str):
+                _dict[key] = value.split(r"[,|]+") if value else []
             else:
                 _dict[key] = value
         return _dict
@@ -64,7 +66,8 @@ class File(_Base):
             if hasattr(self, key):
                 if "date" in key and isinstance(value, str):
                     value = datetime.fromisoformat(value)
-                    # 不处理报错，让exception handler捕获
+                elif "keywords" == key and isinstance(value, list):
+                    value = "|".join(value)
                 setattr(self, key, value)
 
     @classmethod
