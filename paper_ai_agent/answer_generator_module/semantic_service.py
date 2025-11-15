@@ -116,7 +116,12 @@ class Generator(metaclass=SingletonMeta):
                 temperature=answer_generator_config.temperature,
             )
             if isinstance(resp.choices[0].message.content, str):
-                reply_text: str = resp.choices[0].message.content.strip()
+                reply_text: str = (
+                    resp.choices[0].message.content.strip()
+                    # 转义unicode字符
+                    # .encode()
+                    # .decode("unicode_escape")
+                )
             else:
                 reply_text = "(LLM returned non-text content)"
         except Exception as e:

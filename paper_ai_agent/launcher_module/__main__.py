@@ -34,6 +34,7 @@ def create_app(
     _app.jinja_env.comment_end_string = "#}"
 
     _app.config.from_object(_config)
+    _app.logger.setLevel(logger.level)
     _app.logger.addHandler(logger.handlers[0])
     _app.logger.propagate = False  # 避免重复日志输出
     return _app

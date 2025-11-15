@@ -4,6 +4,7 @@ from langchain_openai import OpenAI
 from log_module import logger
 import os
 
+
 class PDFContentAnalyzer:
     def run(self, input_queue, output_queue):
         """ "
@@ -33,7 +34,7 @@ class PDFContentAnalyzer:
 
         return new_file_data_dict
 
-    def __generate_summary_and_keywords(self, file_data_dict):
+    def __generate_summary_and_keywords(self, file_data_dict: dict):
         """
         根据文本,让llm生成信息
         """

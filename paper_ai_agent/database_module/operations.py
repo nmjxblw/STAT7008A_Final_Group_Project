@@ -26,7 +26,9 @@ def query_files_by_attributes(attributes: dict[str, Any]) -> list[dict[str, Any]
             if hasattr(File, attr_name):
                 if attr_name == "keywords":
                     # 关键词使用模糊匹配
-                    query = query.filter(getattr(File, attr_name).like(f"%{value}%"))
+                    query = query.filter(
+                        getattr(File, attr_name).ilike(f"%{str(value)}%")
+                    )
                 else:
                     query = query.filter(getattr(File, attr_name) == value)
         files_list: list[dict[str, Any]] = [f.to_dict() for f in query.all()]
