@@ -2,7 +2,7 @@ import os
 
 
 def start_file_classify_task(
-        unclassified_path, classified_path, file_type, file_name=None
+    unclassified_path, classified_path, file_type, file_name=None
 ) -> None:
     """
     目前数据格式如下
@@ -35,7 +35,6 @@ def start_file_classify_task(
     else:
         file_name_list.append(file_name)
 
-
     embedding_model = get_local_embedding_model()
 
     for name in file_name_list:
@@ -52,15 +51,15 @@ def start_file_classify_task(
 
         # 数据入库(键值库,现在先保存到json)
 
-        save_dict={
-            "file_id":pdf_info_dict["file_id"],
-            "title":pdf_info_dict["file_title"],
+        save_dict: dict = {
+            "file_id": pdf_info_dict["file_id"],
+            "title": pdf_info_dict["file_title"],
             "summary": pdf_info_dict["file_summary"],
-            "content":pdf_info_dict["file_text"],
-            "keywords":','.join(pdf_info_dict["file_keywords"]),
-            "author":"",
-            "text_length":len(pdf_info_dict["file_text"]),
-            "file_name":pdf_info_dict["file_name"],
+            "content": pdf_info_dict["file_text"],
+            "keywords": "|".join(pdf_info_dict["file_keywords"]),
+            "author": "",
+            "text_length": len(pdf_info_dict["file_text"]),
+            "file_name": pdf_info_dict["file_name"],
         }
 
         if save_to_database(save_dict):
@@ -76,12 +75,13 @@ def start_file_classify_task(
 def run():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir_A = os.path.dirname(current_dir)
-    resource_dir = os.path.abspath(os.path.join(parent_dir_A, 'Resource'))
-    unclassified_dir = os.path.abspath(os.path.join(resource_dir, 'unclassified/PDF/'))
-    classified_dir = os.path.abspath(os.path.join(resource_dir, 'Classified'))
+    resource_dir = os.path.abspath(os.path.join(parent_dir_A, "Resource"))
+    unclassified_dir = os.path.abspath(os.path.join(resource_dir, "unclassified/PDF/"))
+    classified_dir = os.path.abspath(os.path.join(resource_dir, "Classified"))
     start_file_classify_task(unclassified_dir, classified_dir, "pdf")
 
 
 def test_retrieval():
     from .utils import get_retrieval_content
+
     get_retrieval_content("what is computer vision?", 10)
