@@ -3,7 +3,7 @@
 import enum
 import random
 import threading
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 from requests import Response
 import requests
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
@@ -112,6 +112,8 @@ class WebCrawler(metaclass=SingletonMeta):
         self._site_rules = {}
         """ 站点特定规则缓存 """
 
+        self.callbacks_on_crawl_complete: list[Callable[..., Any]] = []
+        """ 爬取完成回调函数列表 """
         logger.debug(f"✔ 网页爬虫类实例化完成")
 
     def setup_session(self):
@@ -454,7 +456,6 @@ class WebCrawler(metaclass=SingletonMeta):
                 self._add_url_to_pending(website)
                 self.origin_url = website
                 self.crawl_website_multithread()
-
             return True
         except Exception as e:
             logger.debug(f"✘ 爬虫任务失败: {e}")
@@ -514,6 +515,12 @@ class WebCrawler(metaclass=SingletonMeta):
 
         self.current_state = State.COMPLETED
         logger.debug(f"✔ 网站爬取完成，处理了 {processed_count} 个URL")
+
+        for callback in self.callbacks_on_crawl_complete:
+            try:
+                callback()
+            except Exception as e:
+                logger.debug(f"✘ 爬取完成回调函数执行失败: {e}")
 
     def _crawl_single_url(self, url: str) -> set[str] | None:
         """单个URL爬取工作函数（工作线程执行）"""

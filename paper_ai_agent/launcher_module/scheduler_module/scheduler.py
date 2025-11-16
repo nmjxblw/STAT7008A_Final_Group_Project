@@ -1,11 +1,12 @@
+from requests_toolbelt import ImproperBodyPartContentException
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import re
 from global_module import crawler_config
-from crawler_module import crawler
+from utility_module import SingletonMeta
 
 
-class TaskScheduler:
+class TaskScheduler(metaclass=SingletonMeta):
     def __init__(self):
         self.scheduler = BackgroundScheduler()
 
@@ -28,6 +29,7 @@ class TaskScheduler:
     def start_scheduling(self):
         """启动定时任务"""
         hour, minute = self.parse_trigger_time()
+        from crawler_module import crawler
 
         # 添加每日定时任务
         self.scheduler.add_job(
@@ -40,3 +42,7 @@ class TaskScheduler:
 
         # 启动调度器
         self.scheduler.start()
+
+    def shutdown(self):
+        """关闭调度器"""
+        self.scheduler.shutdown()

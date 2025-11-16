@@ -4,8 +4,6 @@ from pathlib import Path
 from flask import Blueprint, Flask
 
 from global_module import (
-    HOST,
-    PORT,
     PROJECT_NAME,
 )  # 导入全局变量模块
 from log_module import *  # 导入全局日志模块
@@ -45,14 +43,16 @@ def run() -> None:
     logger.debug("主程序启动程序...")
     from .core.main_logic import (
         register_blueprints,
+        setup_flask_app,
+        create_system_tray,
+        setup_scheduler,
     )
 
+    create_system_tray()
+    setup_scheduler()
     global launcher_app
     register_blueprints(launcher_app)
-    launcher_app.run(
-        debug=True, host=HOST, port=PORT, load_dotenv=True, use_reloader=False
-    )
-    logger.debug("主程序退出程序...")
+    setup_flask_app(launcher_app)
 
 
 launcher_app: Flask = create_app()

@@ -15,6 +15,8 @@ __all__ = [
     "HOST",
     "PORT",
     "API_KEY",
+    "USING_PROXY",
+    "AUTO_CRAWL",
     "crawler_config",
     "answer_generator_config",
     "file_classifier_config",
@@ -37,4 +39,8 @@ API_KEY: str = os.getenv("API_KEY", "")
 """API密钥"""
 USING_PROXY: bool = os.getenv("USING_PROXY", "").lower() in ("1", "true", "yes")
 """是否使用代理"""
+AUTO_CRAWL: bool = os.getenv("AUTO_CRAWL", "").lower() in ("1", "true", "yes")
+"""是否自动爬取"""
+ICON_NAME: str = os.getenv("ICON_NAME", "app.ico")
+"""图标文件名"""
 # endregion
