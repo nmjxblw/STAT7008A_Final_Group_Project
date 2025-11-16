@@ -87,7 +87,7 @@ async def example_bp_query_files_by_attributes() -> Any:
         files = query_files_by_attributes(query_attributes)
         response_data = {
             "status": "success",
-            "files": files,
+            "message": files,
         }
         logger.debug(f"{sys._getframe().f_code.co_name}接口响应数据: {response_data}")
         return jsonify(response_data)

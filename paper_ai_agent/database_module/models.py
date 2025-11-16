@@ -1,5 +1,6 @@
 """数据库模型定义模块"""
 
+from typing import Any
 from sqlalchemy import (
     Column,
     Integer,
@@ -8,6 +9,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, date
+import sys
+import re
 
 # 定义基类
 _Base = declarative_base()
@@ -50,20 +53,27 @@ class File(_Base):
         for key, value in self.__dict__.items():
             if key.startswith("_"):
                 continue
-
+            key = key.lower()  # 强制属性名小写，以防数调用时大小写不一致
             if "date" in key and isinstance(value, (datetime, date)):
                 # 转换日期时间为ISO格式字符串
                 _dict[key] = value.isoformat()
+            elif "keywords" == key and isinstance(value, str):
+                # 将关键词字符串转换为列表
+                _dict[key] = re.split(pattern=r"[,\|]+", string=value)
             else:
                 _dict[key] = value
         return _dict
 
-    def update_attributes_from_dict(self, data: dict) -> None:
+    def update_attributes_from_dict(self, data: dict[str, Any]) -> None:
         """从字典更新文件对象的属性"""
         for key, value in data.items():
+            key = key.lower()  # 强制属性名小写，以防数调用时大小写不一致
             if hasattr(self, key):
+                # 处理特殊字段类型
                 if "date" in key and isinstance(value, str):
                     value = datetime.fromisoformat(value)
+                elif "keywords" == key and isinstance(value, list):
+                    value = "|".join(value)
                     # 不处理报错，让exception handler捕获
                 setattr(self, key, value)
 
@@ -73,10 +83,12 @@ class File(_Base):
         return cls.from_dict(obj.__dict__)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "File":
+    def from_dict(cls, data: dict[str, Any]) -> "File":
         """从字典创建文件实例"""
-        if data.get("file_id") == "":
-            raise ValueError("字典缺少file_id键，无法创建File实例")
+        if data.get("file_id") is None or data.get("file_id") == "":
+            raise ValueError(
+                f"{sys._getframe().f_code.co_name}字典缺少file_id键或为空，无法创建File实例"
+            )
         file_instance = cls()
         file_instance.update_attributes_from_dict(data)
         return file_instance
