@@ -57,7 +57,7 @@ def start_file_classify_task(
             "title":pdf_info_dict["file_title"],
             "summary": pdf_info_dict["file_summary"],
             "content":pdf_info_dict["file_text"],
-            "keywords":','.join(pdf_info_dict["file_keywords"]),
+            "keywords":'|'.join(pdf_info_dict["file_keywords"]),
             "author":"",
             "text_length":len(pdf_info_dict["file_text"]),
             "file_name":pdf_info_dict["file_name"],
