@@ -2,4 +2,6 @@
 
 from .scheduler import TaskScheduler
 
-__all__ = ["TaskScheduler"]
+__all__ = ["task_scheduler"]
+
+task_scheduler = TaskScheduler()

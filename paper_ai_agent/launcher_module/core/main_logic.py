@@ -4,8 +4,10 @@
 在这里处理flask_app的初始化、蓝图注册等主要逻辑
 """
 
+import re
 from flask import Flask, Blueprint
-from log_module import *  # 导入全局日志模块
+from log_module import *
+from global_module import AUTO_CRAWL
 
 
 def register_blueprints(_flask_app: Flask):
@@ -29,3 +31,63 @@ def register_blueprints(_flask_app: Flask):
         except Exception as e:
             logger.debug(f"✘ 注册蓝图[{bp_name}]失败")
             raise e
+
+
+def create_system_tray():
+    """创建系统托盘"""
+
+    from ..tray_module import create_system_tray
+
+    try:
+        logger.debug("正在创建系统托盘...")
+        create_system_tray()
+        logger.debug("✔ 系统托盘创建成功。")
+    except ImportError:
+        logger.debug("✘ 系统托盘创建失败，可能是由于缺少依赖库。")
+
+
+def setup_registry():
+    """设置开机启动项"""
+    from ..registry_module import add_to_startup, is_in_startup, remove_from_startup
+
+    logger.debug("正在处理开机启动项设置...")
+    _flag: bool = is_in_startup()
+    if not _flag and AUTO_CRAWL:
+        success = add_to_startup()
+        if success:
+            logger.debug("✔ 程序已添加到开机启动项，自动爬取功能已启用。")
+        else:
+            logger.debug("✘ 无法将程序添加到开机启动项，请检查权限。")
+    elif _flag and not AUTO_CRAWL:
+        success = remove_from_startup()
+        if success:
+            logger.debug("✔ 程序已从开机启动项移除，自动爬取功能已禁用。")
+        else:
+            logger.debug("✘ 无法将程序从开机启动项移除，请检查权限。")
+    else:
+        logger.debug("开机启动项设置无需更改。")
+
+
+def setup_scheduler():
+    """设置任务调度器"""
+    logger.debug("正在设置任务调度器...")
+    if AUTO_CRAWL:
+        # 启动任务调度器
+        from ..scheduler_module import task_scheduler
+
+        task_scheduler.start_scheduling()
+        logger.debug("✔ 任务调度器已启动，自动爬取功能已启用。")
+    else:
+        logger.debug("✘ 自动爬取功能未启用，任务调度器未启动。")
+
+
+def setup_flask_app(_flask_app: Flask):
+    """设置Flask应用"""
+
+    from global_module import HOST, PORT
+
+    logger.debug("启动 Flask 应用...")
+    _flask_app.run(
+        debug=True, host=HOST, port=PORT, load_dotenv=True, use_reloader=False
+    )
+    logger.debug("主程序退出程序...")
