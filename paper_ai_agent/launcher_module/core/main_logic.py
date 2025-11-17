@@ -13,6 +13,7 @@ from global_module import AUTO_CRAWL
 def register_blueprints(_flask_app: Flask):
     """注册所有蓝图到flask应用"""
     # 循环注册所有蓝图
+    logger.debug("正在注册所有Flask蓝图...")
     from ..flask_config import blueprints
 
     for module_path, bp_name, url_prefix in blueprints:
@@ -31,19 +32,7 @@ def register_blueprints(_flask_app: Flask):
         except Exception as e:
             logger.debug(f"✘ 注册蓝图[{bp_name}]失败")
             raise e
-
-
-def create_system_tray():
-    """创建系统托盘"""
-
-    from ..tray_module import create_system_tray
-
-    try:
-        logger.debug("正在创建系统托盘...")
-        create_system_tray()
-        logger.debug("✔ 系统托盘创建成功。")
-    except ImportError:
-        logger.debug("✘ 系统托盘创建失败，可能是由于缺少依赖库。")
+    logger.debug("✔ 所有Flask蓝图注册完成。")
 
 
 def setup_registry():

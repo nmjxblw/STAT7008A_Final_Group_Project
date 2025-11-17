@@ -1,11 +1,13 @@
+from concurrent.futures import thread
 import json
 from typing import Any
-from crawler_module import crawler  # 在模块导入时实例化全局爬虫类，单例模式
+from crawler_module import crawler, State  # 在模块导入时实例化全局爬虫类，单例模式
 from flask import Blueprint, jsonify, render_template, abort, request
 from jinja2 import TemplateNotFound
 from pathlib import Path
 from log_module import *  # 导入全局日志模块
 import sys
+import threading
 
 crawler_bp = Blueprint(
     "crawler_blueprint",
@@ -13,6 +15,9 @@ crawler_bp = Blueprint(
     template_folder=Path.joinpath(Path.cwd(), "frontend_module"),
 )
 """爬虫蓝图模块"""
+
+thread_event = threading.Event()
+""" 线程事件，用于控制爬虫任务线程的启动和停止 """
 
 
 @crawler_bp.route("/setup_crawler_config", methods=["POST"])
@@ -36,12 +41,14 @@ def crawler_bp_start_crawling_task() -> Any:
     """启动爬虫任务"""
     logger.debug(f"{sys._getframe().f_code.co_name}收到启动爬虫任务请求")
     try:
-        if crawler.start_crawling_task():
-            response_data = {"status": "success", "message": "爬虫任务已执行完毕"}
-            logger.debug("✔ 爬虫任务执行成功")
+        if crawler.current_state == State.CRAWLING:
+            response_data = {"status": "success", "message": "爬虫任务已经在执行中"}
         else:
-            response_data = {"status": "error", "message": "爬虫任务执行失败"}
-            logger.debug("✖ 爬虫任务执行失败")
+            response_data = {"status": "success", "message": "爬虫任务开始执行"}
+            thread_event.set()
+            thread = threading.Thread(target=crawler.start_crawling_task, daemon=True)
+            thread.start()
+
         return jsonify(response_data)
     except Exception as e:
         abort(500, description="✖ 启动爬虫任务失败")
