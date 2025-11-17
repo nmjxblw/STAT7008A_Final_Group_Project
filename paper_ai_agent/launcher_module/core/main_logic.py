@@ -13,6 +13,7 @@ from global_module import AUTO_CRAWL
 def register_blueprints(_flask_app: Flask):
     """注册所有蓝图到flask应用"""
     # 循环注册所有蓝图
+    logger.debug("正在注册所有Flask蓝图...")
     from ..flask_config import blueprints
 
     for module_path, bp_name, url_prefix in blueprints:
@@ -31,6 +32,7 @@ def register_blueprints(_flask_app: Flask):
         except Exception as e:
             logger.debug(f"✘ 注册蓝图[{bp_name}]失败")
             raise e
+    logger.debug("✔ 所有Flask蓝图注册完成。")
 
 
 def setup_registry():
