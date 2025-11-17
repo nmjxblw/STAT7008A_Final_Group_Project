@@ -1,0 +1,13 @@
+{
+  "request_format": {
+    "params": {
+      "file_ids": [],
+      "question": ""
+    },
+    "task": 0
+  },
+  "response_format": {
+    "message": {},
+    "status": "success"
+  }
+}
