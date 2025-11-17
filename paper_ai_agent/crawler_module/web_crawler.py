@@ -680,15 +680,6 @@ class WebCrawler(metaclass=SingletonMeta):
             logger.debug(f"✘ 保存文件失败 {url}: {e}")
             raise e
 
-    def save_crawling_log(self):
-        """保存爬取日志"""
-        try:
-            for entry in self.crawling_log:
-                log_line = f"[{entry['timestamp']}] FileName:\"{entry['filename']}\" Url:\"{entry['url']}\"\n"
-                logger.info(log_line.strip())
-        except Exception as e:
-            raise e  # 抛出异常，让日志来定位报错
-
     def update_crawler_config(self, **kwargs) -> bool:
         """更新爬虫配置
 
