@@ -7,6 +7,7 @@ from global_module import (
     PROJECT_NAME,
 )  # 导入全局变量模块
 from log_module import *  # 导入全局日志模块
+import tray_module  # 导入托盘模块以确保托盘图标被创建
 
 
 def create_app(
@@ -44,11 +45,9 @@ def run() -> None:
     from .core.main_logic import (
         register_blueprints,
         setup_flask_app,
-        create_system_tray,
         setup_scheduler,
     )
 
-    create_system_tray()
     setup_scheduler()
     global launcher_app
     register_blueprints(launcher_app)

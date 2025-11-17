@@ -33,19 +33,6 @@ def register_blueprints(_flask_app: Flask):
             raise e
 
 
-def create_system_tray():
-    """创建系统托盘"""
-
-    from ..tray_module import create_system_tray
-
-    try:
-        logger.debug("正在创建系统托盘...")
-        create_system_tray()
-        logger.debug("✔ 系统托盘创建成功。")
-    except ImportError:
-        logger.debug("✘ 系统托盘创建失败，可能是由于缺少依赖库。")
-
-
 def setup_registry():
     """设置开机启动项"""
     from ..registry_module import add_to_startup, is_in_startup, remove_from_startup
