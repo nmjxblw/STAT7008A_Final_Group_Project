@@ -146,20 +146,33 @@ class PDFRagWorker:
         vector_store.add_documents(docs)
 
     def get_faiss_retrieval(self, query, k):
-        """FAISS向量相似度检索
+        """FAISS向量相似度检索（基于语义理解的检索）
         
         评分标准：
-            - 使用余弦距离（Cosine Distance）或欧氏距离（L2 Distance）
-            - 分数越小表示越相似（距离越近）
-            - 典型范围：0.0（完全相同）到 2.0+（完全不同）
+            - 基于向量空间中的L2距离（欧几里得距离）
+            - 分数越小表示越相似（与BM25相反！）
+            - 典型范围：0.0（完全相同）到 2.0+（差异较大）
+            - 评分考虑因素：
+              1. 语义相似度：理解句子含义而非精确词匹配
+              2. 向量空间距离：embedding向量之间的几何距离
+              3. 上下文理解：考虑词语在不同语境中的含义
             - 推荐阈值：< 1.5 为相关，< 1.0 为高度相关
+            
+        注意：
+            ⚠️ FAISS分数和BM25分数评判标准完全不同：
+            - FAISS分数：越小越好（距离度量）
+            - BM25分数：越大越好（相关度评分）
+            - FAISS适合模糊搜索和语义理解，BM25适合精确关键词匹配
+            - 两者结合使用（hybrid search）可以获得最佳检索效果
             
         Args:
             query: 查询文本
             k: 返回的最相似文档数量
             
         Returns:
-            list: [(Document, score), ...] 按相似度排序（分数从小到大）
+            list: [(Document, score), ...] 按相似度排序（分数从小到大，越小越相似）
+                - Document: langchain Document对象，包含page_content和metadata
+                - score: L2距离分数（float，越小表示越相似）
         """
         embeddings_model = self.embedding_model
         # 使用全局模块的路径配置
