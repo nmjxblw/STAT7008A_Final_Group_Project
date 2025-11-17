@@ -2,6 +2,7 @@ import os
 import shutil
 from typing import Any
 from log_module import logger
+from utility_module import SingletonMeta
 
 
 def move_files(source, target, success_filename_list):
@@ -159,48 +160,89 @@ def get_retrieval_content(query: str, k_segments: int = 20, k_articles: int = 5)
     return retrieval
 
 
-def get_local_embedding_model():
-    # 使用本地HuggingFace模型
-    logger.debug("获取本地Embedding模型")
-    try:
-        # 优先使用新版本的langchain-huggingface包，否则回退到旧版本
-        try:
-            from langchain_huggingface import HuggingFaceEmbeddings
-        except ImportError:
-            from langchain_community.embeddings import HuggingFaceEmbeddings
-            import warnings
-            warnings.filterwarnings('ignore', category=DeprecationWarning)
+class EmbeddingModelSingleton(metaclass=SingletonMeta):
+    """
+    Embedding模型单例类
+    
+    确保整个程序生命周期内只加载一次embedding模型，避免重复加载浪费内存和时间。
+    使用SingletonMeta元类实现单例模式。
+    """
+    
+    def __init__(self):
+        """初始化单例，只在第一次创建实例时执行"""
+        self._model = None
+        self._model_name = "sentence-transformers/all-MiniLM-L6-v2"
+        logger.debug("EmbeddingModelSingleton实例已创建")
+    
+    def get_model(self):
+        """
+        获取embedding模型实例
         
-        import os.path
-
-        # 根据检测到的语言选择模型
-
-        model_name = "sentence-transformers/all-MiniLM-L6-v2"  # 英文模型，约90MB
-        logger.debug(f"  选择模型: {model_name}")
-
-        # 检查模型是否已下载
-        cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
-        model_dir_name = f"models--{model_name.replace('/', '--')}"
-        model_path = os.path.join(cache_dir, model_dir_name)
-
-        if os.path.exists(model_path):
-            logger.debug(f"  本地模型已缓存: {model_path}")
+        第一次调用时加载模型，后续调用直接返回已加载的模型。
+        
+        Returns:
+            HuggingFaceEmbeddings: embedding模型实例，如果加载失败则返回None
+        """
+        if self._model is None:
+            logger.info("首次加载Embedding模型...")
+            try:
+                # 优先使用新版本的langchain-huggingface包，否则回退到旧版本
+                try:
+                    from langchain_huggingface import HuggingFaceEmbeddings
+                except ImportError:
+                    from langchain_community.embeddings import HuggingFaceEmbeddings
+                    import warnings
+                    warnings.filterwarnings('ignore', category=DeprecationWarning)
+                
+                import os.path
+                
+                logger.debug(f"  模型名称: {self._model_name}")
+                
+                # 检查模型是否已下载到本地
+                cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
+                model_dir_name = f"models--{self._model_name.replace('/', '--')}"
+                model_path = os.path.join(cache_dir, model_dir_name)
+                
+                if os.path.exists(model_path):
+                    logger.debug(f"  本地模型已缓存: {model_path}")
+                else:
+                    logger.debug(f"  本地模型未找到，开始自动下载...")
+                    logger.debug(f"  模型大小: ~90MB")
+                    logger.debug(f"  下载位置: {cache_dir}")
+                
+                # 加载模型（如果不存在会自动下载）
+                self._model = HuggingFaceEmbeddings(
+                    model_name=self._model_name,
+                    model_kwargs={"device": "cpu"},  # 使用CPU，如有GPU可改为'cuda'
+                    encode_kwargs={"normalize_embeddings": True},
+                )
+                logger.info(f"Embedding模型加载成功: {self._model_name}")
+                
+            except Exception as e:
+                logger.error(f"Embedding模型加载失败: {e}")
+                logger.debug("首次使用需要下载模型，请确保网络连接")
+                logger.debug("或安装: pip install sentence-transformers")
+                return None
         else:
-            logger.debug(f"  本地模型未找到，开始自动下载...")
-            logger.debug(f"  模型大小: { '~90MB'}")
-            logger.debug(f"  下载位置: {cache_dir}")
+            logger.debug("使用已缓存的Embedding模型实例")
+        
+        return self._model
 
-        # 加载模型（如果不存在会自动下载）
-        embeddings_model = HuggingFaceEmbeddings(
-            model_name=model_name,
-            model_kwargs={"device": "cpu"},  # 使用CPU，如有GPU可改为'cuda'
-            encode_kwargs={"normalize_embeddings": True},
-        )
-        logger.debug(f"本地模型加载成功: {model_name}")
-        return embeddings_model
 
-    except Exception as e:
-        logger.debug(f"本地模型加载失败: {e}")
-        logger.debug("首次使用需要下载模型，请确保网络连接")
-        logger.debug("或安装: pip install sentence-transformers")
-        return None
+def get_local_embedding_model():
+    """
+    获取本地embedding模型（单例）
+    
+    这是一个便捷函数，内部使用EmbeddingModelSingleton确保模型只加载一次。
+    其他模块应该通过这个函数获取embedding模型。
+    
+    Returns:
+        HuggingFaceEmbeddings: embedding模型实例，如果加载失败则返回None
+        
+    Example:
+        >>> from file_classifier_module import get_local_embedding_model
+        >>> model = get_local_embedding_model()  # 第一次调用，加载模型
+        >>> model2 = get_local_embedding_model()  # 第二次调用，直接返回已加载的模型
+        >>> assert model is model2  # 是同一个对象
+    """
+    return EmbeddingModelSingleton().get_model()
