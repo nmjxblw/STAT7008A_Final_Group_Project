@@ -1,5 +1,20 @@
-"""文档归档智能体模块"""
+"""文档归档智能体模块
 
-from .__main__ import *
+对外接口：
+    - start_file_classify_task: 启动文件分类任务
+    - run: 运行默认配置的分类任务
+    - test_retrieval: 测试检索功能
+    - get_retrieval_content: RAG综合检索（供其他模块调用）
+    - get_local_embedding_model: 获取本地embedding模型
+"""
 
-__all__ = ["start_file_classify_task","run","test_retrieval"]
+from .__main__ import start_file_classify_task, run, test_retrieval
+from .utils import get_retrieval_content, get_local_embedding_model
+
+__all__ = [
+    "start_file_classify_task",
+    "run",
+    "test_retrieval",
+    "get_retrieval_content",
+    "get_local_embedding_model"
+]

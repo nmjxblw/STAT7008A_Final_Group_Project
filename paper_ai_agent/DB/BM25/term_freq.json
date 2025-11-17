@@ -1,222 +1,22 @@
 {
-  "75ac7d5217239712681db2646a912de9": {
-    "file_name": "Attention Is All You Need.pdf",
+  "test001": {
+    "file_name": "Resource/Unclassified/PDF",
     "top_terms": [
       [
-        "attention",
-        93
+        "content",
+        1
       ],
       [
-        "model",
-        47
-      ],
-      [
-        "sequence",
-        40
-      ],
-      [
-        "models",
-        37
-      ],
-      [
-        "layer",
-        36
-      ],
-      [
-        "input",
-        34
-      ],
-      [
-        "arxiv",
-        33
-      ],
-      [
-        "output",
-        29
-      ],
-      [
-        "layers",
-        29
-      ],
-      [
-        "transformer",
-        28
-      ],
-      [
-        "self",
-        28
-      ],
-      [
-        "neural",
-        27
-      ],
-      [
-        "encoder",
-        27
-      ],
-      [
-        "training",
-        27
-      ],
-      [
-        "decoder",
-        26
-      ],
-      [
-        "translation",
-        23
-      ],
-      [
-        "positions",
-        22
-      ],
-      [
-        "recurrent",
-        20
-      ],
-      [
-        "english",
-        20
-      ],
-      [
-        "pad",
-        20
-      ],
-      [
-        "used",
-        19
-      ],
-      [
-        "two",
-        18
-      ],
-      [
-        "values",
-        18
-      ],
-      [
-        "head",
-        17
-      ],
-      [
-        "different",
-        17
-      ],
-      [
-        "learning",
-        17
-      ],
-      [
-        "google",
-        16
-      ],
-      [
-        "networks",
-        16
-      ],
-      [
-        "machine",
-        16
-      ],
-      [
-        "dot",
-        16
-      ],
-      [
-        "length",
-        16
-      ],
-      [
-        "preprint",
-        16
-      ],
-      [
-        "position",
-        14
-      ],
-      [
-        "function",
-        14
-      ],
-      [
-        "table",
-        14
-      ],
-      [
-        "also",
-        13
-      ],
-      [
-        "tasks",
-        13
-      ],
-      [
-        "multi",
-        13
-      ],
-      [
-        "product",
-        12
-      ],
-      [
-        "long",
-        12
-      ],
-      [
-        "sub",
-        12
-      ],
-      [
-        "dk",
-        12
-      ],
-      [
-        "results",
-        11
-      ],
-      [
-        "single",
-        11
-      ],
-      [
-        "representations",
-        11
-      ],
-      [
-        "heads",
-        11
-      ],
-      [
-        "base",
-        11
-      ],
-      [
-        "wsj",
-        11
-      ],
-      [
-        "use",
-        10
-      ],
-      [
-        "network",
-        10
+        "test",
+        1
       ]
     ],
-    "total_tokens": 3603,
-    "unique_tokens": 1314
+    "total_tokens": 2,
+    "unique_tokens": 2
   },
   "98249ba7fa6d7da1f7b0db9240353577": {
     "file_name": "2509.22674.pdf",
     "top_terms": [
-      [
-        "models",
-        52
-      ],
-      [
-        "model",
-        37
-      ],
       [
         "arxiv",
         31
@@ -338,10 +138,6 @@
         15
       ],
       [
-        "per",
-        14
-      ],
-      [
         "tuned",
         14
       ],
@@ -378,10 +174,6 @@
         12
       ],
       [
-        "figure",
-        12
-      ],
-      [
         "visual",
         12
       ],
@@ -391,10 +183,6 @@
       ],
       [
         "audit",
-        11
-      ],
-      [
-        "high",
         11
       ],
       [
@@ -408,10 +196,30 @@
       [
         "failure",
         11
+      ],
+      [
+        "decision",
+        11
+      ],
+      [
+        "encoders",
+        11
+      ],
+      [
+        "donor",
+        11
+      ],
+      [
+        "pathological",
+        10
+      ],
+      [
+        "cross",
+        10
       ]
     ],
-    "total_tokens": 3692,
-    "unique_tokens": 1574
+    "total_tokens": 3323,
+    "unique_tokens": 1466
   },
   "a1913575776a0d6405001b783da0fbfd": {
     "file_name": "2509.22686.pdf",
@@ -439,18 +247,6 @@
       [
         "cross",
         31
-      ],
-      [
-        "method",
-        26
-      ],
-      [
-        "based",
-        21
-      ],
-      [
-        "proposed",
-        21
       ],
       [
         "images",
@@ -493,10 +289,6 @@
         13
       ],
       [
-        "methods",
-        13
-      ],
-      [
         "alignment",
         12
       ],
@@ -513,23 +305,11 @@
         11
       ],
       [
-        "two",
-        10
-      ],
-      [
         "kinoshita",
         9
       ],
       [
-        "results",
-        9
-      ],
-      [
         "discrete",
-        9
-      ],
-      [
-        "high",
         9
       ],
       [
@@ -565,10 +345,6 @@
         8
       ],
       [
-        "table",
-        8
-      ],
-      [
         "auxiliary",
         7
       ],
@@ -597,10 +373,6 @@
         7
       ],
       [
-        "fig",
-        7
-      ],
-      [
         "input",
         7
       ],
@@ -609,16 +381,52 @@
         6
       ],
       [
-        "paper",
+        "tion",
         6
       ],
       [
-        "tion",
+        "errors",
         6
+      ],
+      [
+        "estimated",
+        6
+      ],
+      [
+        "inproc",
+        6
+      ],
+      [
+        "vision",
+        5
+      ],
+      [
+        "phase",
+        5
+      ],
+      [
+        "coordinates",
+        5
+      ],
+      [
+        "range",
+        5
+      ],
+      [
+        "accurate",
+        5
+      ],
+      [
+        "optical",
+        5
+      ],
+      [
+        "flow",
+        5
       ]
     ],
-    "total_tokens": 1724,
-    "unique_tokens": 743
+    "total_tokens": 1466,
+    "unique_tokens": 666
   },
   "e756dd35dc735adb25a5d3ec89a3227c": {
     "file_name": "2509.22688.pdf",
@@ -630,10 +438,6 @@
       [
         "training",
         45
-      ],
-      [
-        "model",
-        42
       ],
       [
         "curriculum",
@@ -668,15 +472,7 @@
         25
       ],
       [
-        "data",
-        25
-      ],
-      [
         "policy",
-        23
-      ],
-      [
-        "models",
         23
       ],
       [
@@ -716,10 +512,6 @@
         18
       ],
       [
-        "performance",
-        16
-      ],
-      [
         "visual",
         16
       ],
@@ -728,19 +520,11 @@
         16
       ],
       [
-        "large",
-        15
-      ],
-      [
         "convergence",
         15
       ],
       [
         "complex",
-        14
-      ],
-      [
-        "across",
         14
       ],
       [
@@ -776,10 +560,6 @@
         11
       ],
       [
-        "based",
-        11
-      ],
-      [
         "accuracy",
         11
       ],
@@ -812,20 +592,48 @@
         10
       ],
       [
-        "high",
-        10
-      ],
-      [
         "refcoco",
         10
       ],
       [
-        "datasets",
+        "scenarios",
         10
+      ],
+      [
+        "cross",
+        10
+      ],
+      [
+        "group",
+        9
+      ],
+      [
+        "relative",
+        9
+      ],
+      [
+        "enables",
+        9
+      ],
+      [
+        "stability",
+        9
+      ],
+      [
+        "variance",
+        9
+      ],
+      [
+        "stable",
+        9
+      ],
+      [
+        "long",
+        9
       ]
     ],
-    "total_tokens": 3586,
-    "unique_tokens": 1380
+    "total_tokens": 3138,
+    "unique_tokens": 1265
   },
   "e0a307215a4a3067b28615930ba4fa3d": {
     "file_name": "2509.22689.pdf",
@@ -927,10 +735,6 @@
         5
       ],
       [
-        "framework",
-        5
-      ],
-      [
         "graphs",
         5
       ],
@@ -940,10 +744,6 @@
       ],
       [
         "unlabeled",
-        5
-      ],
-      [
-        "data",
         5
       ],
       [
@@ -995,15 +795,7 @@
         4
       ],
       [
-        "experiments",
-        4
-      ],
-      [
         "crag",
-        4
-      ],
-      [
-        "analysis",
         4
       ],
       [
@@ -1015,24 +807,40 @@
         4
       ],
       [
-        "based",
-        4
-      ],
-      [
-        "models",
-        4
-      ],
-      [
         "dicece",
         4
       ],
       [
         "network",
         4
+      ],
+      [
+        "re",
+        4
+      ],
+      [
+        "image",
+        4
+      ],
+      [
+        "conference",
+        4
+      ],
+      [
+        "vu",
+        4
+      ],
+      [
+        "theoretic",
+        3
+      ],
+      [
+        "minh",
+        3
       ]
     ],
-    "total_tokens": 1067,
-    "unique_tokens": 608
+    "total_tokens": 977,
+    "unique_tokens": 559
   },
   "fc4e57fd338e28c47a67af92d9683549": {
     "file_name": "2509.22690.pdf",
@@ -1078,10 +886,6 @@
         99
       ],
       [
-        "techniques",
-        98
-      ],
-      [
         "doi",
         96
       ],
@@ -1106,16 +910,8 @@
         84
       ],
       [
-        "based",
-        78
-      ],
-      [
         "local",
         77
-      ],
-      [
-        "model",
-        76
       ],
       [
         "global",
@@ -1126,16 +922,8 @@
         68
       ],
       [
-        "two",
-        66
-      ],
-      [
         "supervised",
         63
-      ],
-      [
-        "data",
-        59
       ],
       [
         "pp",
@@ -1170,16 +958,8 @@
         52
       ],
       [
-        "different",
-        49
-      ],
-      [
         "images",
         49
-      ],
-      [
-        "methods",
-        48
       ],
       [
         "wang",
@@ -1192,10 +972,6 @@
       [
         "memory",
         48
-      ],
-      [
-        "approach",
-        47
       ],
       [
         "reid",
@@ -1222,10 +998,6 @@
         42
       ],
       [
-        "dataset",
-        42
-      ],
-      [
         "springer",
         41
       ],
@@ -1236,10 +1008,46 @@
       [
         "template",
         41
+      ],
+      [
+        "computer",
+        41
+      ],
+      [
+        "maps",
+        41
+      ],
+      [
+        "branch",
+        39
+      ],
+      [
+        "recent",
+        37
+      ],
+      [
+        "class",
+        37
+      ],
+      [
+        "target",
+        36
+      ],
+      [
+        "teacher",
+        36
+      ],
+      [
+        "process",
+        35
+      ],
+      [
+        "zhang",
+        35
       ]
     ],
-    "total_tokens": 15028,
-    "unique_tokens": 3375
+    "total_tokens": 13132,
+    "unique_tokens": 3195
   },
   "c5d0d8188a6d0ef457ae11db8d625f01": {
     "file_name": "2509.22691.pdf",
@@ -1329,10 +1137,6 @@
         20
       ],
       [
-        "method",
-        20
-      ],
-      [
         "sequential",
         19
       ],
@@ -1349,10 +1153,6 @@
         16
       ],
       [
-        "model",
-        16
-      ],
-      [
         "bnnm",
         16
       ],
@@ -1366,10 +1166,6 @@
       ],
       [
         "input",
-        15
-      ],
-      [
-        "models",
         15
       ],
       [
@@ -1441,12 +1237,24 @@
         11
       ],
       [
-        "based",
+        "ti",
+        11
+      ],
+      [
+        "bidirectional",
+        11
+      ],
+      [
+        "reduced",
+        11
+      ],
+      [
+        "lq",
         11
       ]
     ],
-    "total_tokens": 4107,
-    "unique_tokens": 1447
+    "total_tokens": 3674,
+    "unique_tokens": 1319
   },
   "6bc4d3f3678ace16698ee561089ee251": {
     "file_name": "2509.22692.pdf",
@@ -1500,10 +1308,6 @@
         182
       ],
       [
-        "based",
-        162
-      ],
-      [
         "network",
         162
       ],
@@ -1548,16 +1352,8 @@
         124
       ],
       [
-        "models",
-        119
-      ],
-      [
         "attention",
         118
-      ],
-      [
-        "methods",
-        114
       ],
       [
         "field",
@@ -1572,20 +1368,12 @@
         100
       ],
       [
-        "model",
-        99
-      ],
-      [
         "deep",
         98
       ],
       [
         "light",
         96
-      ],
-      [
-        "performance",
-        92
       ],
       [
         "training",
@@ -1600,16 +1388,8 @@
         84
       ],
       [
-        "proposed",
-        83
-      ],
-      [
         "international",
         79
-      ],
-      [
-        "high",
-        78
       ],
       [
         "li",
@@ -1618,14 +1398,6 @@
       [
         "liu",
         77
-      ],
-      [
-        "using",
-        75
-      ],
-      [
-        "introduced",
-        74
       ],
       [
         "efficient",
@@ -1650,10 +1422,46 @@
       [
         "networks",
         70
+      ],
+      [
+        "hr",
+        69
+      ],
+      [
+        "feature",
+        69
+      ],
+      [
+        "lr",
+        68
+      ],
+      [
+        "yang",
+        67
+      ],
+      [
+        "iccv",
+        66
+      ],
+      [
+        "diffusion",
+        64
+      ],
+      [
+        "loss",
+        64
+      ],
+      [
+        "quality",
+        63
+      ],
+      [
+        "gan",
+        63
       ]
     ],
-    "total_tokens": 23901,
-    "unique_tokens": 4130
+    "total_tokens": 21469,
+    "unique_tokens": 3956
   },
   "547ce86591e19a07b2ea37a23be923c8": {
     "file_name": "2509.22697.pdf",
@@ -1671,10 +1479,6 @@
         35
       ],
       [
-        "model",
-        30
-      ],
-      [
         "spectral",
         27
       ],
@@ -1685,10 +1489,6 @@
       [
         "oa",
         27
-      ],
-      [
-        "models",
-        21
       ],
       [
         "ieee",
@@ -1707,10 +1507,6 @@
         19
       ],
       [
-        "data",
-        19
-      ],
-      [
         "spatial",
         19
       ],
@@ -1724,10 +1520,6 @@
       ],
       [
         "embeddings",
-        18
-      ],
-      [
-        "table",
         18
       ],
       [
@@ -1755,10 +1547,6 @@
         16
       ],
       [
-        "large",
-        16
-      ],
-      [
         "embedding",
         15
       ],
@@ -1779,15 +1567,7 @@
         14
       ],
       [
-        "performance",
-        14
-      ],
-      [
         "dctn",
-        14
-      ],
-      [
-        "analysis",
         14
       ],
       [
@@ -1807,10 +1587,6 @@
         13
       ],
       [
-        "shows",
-        13
-      ],
-      [
         "negatives",
         13
       ],
@@ -1824,18 +1600,6 @@
       ],
       [
         "accuracy",
-        12
-      ],
-      [
-        "methods",
-        12
-      ],
-      [
-        "datasets",
-        12
-      ],
-      [
-        "based",
         12
       ],
       [
@@ -1857,10 +1621,54 @@
       [
         "features",
         11
+      ],
+      [
+        "achieves",
+        11
+      ],
+      [
+        "batch",
+        11
+      ],
+      [
+        "transactions",
+        11
+      ],
+      [
+        "multimodal",
+        10
+      ],
+      [
+        "contrastive",
+        10
+      ],
+      [
+        "pattern",
+        10
+      ],
+      [
+        "deep",
+        10
+      ],
+      [
+        "pages",
+        10
+      ],
+      [
+        "parameters",
+        9
+      ],
+      [
+        "visual",
+        9
+      ],
+      [
+        "bge",
+        9
       ]
     ],
-    "total_tokens": 3870,
-    "unique_tokens": 1703
+    "total_tokens": 3366,
+    "unique_tokens": 1578
   },
   "2057ffba3d457b126941bb3ec062ccc1": {
     "file_name": "2509.22700.pdf",
@@ -1890,20 +1698,8 @@
         81
       ],
       [
-        "paper",
-        70
-      ],
-      [
         "federated",
         69
-      ],
-      [
-        "data",
-        59
-      ],
-      [
-        "method",
-        58
       ],
       [
         "hm",
@@ -1930,10 +1726,6 @@
         46
       ],
       [
-        "performance",
-        45
-      ],
-      [
         "tcp",
         44
       ],
@@ -1948,10 +1740,6 @@
       [
         "promptfolio",
         43
-      ],
-      [
-        "model",
-        41
       ],
       [
         "rpo",
@@ -1974,16 +1762,8 @@
         40
       ],
       [
-        "datasets",
-        39
-      ],
-      [
         "answer",
         39
-      ],
-      [
-        "one",
-        37
       ],
       [
         "li",
@@ -1994,20 +1774,12 @@
         35
       ],
       [
-        "results",
-        35
-      ],
-      [
         "attention",
         34
       ],
       [
         "ieee",
         33
-      ],
-      [
-        "across",
-        32
       ],
       [
         "domain",
@@ -2026,16 +1798,8 @@
         29
       ],
       [
-        "models",
-        28
-      ],
-      [
         "clients",
         28
-      ],
-      [
-        "table",
-        26
       ],
       [
         "inproceedings",
@@ -2064,10 +1828,54 @@
       [
         "epochs",
         23
+      ],
+      [
+        "na",
+        23
+      ],
+      [
+        "refinement",
+        22
+      ],
+      [
+        "cross",
+        22
+      ],
+      [
+        "feddisc",
+        22
+      ],
+      [
+        "wang",
+        22
+      ],
+      [
+        "knowledge",
+        21
+      ],
+      [
+        "image",
+        21
+      ],
+      [
+        "learnable",
+        20
+      ],
+      [
+        "heterogeneity",
+        20
+      ],
+      [
+        "classes",
+        20
+      ],
+      [
+        "guidelines",
+        20
       ]
     ],
-    "total_tokens": 8173,
-    "unique_tokens": 2270
+    "total_tokens": 6967,
+    "unique_tokens": 2111
   },
   "59dbebf563d066ec9bf832e39773b06b": {
     "file_name": "2509.22708.pdf",
@@ -2273,8 +2081,8 @@
         26
       ]
     ],
-    "total_tokens": 7916,
-    "unique_tokens": 1354
+    "total_tokens": 7785,
+    "unique_tokens": 1304
   },
   "4226f8958bad28a7d85b2eafd28d0fa4": {
     "file_name": "2509.22719.pdf",
@@ -2282,10 +2090,6 @@
       [
         "attention",
         48
-      ],
-      [
-        "model",
-        28
       ],
       [
         "inductive",
@@ -2344,14 +2148,6 @@
         15
       ],
       [
-        "models",
-        15
-      ],
-      [
-        "using",
-        15
-      ],
-      [
         "learnable",
         15
       ],
@@ -2376,19 +2172,11 @@
         12
       ],
       [
-        "use",
-        11
-      ],
-      [
         "layer",
         11
       ],
       [
         "map",
-        11
-      ],
-      [
-        "figure",
         11
       ],
       [
@@ -2402,10 +2190,6 @@
       [
         "len",
         10
-      ],
-      [
-        "performance",
-        9
       ],
       [
         "learning",
@@ -2448,14 +2232,6 @@
         8
       ],
       [
-        "also",
-        8
-      ],
-      [
-        "results",
-        8
-      ],
-      [
         "representation",
         8
       ],
@@ -2476,12 +2252,44 @@
         8
       ],
       [
-        "method",
+        "dosovitskiy",
         7
+      ],
+      [
+        "explainability",
+        7
+      ],
+      [
+        "imagenet",
+        7
+      ],
+      [
+        "deits",
+        7
+      ],
+      [
+        "shape",
+        7
+      ],
+      [
+        "gradient",
+        7
+      ],
+      [
+        "cutmix",
+        7
+      ],
+      [
+        "architecture",
+        6
+      ],
+      [
+        "output",
+        6
       ]
     ],
-    "total_tokens": 1834,
-    "unique_tokens": 749
+    "total_tokens": 1567,
+    "unique_tokens": 667
   },
   "55054d01ad2573415550ebb08193cc38": {
     "file_name": "2509.22720.pdf",
@@ -2523,10 +2331,6 @@
         35
       ],
       [
-        "models",
-        34
-      ],
-      [
         "language",
         31
       ],
@@ -2543,10 +2347,6 @@
         29
       ],
       [
-        "model",
-        28
-      ],
-      [
         "gemini",
         28
       ],
@@ -2557,10 +2357,6 @@
       [
         "layout",
         25
-      ],
-      [
-        "framework",
-        23
       ],
       [
         "agent",
@@ -2603,15 +2399,7 @@
         15
       ],
       [
-        "based",
-        15
-      ],
-      [
         "graphs",
-        14
-      ],
-      [
-        "table",
         14
       ],
       [
@@ -2655,10 +2443,6 @@
         12
       ],
       [
-        "evaluate",
-        12
-      ],
-      [
         "score",
         12
       ],
@@ -2683,12 +2467,36 @@
         11
       ],
       [
-        "final",
+        "training",
         11
+      ],
+      [
+        "input",
+        10
+      ],
+      [
+        "positions",
+        10
+      ],
+      [
+        "indoor",
+        10
+      ],
+      [
+        "metrics",
+        10
+      ],
+      [
+        "left",
+        10
+      ],
+      [
+        "realistic",
+        9
       ]
     ],
-    "total_tokens": 3505,
-    "unique_tokens": 1327
+    "total_tokens": 3095,
+    "unique_tokens": 1226
   },
   "69aeb52eb936e0d9111574406189a0d5": {
     "file_name": "2509.22737.pdf",
@@ -2702,15 +2510,7 @@
         36
       ],
       [
-        "models",
-        31
-      ],
-      [
         "visual",
-        27
-      ],
-      [
-        "comparison",
         27
       ],
       [
@@ -2838,10 +2638,6 @@
         11
       ],
       [
-        "across",
-        10
-      ],
-      [
         "humans",
         10
       ],
@@ -2854,10 +2650,6 @@
         10
       ],
       [
-        "many",
-        10
-      ],
-      [
         "world",
         10
       ],
@@ -2867,10 +2659,6 @@
       ],
       [
         "li",
-        9
-      ],
-      [
-        "evaluation",
         9
       ],
       [
@@ -2892,10 +2680,30 @@
       [
         "text",
         9
+      ],
+      [
+        "knowledge",
+        9
+      ],
+      [
+        "conference",
+        9
+      ],
+      [
+        "benchmark",
+        8
+      ],
+      [
+        "com",
+        8
+      ],
+      [
+        "closed",
+        8
       ]
     ],
-    "total_tokens": 3036,
-    "unique_tokens": 1294
+    "total_tokens": 2727,
+    "unique_tokens": 1204
   },
   "320f7946a633c244f1f02e40e3d1e460": {
     "file_name": "2509.22761.pdf",
@@ -2949,16 +2757,8 @@
         54
       ],
       [
-        "model",
-        53
-      ],
-      [
         "test",
         52
-      ],
-      [
-        "models",
-        46
       ],
       [
         "zhang",
@@ -2973,10 +2773,6 @@
         41
       ],
       [
-        "via",
-        36
-      ],
-      [
         "photo",
         35
       ],
@@ -2987,10 +2783,6 @@
       [
         "liu",
         35
-      ],
-      [
-        "figure",
-        31
       ],
       [
         "reward",
@@ -3009,15 +2801,7 @@
         29
       ],
       [
-        "three",
-        29
-      ],
-      [
         "tokens",
-        28
-      ],
-      [
-        "best",
         28
       ],
       [
@@ -3041,24 +2825,12 @@
         23
       ],
       [
-        "performance",
-        22
-      ],
-      [
         "learning",
         21
       ],
       [
         "language",
         21
-      ],
-      [
-        "see",
-        21
-      ],
-      [
-        "method",
-        20
       ],
       [
         "geneval",
@@ -3099,10 +2871,46 @@
       [
         "wu",
         16
+      ],
+      [
+        "jiang",
+        16
+      ],
+      [
+        "depicts",
+        15
+      ],
+      [
+        "huang",
+        15
+      ],
+      [
+        "guo",
+        15
+      ],
+      [
+        "zk",
+        15
+      ],
+      [
+        "smooth",
+        15
+      ],
+      [
+        "kites",
+        14
+      ],
+      [
+        "red",
+        14
+      ],
+      [
+        "grpo",
+        14
       ]
     ],
-    "total_tokens": 6949,
-    "unique_tokens": 2387
+    "total_tokens": 6250,
+    "unique_tokens": 2254
   },
   "cfa083e563f67120cefcd260de8a08d5": {
     "file_name": "2509.22763.pdf",
@@ -3144,10 +2952,6 @@
         43
       ],
       [
-        "low",
-        43
-      ],
-      [
         "uesa",
         42
       ],
@@ -3164,20 +2968,12 @@
         37
       ],
       [
-        "framework",
-        37
-      ],
-      [
         "multidirectional",
         36
       ],
       [
         "spatial",
         36
-      ],
-      [
-        "different",
-        34
       ],
       [
         "image",
@@ -3196,10 +2992,6 @@
         30
       ],
       [
-        "proposed",
-        30
-      ],
-      [
         "module",
         30
       ],
@@ -3212,24 +3004,12 @@
         29
       ],
       [
-        "results",
-        29
-      ],
-      [
-        "data",
-        29
-      ],
-      [
         "et",
         29
       ],
       [
         "global",
         28
-      ],
-      [
-        "experimental",
-        27
       ],
       [
         "strategy",
@@ -3252,15 +3032,7 @@
         21
       ],
       [
-        "performance",
-        21
-      ],
-      [
         "time",
-        20
-      ],
-      [
-        "used",
         20
       ],
       [
@@ -3273,14 +3045,6 @@
       ],
       [
         "thyroid",
-        18
-      ],
-      [
-        "high",
-        18
-      ],
-      [
-        "methods",
         18
       ],
       [
@@ -3306,10 +3070,54 @@
       [
         "layer",
         17
+      ],
+      [
+        "indicates",
+        17
+      ],
+      [
+        "networks",
+        16
+      ],
+      [
+        "iou",
+        16
+      ],
+      [
+        "fusion",
+        16
+      ],
+      [
+        "baseline",
+        16
+      ],
+      [
+        "integration",
+        16
+      ],
+      [
+        "encoder",
+        15
+      ],
+      [
+        "decoder",
+        15
+      ],
+      [
+        "block",
+        15
+      ],
+      [
+        "threshold",
+        15
+      ],
+      [
+        "ultrasonic",
+        15
       ]
     ],
-    "total_tokens": 4471,
-    "unique_tokens": 1058
+    "total_tokens": 3775,
+    "unique_tokens": 941
   },
   "1d4e79eafb5e41bc09a76150a3e60073": {
     "file_name": "2509.22769.pdf",
@@ -3359,16 +3167,8 @@
         49
       ],
       [
-        "datasets",
-        47
-      ],
-      [
         "discovery",
         44
-      ],
-      [
-        "dataset",
-        43
       ],
       [
         "selex",
@@ -3379,10 +3179,6 @@
         40
       ],
       [
-        "framework",
-        39
-      ],
-      [
         "simgcd",
         38
       ],
@@ -3391,32 +3187,12 @@
         35
       ],
       [
-        "model",
-        34
-      ],
-      [
-        "methods",
-        33
-      ],
-      [
         "supervised",
         33
       ],
       [
         "fine",
         32
-      ],
-      [
-        "results",
-        31
-      ],
-      [
-        "new",
-        31
-      ],
-      [
-        "old",
-        31
       ],
       [
         "cub",
@@ -3443,10 +3219,6 @@
         25
       ],
       [
-        "models",
-        25
-      ],
-      [
         "labeled",
         23
       ],
@@ -3459,10 +3231,6 @@
         22
       ],
       [
-        "across",
-        22
-      ],
-      [
         "feature",
         21
       ],
@@ -3472,10 +3240,6 @@
       ],
       [
         "unlabeled",
-        20
-      ],
-      [
-        "data",
         20
       ],
       [
@@ -3495,28 +3259,72 @@
         19
       ],
       [
-        "performance",
-        19
-      ],
-      [
-        "method",
-        19
-      ],
-      [
-        "using",
-        19
-      ],
-      [
         "attention",
         19
       ],
       [
         "visual",
         18
+      ],
+      [
+        "label",
+        18
+      ],
+      [
+        "estimation",
+        18
+      ],
+      [
+        "object",
+        17
+      ],
+      [
+        "token",
+        17
+      ],
+      [
+        "baseline",
+        17
+      ],
+      [
+        "kai",
+        16
+      ],
+      [
+        "known",
+        16
+      ],
+      [
+        "semantic",
+        16
+      ],
+      [
+        "pca",
+        16
+      ],
+      [
+        "pc",
+        16
+      ],
+      [
+        "semi",
+        16
+      ],
+      [
+        "detailed",
+        15
+      ],
+      [
+        "samples",
+        15
+      ],
+      [
+        "parametric",
+        15
       ]
     ],
-    "total_tokens": 6237,
-    "unique_tokens": 1892
+    "total_tokens": 5367,
+    "unique_tokens": 1751
   },
   "4c105848ede363bc33cd5873af2ac3f3": {
     "file_name": "2509.22793.pdf",
@@ -3538,24 +3346,12 @@
         75
       ],
       [
-        "model",
-        74
-      ],
-      [
         "rank",
         74
       ],
       [
         "tuning",
         68
-      ],
-      [
-        "low",
-        54
-      ],
-      [
-        "models",
-        51
       ],
       [
         "generation",
@@ -3568,10 +3364,6 @@
       [
         "col",
         45
-      ],
-      [
-        "figure",
-        38
       ],
       [
         "text",
@@ -3587,10 +3379,6 @@
       ],
       [
         "personalization",
-        35
-      ],
-      [
-        "methods",
         35
       ],
       [
@@ -3614,10 +3402,6 @@
         28
       ],
       [
-        "results",
-        28
-      ],
-      [
         "para",
         27
       ],
@@ -3634,23 +3418,11 @@
         25
       ],
       [
-        "using",
-        24
-      ],
-      [
-        "across",
-        24
-      ],
-      [
         "preprint",
         24
       ],
       [
         "space",
-        24
-      ],
-      [
-        "different",
         24
       ],
       [
@@ -3670,10 +3442,6 @@
         22
       ],
       [
-        "table",
-        22
-      ],
-      [
         "omnigen",
         21
       ],
@@ -3687,10 +3455,6 @@
       ],
       [
         "learning",
-        20
-      ],
-      [
-        "various",
         20
       ],
       [
@@ -3720,10 +3484,54 @@
       [
         "conference",
         19
+      ],
+      [
+        "trainable",
+        18
+      ],
+      [
+        "prompts",
+        17
+      ],
+      [
+        "visualcloze",
+        17
+      ],
+      [
+        "subject",
+        17
+      ],
+      [
+        "pages",
+        17
+      ],
+      [
+        "original",
+        16
+      ],
+      [
+        "dog",
+        15
+      ],
+      [
+        "diverse",
+        15
+      ],
+      [
+        "trained",
+        15
+      ],
+      [
+        "zhang",
+        15
+      ],
+      [
+        "computer",
+        14
       ]
     ],
-    "total_tokens": 6246,
-    "unique_tokens": 1944
+    "total_tokens": 5290,
+    "unique_tokens": 1806
   },
   "72583ab2a6923c69b6d2c075d695abe3": {
     "file_name": "2509.22799.pdf",
@@ -3751,10 +3559,6 @@
       [
         "al",
         77
-      ],
-      [
-        "models",
-        74
       ],
       [
         "text",
@@ -3789,10 +3593,6 @@
         48
       ],
       [
-        "evaluation",
-        48
-      ],
-      [
         "prompt",
         46
       ],
@@ -3801,20 +3601,12 @@
         45
       ],
       [
-        "model",
-        44
-      ],
-      [
         "human",
         43
       ],
       [
         "li",
         43
-      ],
-      [
-        "table",
-        42
       ],
       [
         "alignment",
@@ -3873,14 +3665,6 @@
         29
       ],
       [
-        "two",
-        28
-      ],
-      [
-        "three",
-        27
-      ],
-      [
         "accuracy",
         27
       ],
@@ -3901,16 +3685,8 @@
         26
       ],
       [
-        "results",
-        26
-      ],
-      [
         "abs",
         26
-      ],
-      [
-        "best",
-        25
       ],
       [
         "urlhttps",
@@ -3927,10 +3703,42 @@
       [
         "generation",
         22
+      ],
+      [
+        "common",
+        22
+      ],
+      [
+        "xu",
+        22
+      ],
+      [
+        "fps",
+        22
+      ],
+      [
+        "wu",
+        21
+      ],
+      [
+        "ablation",
+        21
+      ],
+      [
+        "multi",
+        20
+      ],
+      [
+        "reasoning",
+        20
+      ],
+      [
+        "huang",
+        20
       ]
     ],
-    "total_tokens": 8576,
-    "unique_tokens": 2674
+    "total_tokens": 7572,
+    "unique_tokens": 2529
   },
   "895036c77dcb7b96fc7e8023c76edf70": {
     "file_name": "2509.22813.pdf",
@@ -3941,10 +3749,6 @@
       ],
       [
         "traversal",
-        79
-      ],
-      [
-        "model",
         79
       ],
       [
@@ -3968,20 +3772,12 @@
         43
       ],
       [
-        "method",
-        40
-      ],
-      [
         "permutations",
         40
       ],
       [
         "entropy",
         38
-      ],
-      [
-        "across",
-        35
       ],
       [
         "vision",
@@ -4000,10 +3796,6 @@
         31
       ],
       [
-        "using",
-        28
-      ],
-      [
         "parameters",
         28
       ],
@@ -4016,15 +3808,7 @@
         28
       ],
       [
-        "performance",
-        27
-      ],
-      [
         "domain",
-        27
-      ],
-      [
-        "figure",
         27
       ],
       [
@@ -4044,10 +3828,6 @@
         24
       ],
       [
-        "different",
-        24
-      ],
-      [
         "source",
         24
       ],
@@ -4060,15 +3840,7 @@
         23
       ],
       [
-        "models",
-        22
-      ],
-      [
         "averaging",
-        22
-      ],
-      [
-        "based",
         22
       ],
       [
@@ -4086,10 +3858,6 @@
       [
         "robustness",
         20
-      ],
-      [
-        "datasets",
-        19
       ],
       [
         "batch",
@@ -4124,20 +3892,60 @@
         17
       ],
       [
-        "data",
-        16
-      ],
-      [
-        "evaluation",
-        16
-      ],
-      [
         "ik",
         16
+      ],
+      [
+        "input",
+        15
+      ],
+      [
+        "specific",
+        15
+      ],
+      [
+        "representations",
+        15
+      ],
+      [
+        "ieee",
+        15
+      ],
+      [
+        "recognition",
+        14
+      ],
+      [
+        "image",
+        13
+      ],
+      [
+        "pseudo",
+        13
+      ],
+      [
+        "processing",
+        13
+      ],
+      [
+        "strategy",
+        13
+      ],
+      [
+        "augmentation",
+        13
+      ],
+      [
+        "parameter",
+        13
+      ],
+      [
+        "pattern",
+        13
       ]
     ],
-    "total_tokens": 5579,
-    "unique_tokens": 1817
+    "total_tokens": 4817,
+    "unique_tokens": 1681
   },
   "01ab1643376bb7c2fcfbf77ba3c09ddd": {
     "file_name": "2509.22820.pdf",
@@ -4149,10 +3957,6 @@
       [
         "concept",
         115
-      ],
-      [
-        "models",
-        104
       ],
       [
         "arxiv",
@@ -4177,10 +3981,6 @@
       [
         "images",
         86
-      ],
-      [
-        "model",
-        81
       ],
       [
         "preference",
@@ -4235,10 +4035,6 @@
         48
       ],
       [
-        "based",
-        48
-      ],
-      [
         "personalized",
         46
       ],
@@ -4251,20 +4047,12 @@
         42
       ],
       [
-        "figure",
-        42
-      ],
-      [
         "tasks",
         41
       ],
       [
         "li",
         41
-      ],
-      [
-        "performance",
-        39
       ],
       [
         "text",
@@ -4283,16 +4071,8 @@
         38
       ],
       [
-        "across",
-        37
-      ],
-      [
         "task",
         36
-      ],
-      [
-        "large",
-        35
       ],
       [
         "preferences",
@@ -4301,10 +4081,6 @@
       [
         "zhang",
         34
-      ],
-      [
-        "evaluation",
-        33
       ],
       [
         "question",
@@ -4327,10 +4103,6 @@
         30
       ],
       [
-        "using",
-        29
-      ],
-      [
         "vlm",
         29
       ],
@@ -4341,10 +4113,46 @@
       [
         "open",
         28
+      ],
+      [
+        "specific",
+        28
+      ],
+      [
+        "benchmark",
+        27
+      ],
+      [
+        "context",
+        27
+      ],
+      [
+        "descriptions",
+        27
+      ],
+      [
+        "example",
+        26
+      ],
+      [
+        "vqa",
+        26
+      ],
+      [
+        "awareness",
+        26
+      ],
+      [
+        "hair",
+        26
+      ],
+      [
+        "answer",
+        26
       ]
     ],
-    "total_tokens": 11493,
-    "unique_tokens": 3178
+    "total_tokens": 10033,
+    "unique_tokens": 3009
   },
   "95eabfb7fe643e79d6b08472587423bc": {
     "file_name": "2509.22836.pdf",
@@ -4414,10 +4222,6 @@
         24
       ],
       [
-        "model",
-        22
-      ],
-      [
         "attacks",
         22
       ],
@@ -4450,16 +4254,8 @@
         18
       ],
       [
-        "models",
-        16
-      ],
-      [
         "size",
         16
-      ],
-      [
-        "across",
-        15
       ],
       [
         "perceptual",
@@ -4483,10 +4279,6 @@
       ],
       [
         "attacker",
-        13
-      ],
-      [
-        "high",
         13
       ],
       [
@@ -4514,10 +4306,6 @@
         12
       ],
       [
-        "framework",
-        11
-      ],
-      [
         "networks",
         11
       ],
@@ -4542,16 +4330,36 @@
         11
       ],
       [
-        "results",
-        11
+        "effectiveness",
+        10
       ],
       [
-        "figure",
+        "attention",
         10
+      ],
+      [
+        "consistency",
+        10
+      ],
+      [
+        "robustness",
+        10
+      ],
+      [
+        "lpatch",
+        10
+      ],
+      [
+        "center",
+        10
+      ],
+      [
+        "specified",
+        9
       ]
     ],
-    "total_tokens": 4043,
-    "unique_tokens": 1579
+    "total_tokens": 3687,
+    "unique_tokens": 1475
   },
   "e84d696c2bbe0347932e95682976e6b5": {
     "file_name": "2509.22839.pdf",
@@ -4585,20 +4393,12 @@
         35
       ],
       [
-        "datasets",
-        33
-      ],
-      [
         "saliency",
         31
       ],
       [
         "scale",
         29
-      ],
-      [
-        "model",
-        25
       ],
       [
         "preprint",
@@ -4617,19 +4417,11 @@
         24
       ],
       [
-        "dataset",
-        24
-      ],
-      [
         "arxiv",
         24
       ],
       [
         "crossscalenet",
-        22
-      ],
-      [
-        "performance",
         22
       ],
       [
@@ -4641,23 +4433,11 @@
         22
       ],
       [
-        "models",
-        20
-      ],
-      [
         "mechanism",
         19
       ],
       [
-        "first",
-        19
-      ],
-      [
         "timemixer",
-        18
-      ],
-      [
-        "using",
         18
       ],
       [
@@ -4677,31 +4457,11 @@
         17
       ],
       [
-        "across",
-        17
-      ],
-      [
-        "data",
-        16
-      ],
-      [
-        "table",
-        16
-      ],
-      [
         "explainability",
         15
       ],
       [
-        "based",
-        15
-      ],
-      [
         "synthetic",
-        15
-      ],
-      [
-        "approach",
         15
       ],
       [
@@ -4749,16 +4509,64 @@
         14
       ],
       [
-        "figure",
+        "avg",
         14
       ],
       [
-        "avg",
+        "pages",
         14
+      ],
+      [
+        "xai",
+        13
+      ],
+      [
+        "level",
+        13
+      ],
+      [
+        "seasonal",
+        13
+      ],
+      [
+        "scales",
+        13
+      ],
+      [
+        "crosscalenet",
+        13
+      ],
+      [
+        "term",
+        13
+      ],
+      [
+        "dependencies",
+        12
+      ],
+      [
+        "tft",
+        12
+      ],
+      [
+        "ablation",
+        11
+      ],
+      [
+        "patches",
+        11
+      ],
+      [
+        "self",
+        11
+      ],
+      [
+        "prediction",
+        11
       ]
     ],
-    "total_tokens": 3853,
-    "unique_tokens": 1506
+    "total_tokens": 3292,
+    "unique_tokens": 1385
   },
   "4e5439009d1d05224dc150b47ca8fd2a": {
     "file_name": "2509.22841.pdf",
@@ -4788,10 +4596,6 @@
         46
       ],
       [
-        "dataset",
-        41
-      ],
-      [
         "medical",
         40
       ],
@@ -4812,10 +4616,6 @@
         33
       ],
       [
-        "model",
-        31
-      ],
-      [
         "slices",
         30
       ],
@@ -4833,10 +4633,6 @@
       ],
       [
         "sim",
-        21
-      ],
-      [
-        "models",
         21
       ],
       [
@@ -4888,35 +4684,15 @@
         16
       ],
       [
-        "data",
-        16
-      ],
-      [
         "tuning",
         16
-      ],
-      [
-        "using",
-        16
-      ],
-      [
-        "performance",
-        15
       ],
       [
         "baseline",
         15
       ],
       [
-        "analysis",
-        15
-      ],
-      [
         "mm",
-        15
-      ],
-      [
-        "three",
         15
       ],
       [
@@ -4940,10 +4716,6 @@
         12
       ],
       [
-        "approach",
-        12
-      ],
-      [
         "dice",
         12
       ],
@@ -4956,16 +4728,52 @@
         12
       ],
       [
-        "datasets",
+        "planning",
         11
       ],
       [
-        "planning",
+        "branch",
         11
+      ],
+      [
+        "iou",
+        11
+      ],
+      [
+        "multimodal",
+        10
+      ],
+      [
+        "volume",
+        10
+      ],
+      [
+        "therapy",
+        10
+      ],
+      [
+        "annotated",
+        10
+      ],
+      [
+        "module",
+        10
+      ],
+      [
+        "radiotherapy",
+        10
+      ],
+      [
+        "information",
+        10
+      ],
+      [
+        "ieee",
+        10
       ]
     ],
-    "total_tokens": 4368,
-    "unique_tokens": 1516
+    "total_tokens": 3836,
+    "unique_tokens": 1398
   },
   "978f119311e197ce80c2186525bf40f2": {
     "file_name": "2509.22864.pdf",
@@ -4973,14 +4781,6 @@
       [
         "event",
         211
-      ],
-      [
-        "data",
-        132
-      ],
-      [
-        "based",
-        67
       ],
       [
         "events",
@@ -4999,10 +4799,6 @@
         50
       ],
       [
-        "models",
-        48
-      ],
-      [
         "generation",
         48
       ],
@@ -5015,10 +4811,6 @@
         40
       ],
       [
-        "model",
-        39
-      ],
-      [
         "images",
         37
       ],
@@ -5029,10 +4821,6 @@
       [
         "vision",
         34
-      ],
-      [
-        "dataset",
-        32
       ],
       [
         "real",
@@ -5079,10 +4867,6 @@
         23
       ],
       [
-        "using",
-        23
-      ],
-      [
         "conference",
         23
       ],
@@ -5100,10 +4884,6 @@
       ],
       [
         "tasks",
-        21
-      ],
-      [
-        "datasets",
         21
       ],
       [
@@ -5139,10 +4919,6 @@
         19
       ],
       [
-        "results",
-        19
-      ],
-      [
         "imagenet",
         18
       ],
@@ -5152,10 +4928,6 @@
       ],
       [
         "synthesize",
-        17
-      ],
-      [
-        "high",
         17
       ],
       [
@@ -5169,10 +4941,46 @@
       [
         "generate",
         16
+      ],
+      [
+        "labeled",
+        16
+      ],
+      [
+        "generative",
+        16
+      ],
+      [
+        "stable",
+        16
+      ],
+      [
+        "motion",
+        16
+      ],
+      [
+        "realistic",
+        15
+      ],
+      [
+        "scale",
+        15
+      ],
+      [
+        "foundation",
+        15
+      ],
+      [
+        "visual",
+        15
+      ],
+      [
+        "esim",
+        15
       ]
     ],
-    "total_tokens": 5507,
-    "unique_tokens": 1785
+    "total_tokens": 4735,
+    "unique_tokens": 1664
   },
   "c70210e356fae3c3da7404bbe5d62de6": {
     "file_name": "2509.22874.pdf",
@@ -5202,16 +5010,8 @@
         70
       ],
       [
-        "based",
-        55
-      ],
-      [
         "learning",
         46
-      ],
-      [
-        "methods",
-        40
       ],
       [
         "randkan",
@@ -5220,10 +5020,6 @@
       [
         "dir",
         36
-      ],
-      [
-        "dataset",
-        35
       ],
       [
         "neural",
@@ -5235,10 +5031,6 @@
       ],
       [
         "medical",
-        30
-      ],
-      [
-        "model",
         30
       ],
       [
@@ -5254,19 +5046,7 @@
         26
       ],
       [
-        "results",
-        26
-      ],
-      [
         "inrs",
-        24
-      ],
-      [
-        "performance",
-        24
-      ],
-      [
-        "best",
         24
       ],
       [
@@ -5282,16 +5062,8 @@
         22
       ],
       [
-        "across",
-        21
-      ],
-      [
         "oasis",
         21
-      ],
-      [
-        "datasets",
-        19
       ],
       [
         "deformation",
@@ -5299,10 +5071,6 @@
       ],
       [
         "function",
-        19
-      ],
-      [
-        "method",
         19
       ],
       [
@@ -5315,14 +5083,6 @@
       ],
       [
         "networks",
-        17
-      ],
-      [
-        "proposed",
-        17
-      ],
-      [
-        "models",
         17
       ],
       [
@@ -5346,15 +5106,7 @@
         15
       ],
       [
-        "figure",
-        15
-      ],
-      [
         "tre",
-        15
-      ],
-      [
-        "using",
         15
       ],
       [
@@ -5366,20 +5118,76 @@
         15
       ],
       [
-        "table",
-        15
-      ],
-      [
         "pp",
         15
       ],
       [
         "kolmogorov",
         13
+      ],
+      [
+        "arnold",
+        13
+      ],
+      [
+        "kans",
+        13
+      ],
+      [
+        "achieve",
+        13
+      ],
+      [
+        "values",
+        13
+      ],
+      [
+        "nodeo",
+        13
+      ],
+      [
+        "sinr",
+        13
+      ],
+      [
+        "representations",
+        12
+      ],
+      [
+        "network",
+        12
+      ],
+      [
+        "dsc",
+        12
+      ],
+      [
+        "conference",
+        12
+      ],
+      [
+        "classical",
+        11
+      ],
+      [
+        "computational",
+        11
+      ],
+      [
+        "compared",
+        11
+      ],
+      [
+        "li",
+        11
+      ],
+      [
+        "njd",
+        11
       ]
     ],
-    "total_tokens": 5053,
-    "unique_tokens": 1774
+    "total_tokens": 4291,
+    "unique_tokens": 1640
   },
   "159b6ad6171ffd70804725e98f2e8351": {
     "file_name": "2509.22889.pdf",
@@ -5425,10 +5233,6 @@
         50
       ],
       [
-        "models",
-        46
-      ],
-      [
         "st",
         45
       ],
@@ -5467,14 +5271,6 @@
       [
         "convolutional",
         34
-      ],
-      [
-        "model",
-        33
-      ],
-      [
-        "figure",
-        30
       ],
       [
         "ds",
@@ -5522,14 +5318,6 @@
       ],
       [
         "layer",
-        26
-      ],
-      [
-        "dataset",
-        26
-      ],
-      [
-        "section",
         26
       ],
       [
@@ -5583,10 +5371,30 @@
       [
         "latent",
         21
+      ],
+      [
+        "context",
+        21
+      ],
+      [
+        "accuracy",
+        21
+      ],
+      [
+        "architectures",
+        21
+      ],
+      [
+        "attention",
+        20
+      ],
+      [
+        "cams",
+        20
       ]
     ],
-    "total_tokens": 6546,
-    "unique_tokens": 1661
+    "total_tokens": 5695,
+    "unique_tokens": 1516
   },
   "f6c03b9e3aa04958d1580de19862f0ee": {
     "file_name": "2509.22909.pdf",
@@ -5594,14 +5402,6 @@
       [
         "detection",
         65
-      ],
-      [
-        "model",
-        58
-      ],
-      [
-        "small",
-        53
       ],
       [
         "target",
@@ -5624,10 +5424,6 @@
         32
       ],
       [
-        "based",
-        31
-      ],
-      [
         "map",
         28
       ],
@@ -5638,10 +5434,6 @@
       [
         "irdst",
         24
-      ],
-      [
-        "performance",
-        23
       ],
       [
         "frame",
@@ -5656,16 +5448,8 @@
         22
       ],
       [
-        "dataset",
-        22
-      ],
-      [
         "network",
         21
-      ],
-      [
-        "figure",
-        19
       ],
       [
         "ing",
@@ -5712,10 +5496,6 @@
         16
       ],
       [
-        "results",
-        16
-      ],
-      [
         "nuaa",
         16
       ],
@@ -5733,10 +5513,6 @@
       ],
       [
         "temporal",
-        15
-      ],
-      [
-        "two",
         15
       ],
       [
@@ -5764,19 +5540,7 @@
         14
       ],
       [
-        "experiments",
-        13
-      ],
-      [
-        "second",
-        13
-      ],
-      [
         "ca",
-        13
-      ],
-      [
-        "table",
         13
       ],
       [
@@ -5790,10 +5554,54 @@
       [
         "nudt",
         12
+      ],
+      [
+        "vision",
+        12
+      ],
+      [
+        "rist",
+        11
+      ],
+      [
+        "tion",
+        11
+      ],
+      [
+        "spatial",
+        11
+      ],
+      [
+        "heads",
+        11
+      ],
+      [
+        "pan",
+        11
+      ],
+      [
+        "function",
+        11
+      ],
+      [
+        "images",
+        11
+      ],
+      [
+        "remote",
+        11
+      ],
+      [
+        "false",
+        10
+      ],
+      [
+        "blocks",
+        10
       ]
     ],
-    "total_tokens": 4238,
-    "unique_tokens": 1634
+    "total_tokens": 3622,
+    "unique_tokens": 1516
   },
   "3f36ac4e0547952f8315922a3b012225": {
     "file_name": "2509.22917.pdf",
@@ -5919,10 +5727,6 @@
         18
       ],
       [
-        "based",
-        17
-      ],
-      [
         "rotation",
         17
       ],
@@ -5943,10 +5747,6 @@
         17
       ],
       [
-        "dataset",
-        17
-      ],
-      [
         "preprint",
         16
       ],
@@ -5963,28 +5763,12 @@
         14
       ],
       [
-        "model",
-        14
-      ],
-      [
-        "using",
-        14
-      ],
-      [
         "encoder",
         14
       ],
       [
         "liu",
         14
-      ],
-      [
-        "models",
-        13
-      ],
-      [
-        "data",
-        13
       ],
       [
         "identical",
@@ -5997,10 +5781,34 @@
       [
         "chen",
         13
+      ],
+      [
+        "lpips",
+        13
+      ],
+      [
+        "non",
+        12
+      ],
+      [
+        "rendering",
+        12
+      ],
+      [
+        "noise",
+        12
+      ],
+      [
+        "scale",
+        12
+      ],
+      [
+        "zhou",
+        12
       ]
     ],
-    "total_tokens": 5195,
-    "unique_tokens": 1997
+    "total_tokens": 4737,
+    "unique_tokens": 1869
   },
   "2627ca59833efd4ada79e8c1b41c5a5e": {
     "file_name": "2509.22925.pdf",
@@ -6038,10 +5846,6 @@
         100
       ],
       [
-        "one",
-        91
-      ],
-      [
         "image",
         88
       ],
@@ -6058,16 +5862,8 @@
         77
       ],
       [
-        "models",
-        76
-      ],
-      [
         "generator",
         76
-      ],
-      [
-        "model",
-        73
       ],
       [
         "discrete",
@@ -6150,14 +5946,6 @@
         33
       ],
       [
-        "fig",
-        33
-      ],
-      [
-        "high",
-        32
-      ],
-      [
         "learning",
         32
       ],
@@ -6186,10 +5974,6 @@
         29
       ],
       [
-        "using",
-        29
-      ],
-      [
         "style",
         29
       ],
@@ -6204,10 +5988,34 @@
       [
         "discriminator",
         28
+      ],
+      [
+        "steps",
+        27
+      ],
+      [
+        "information",
+        27
+      ],
+      [
+        "tokens",
+        26
+      ],
+      [
+        "tokenizer",
+        26
+      ],
+      [
+        "visual",
+        26
+      ],
+      [
+        "luo",
+        25
       ]
     ],
-    "total_tokens": 11741,
-    "unique_tokens": 3457
+    "total_tokens": 10567,
+    "unique_tokens": 3308
   },
   "c97cd4ce575b034e54814215a1932cba": {
     "file_name": "2509.22930.pdf",
@@ -6235,10 +6043,6 @@
       [
         "fishai",
         46
-      ],
-      [
-        "model",
-        45
       ],
       [
         "images",
@@ -6273,10 +6077,6 @@
         28
       ],
       [
-        "data",
-        28
-      ],
-      [
         "training",
         27
       ],
@@ -6289,28 +6089,12 @@
         24
       ],
       [
-        "dataset",
-        24
-      ],
-      [
-        "large",
-        23
-      ],
-      [
         "deepseek",
         23
       ],
       [
         "classification",
         21
-      ],
-      [
-        "high",
-        21
-      ],
-      [
-        "datasets",
-        20
       ],
       [
         "quality",
@@ -6325,19 +6109,7 @@
         18
       ],
       [
-        "performance",
-        17
-      ],
-      [
-        "based",
-        17
-      ],
-      [
         "level",
-        16
-      ],
-      [
-        "models",
         16
       ],
       [
@@ -6355,10 +6127,6 @@
       [
         "generated",
         14
-      ],
-      [
-        "study",
-        13
       ],
       [
         "samples",
@@ -6381,19 +6149,11 @@
         13
       ],
       [
-        "small",
-        13
-      ],
-      [
         "language",
         12
       ],
       [
         "top",
-        12
-      ],
-      [
-        "research",
         12
       ],
       [
@@ -6411,10 +6171,58 @@
       [
         "genus",
         11
+      ],
+      [
+        "fine",
+        11
+      ],
+      [
+        "categories",
+        11
+      ],
+      [
+        "prompts",
+        11
+      ],
+      [
+        "prompt",
+        11
+      ],
+      [
+        "augmentation",
+        10
+      ],
+      [
+        "descriptions",
+        10
+      ],
+      [
+        "ecological",
+        10
+      ],
+      [
+        "hypophthalmichthys",
+        10
+      ],
+      [
+        "molitrix",
+        10
+      ],
+      [
+        "taxonomic",
+        10
+      ],
+      [
+        "limited",
+        10
+      ],
+      [
+        "deep",
+        9
       ]
     ],
-    "total_tokens": 3992,
-    "unique_tokens": 1474
+    "total_tokens": 3395,
+    "unique_tokens": 1342
   },
   "d8de2b2e3b54ff0354ba76913f172015": {
     "file_name": "2509.22956.pdf",
@@ -6426,10 +6234,6 @@
       [
         "tumor",
         109
-      ],
-      [
-        "dataset",
-        80
       ],
       [
         "accuracy",
@@ -6444,16 +6248,8 @@
         49
       ],
       [
-        "model",
-        48
-      ],
-      [
         "images",
         48
-      ],
-      [
-        "using",
-        47
       ],
       [
         "mri",
@@ -6476,14 +6272,6 @@
         41
       ],
       [
-        "used",
-        39
-      ],
-      [
-        "proposed",
-        37
-      ],
-      [
         "dfn",
         37
       ],
@@ -6500,24 +6288,12 @@
         31
       ],
       [
-        "work",
-        30
-      ],
-      [
         "neural",
-        30
-      ],
-      [
-        "based",
         30
       ],
       [
         "fcnn",
         30
-      ],
-      [
-        "method",
-        29
       ],
       [
         "image",
@@ -6528,10 +6304,6 @@
         26
       ],
       [
-        "research",
-        25
-      ],
-      [
         "ieee",
         24
       ],
@@ -6540,15 +6312,7 @@
         24
       ],
       [
-        "performance",
-        24
-      ],
-      [
         "mmcbt",
-        23
-      ],
-      [
-        "per",
         23
       ],
       [
@@ -6592,10 +6356,6 @@
         18
       ],
       [
-        "study",
-        18
-      ],
-      [
         "seconds",
         18
       ],
@@ -6612,16 +6372,64 @@
         17
       ],
       [
-        "models",
+        "methodology",
         17
       ],
       [
-        "different",
-        17
+        "gap",
+        16
+      ],
+      [
+        "achieved",
+        16
+      ],
+      [
+        "epoch",
+        16
+      ],
+      [
+        "linear",
+        15
+      ],
+      [
+        "non",
+        15
+      ],
+      [
+        "medical",
+        15
+      ],
+      [
+        "public",
+        15
+      ],
+      [
+        "layer",
+        15
+      ],
+      [
+        "imaging",
+        14
+      ],
+      [
+        "scans",
+        13
+      ],
+      [
+        "global",
+        13
+      ],
+      [
+        "volume",
+        13
+      ],
+      [
+        "ms",
+        13
       ]
     ],
-    "total_tokens": 4956,
-    "unique_tokens": 1553
+    "total_tokens": 4117,
+    "unique_tokens": 1421
   },
   "01c4ad74efe5a6a1a55d4594f94b1506": {
     "file_name": "2509.23008.pdf",
@@ -6675,24 +6483,12 @@
         35
       ],
       [
-        "method",
-        33
-      ],
-      [
         "diffusion",
-        31
-      ],
-      [
-        "model",
         31
       ],
       [
         "video",
         30
-      ],
-      [
-        "models",
-        29
       ],
       [
         "sequence",
@@ -6715,10 +6511,6 @@
         27
       ],
       [
-        "results",
-        27
-      ],
-      [
         "tokenizer",
         25
       ],
@@ -6729,10 +6521,6 @@
       [
         "multi",
         23
-      ],
-      [
-        "based",
-        22
       ],
       [
         "spatial",
@@ -6748,14 +6536,6 @@
       ],
       [
         "order",
-        21
-      ],
-      [
-        "methods",
-        21
-      ],
-      [
-        "figure",
         21
       ],
       [
@@ -6775,15 +6555,7 @@
         19
       ],
       [
-        "review",
-        18
-      ],
-      [
         "zhou",
-        17
-      ],
-      [
-        "first",
         17
       ],
       [
@@ -6811,10 +6583,6 @@
         15
       ],
       [
-        "proposed",
-        15
-      ],
-      [
         "target",
         15
       ],
@@ -6823,12 +6591,52 @@
         14
       ],
       [
-        "next",
+        "training",
         14
+      ],
+      [
+        "permutation",
+        14
+      ],
+      [
+        "computer",
+        14
+      ],
+      [
+        "vision",
+        14
+      ],
+      [
+        "modeling",
+        13
+      ],
+      [
+        "single",
+        13
+      ],
+      [
+        "qualitative",
+        13
+      ],
+      [
+        "given",
+        13
+      ],
+      [
+        "prediction",
+        13
+      ],
+      [
+        "li",
+        12
+      ],
+      [
+        "frames",
+        12
       ]
     ],
-    "total_tokens": 5030,
-    "unique_tokens": 1728
+    "total_tokens": 4406,
+    "unique_tokens": 1604
   },
   "daefef87fc394198d187bc3319808395": {
     "file_name": "2509.23009.pdf",
@@ -6844,10 +6652,6 @@
       [
         "scene",
         45
-      ],
-      [
-        "based",
-        42
       ],
       [
         "stream",
@@ -6882,10 +6686,6 @@
         29
       ],
       [
-        "background",
-        29
-      ],
-      [
         "prediction",
         28
       ],
@@ -6914,10 +6714,6 @@
         19
       ],
       [
-        "two",
-        18
-      ],
-      [
         "dynamic",
         17
       ],
@@ -6932,14 +6728,6 @@
       [
         "extractor",
         15
-      ],
-      [
-        "used",
-        14
-      ],
-      [
-        "proposed",
-        14
       ],
       [
         "hor",
@@ -6966,10 +6754,6 @@
         12
       ],
       [
-        "method",
-        11
-      ],
-      [
         "single",
         11
       ],
@@ -6980,10 +6764,6 @@
       [
         "bor",
         11
-      ],
-      [
-        "model",
-        10
       ],
       [
         "tion",
@@ -7014,10 +6794,6 @@
         9
       ],
       [
-        "models",
-        8
-      ],
-      [
         "independence",
         8
       ],
@@ -7032,10 +6808,42 @@
       [
         "losses",
         8
+      ],
+      [
+        "order",
+        8
+      ],
+      [
+        "top",
+        8
+      ],
+      [
+        "representations",
+        8
+      ],
+      [
+        "vision",
+        8
+      ],
+      [
+        "inproceedings",
+        8
+      ],
+      [
+        "computer",
+        8
+      ],
+      [
+        "adversarial",
+        7
+      ],
+      [
+        "soft",
+        7
       ]
     ],
-    "total_tokens": 2888,
-    "unique_tokens": 1216
+    "total_tokens": 2510,
+    "unique_tokens": 1118
   },
   "37efb8725a3a09d6aa7468f7e510fc6a": {
     "file_name": "2509.23010.pdf",
@@ -7043,10 +6851,6 @@
       [
         "point",
         92
-      ],
-      [
-        "model",
-        79
       ],
       [
         "training",
@@ -7093,24 +6897,12 @@
         42
       ],
       [
-        "data",
-        41
-      ],
-      [
-        "method",
-        40
-      ],
-      [
         "sd",
         40
       ],
       [
         "robustness",
         33
-      ],
-      [
-        "methods",
-        31
       ],
       [
         "rsmix",
@@ -7173,10 +6965,6 @@
         22
       ],
       [
-        "fig",
-        21
-      ],
-      [
         "feature",
         20
       ],
@@ -7193,19 +6981,7 @@
         19
       ],
       [
-        "using",
-        18
-      ],
-      [
-        "models",
-        18
-      ],
-      [
         "loss",
-        18
-      ],
-      [
-        "based",
         18
       ],
       [
@@ -7221,14 +6997,6 @@
         17
       ],
       [
-        "approach",
-        17
-      ],
-      [
-        "contribution",
-        16
-      ],
-      [
         "oa",
         16
       ],
@@ -7239,9 +7007,463 @@
       [
         "vision",
         16
+      ],
+      [
+        "speci",
+        15
+      ],
+      [
+        "self",
+        15
+      ],
+      [
+        "transformation",
+        15
+      ],
+      [
+        "tion",
+        15
+      ],
+      [
+        "strategies",
+        15
+      ],
+      [
+        "pattern",
+        15
+      ],
+      [
+        "computer",
+        14
+      ],
+      [
+        "pointcloud",
+        14
+      ],
+      [
+        "scale",
+        14
+      ],
+      [
+        "recognition",
+        14
       ]
     ],
-    "total_tokens": 5692,
-    "unique_tokens": 1997
+    "total_tokens": 4974,
+    "unique_tokens": 1862
+  },
+  "75ac7d5217239712681db2646a912de9": {
+    "file_name": "Attention Is All You Need.pdf",
+    "top_terms": [
+      [
+        "attention",
+        93
+      ],
+      [
+        "sequence",
+        40
+      ],
+      [
+        "layer",
+        36
+      ],
+      [
+        "input",
+        34
+      ],
+      [
+        "arxiv",
+        33
+      ],
+      [
+        "output",
+        29
+      ],
+      [
+        "layers",
+        29
+      ],
+      [
+        "transformer",
+        28
+      ],
+      [
+        "self",
+        28
+      ],
+      [
+        "neural",
+        27
+      ],
+      [
+        "encoder",
+        27
+      ],
+      [
+        "training",
+        27
+      ],
+      [
+        "decoder",
+        26
+      ],
+      [
+        "translation",
+        23
+      ],
+      [
+        "positions",
+        22
+      ],
+      [
+        "recurrent",
+        20
+      ],
+      [
+        "english",
+        20
+      ],
+      [
+        "pad",
+        20
+      ],
+      [
+        "values",
+        18
+      ],
+      [
+        "head",
+        17
+      ],
+      [
+        "learning",
+        17
+      ],
+      [
+        "google",
+        16
+      ],
+      [
+        "networks",
+        16
+      ],
+      [
+        "machine",
+        16
+      ],
+      [
+        "dot",
+        16
+      ],
+      [
+        "length",
+        16
+      ],
+      [
+        "preprint",
+        16
+      ],
+      [
+        "position",
+        14
+      ],
+      [
+        "function",
+        14
+      ],
+      [
+        "tasks",
+        13
+      ],
+      [
+        "multi",
+        13
+      ],
+      [
+        "product",
+        12
+      ],
+      [
+        "long",
+        12
+      ],
+      [
+        "sub",
+        12
+      ],
+      [
+        "dk",
+        12
+      ],
+      [
+        "single",
+        11
+      ],
+      [
+        "representations",
+        11
+      ],
+      [
+        "heads",
+        11
+      ],
+      [
+        "base",
+        11
+      ],
+      [
+        "wsj",
+        11
+      ],
+      [
+        "network",
+        10
+      ],
+      [
+        "bleu",
+        10
+      ],
+      [
+        "task",
+        10
+      ],
+      [
+        "state",
+        10
+      ],
+      [
+        "language",
+        10
+      ],
+      [
+        "positional",
+        10
+      ],
+      [
+        "al",
+        10
+      ],
+      [
+        "eos",
+        10
+      ],
+      [
+        "art",
+        9
+      ],
+      [
+        "dependencies",
+        9
+      ]
+    ],
+    "total_tokens": 3118,
+    "unique_tokens": 1198
+  },
+  "588a4a345d1e47c4eba6bdfe7f266967": {
+    "file_name": "2509.16328v2.pdf",
+    "top_terms": [
+      [
+        "gpu",
+        44
+      ],
+      [
+        "radiology",
+        36
+      ],
+      [
+        "gpus",
+        33
+      ],
+      [
+        "inference",
+        25
+      ],
+      [
+        "llm",
+        24
+      ],
+      [
+        "llms",
+        22
+      ],
+      [
+        "memory",
+        17
+      ],
+      [
+        "throughput",
+        16
+      ],
+      [
+        "report",
+        14
+      ],
+      [
+        "latency",
+        13
+      ],
+      [
+        "nvidia",
+        13
+      ],
+      [
+        "precision",
+        13
+      ],
+      [
+        "tensor",
+        12
+      ],
+      [
+        "cores",
+        12
+      ],
+      [
+        "bandwidth",
+        11
+      ],
+      [
+        "ai",
+        11
+      ],
+      [
+        "language",
+        10
+      ],
+      [
+        "generation",
+        10
+      ],
+      [
+        "clinical",
+        10
+      ],
+      [
+        "images",
+        10
+      ],
+      [
+        "hardware",
+        9
+      ],
+      [
+        "compute",
+        9
+      ],
+      [
+        "speed",
+        9
+      ],
+      [
+        "tasks",
+        8
+      ],
+      [
+        "amd",
+        8
+      ],
+      [
+        "example",
+        8
+      ],
+      [
+        "reports",
+        8
+      ],
+      [
+        "multi",
+        8
+      ],
+      [
+        "training",
+        8
+      ],
+      [
+        "gb",
+        8
+      ],
+      [
+        "deployment",
+        7
+      ],
+      [
+        "accuracy",
+        7
+      ],
+      [
+        "imaging",
+        7
+      ],
+      [
+        "mixed",
+        7
+      ],
+      [
+        "medical",
+        7
+      ],
+      [
+        "cloud",
+        7
+      ],
+      [
+        "parallel",
+        7
+      ],
+      [
+        "batch",
+        7
+      ],
+      [
+        "nvlink",
+        7
+      ],
+      [
+        "metrics",
+        6
+      ],
+      [
+        "reduce",
+        6
+      ],
+      [
+        "privacy",
+        6
+      ],
+      [
+        "chest",
+        6
+      ],
+      [
+        "fast",
+        6
+      ],
+      [
+        "matrix",
+        6
+      ],
+      [
+        "running",
+        6
+      ],
+      [
+        "larger",
+        6
+      ],
+      [
+        "support",
+        6
+      ],
+      [
+        "resources",
+        5
+      ],
+      [
+        "modern",
+        5
+      ]
+    ],
+    "total_tokens": 1755,
+    "unique_tokens": 833
   }
 }

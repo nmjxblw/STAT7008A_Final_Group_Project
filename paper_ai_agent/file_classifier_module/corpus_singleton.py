@@ -3,9 +3,10 @@ import pickle
 from pathlib import Path
 from pymupdf import Document
 from utility_module import SingletonMeta
+from log_module import logger
 
 
-class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您的单例元类
+class CorpusSingleton(metaclass=SingletonMeta):
     """
     使用单例模式管理的语料库管理器。
     负责语料库的加载、添加文档、检索和持久化。
@@ -18,9 +19,11 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
         Args:
             corpus_filename: 语料库持久化文件名
         """
-        # 获取项目根目录并确定语料库文件完整路径
-        project_root = Path(__file__).parent.parent  # 请根据您的项目结构调整
-        self.bm25_folder = project_root / "DB" / "BM25"
+        # 使用全局模块的路径配置
+        from global_module import DATABASE_PATH
+        
+        db_parent = Path(DATABASE_PATH).parent
+        self.bm25_folder = db_parent / "BM25"
         self.bm25_folder.mkdir(parents=True, exist_ok=True)  # 确保目录存在
 
         self.corpus_path = self.bm25_folder / corpus_filename
@@ -35,14 +38,14 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
             if self.corpus_path.exists():
                 with open(self.corpus_path, "rb") as f:
                     self._corpus = pickle.load(f)
-                print(
-                    f"已从 {self.corpus_path} 加载语料库，包含 {len(self._corpus)} 个文档。"
+                logger.debug(
+                    f"已从 {self.corpus_path} 加载BM25语料库，包含 {len(self._corpus)} 个文档"
                 )
             else:
                 self._corpus = []
-                print("未找到现有语料库文件，已初始化一个空语料库。")
+                logger.debug("未找到现有BM25语料库文件，已初始化一个空语料库")
         except Exception as e:
-            print(f"加载语料库时出错: {e}。将初始化一个空语料库。")
+            logger.error(f"加载BM25语料库时出错: {e}，将初始化一个空语料库")
             self._corpus = []
 
     def add_document(self, document_data):
@@ -55,7 +58,7 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
         # 检查文档是否已存在（基于 file_id）
         file_id = document_data.get("file_id")
         if not isinstance(self._corpus, list):
-            raise ValueError("语料库数据结构异常，预期为列表。")
+            raise ValueError("语料库数据结构异常，预期为列表")
         existing_index = next(
             (i for i, doc in enumerate(self._corpus) if doc.get("file_id") == file_id),
             None,
@@ -64,13 +67,13 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
         if existing_index is not None:
             # 更新已存在的文档
             self._corpus[existing_index] = document_data
-            print(f"更新了文档: {document_data.get('file_name', 'Unknown')}")
+            logger.debug(f"BM25语料库：更新了文档 {document_data.get('file_name', 'Unknown')}")
         else:
             # 添加新文档
             self._corpus.append(document_data)
-            print(f"添加了新文档: {document_data.get('file_name', 'Unknown')}")
+            logger.debug(f"BM25语料库：添加了新文档 {document_data.get('file_name', 'Unknown')}")
 
-        # 添加或更新后，可以选择自动保存
+        # 添加或更新后，自动保存
         self.save_corpus()
 
     def get_corpus(self):
@@ -87,9 +90,9 @@ class CorpusSingleton(metaclass=SingletonMeta):  # 请确保这里使用了您�
         try:
             with open(self.corpus_path, "wb") as f:
                 pickle.dump(self._corpus, f)
-            print(f"语料库已保存至 {self.corpus_path}。")
+            logger.debug(f"BM25语料库已保存至 {self.corpus_path}")
         except Exception as e:
-            print(f"保存语料库时出错: {e}")
+            logger.error(f"保存BM25语料库时出错: {e}")
 
     def get_document_by_id(self, file_id: str) -> dict | None:
         """
