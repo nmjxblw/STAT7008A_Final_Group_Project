@@ -2,7 +2,8 @@ import PyPDF2
 import hashlib
 import os
 import re
-from log_module import *  # 导入全局日志模块
+from pathlib import Path
+from log_module import logger
 from pymupdf import Document, Page
 
 
@@ -15,7 +16,8 @@ class PDFTransformer:
         """
 
     def transform(self, folder_path, file_name):
-        full_path = folder_path +'\\'+ file_name
+        # 使用跨平台路径处理
+        full_path = str(Path(folder_path) / file_name)
         """基于文件名生成md5 id"""
         file_id = self.__generate_file_unique_id(file_name)
 
@@ -78,7 +80,7 @@ class PDFTransformer:
 
             for page_num in range(total_pages):
                 if pages_ocred >= max_pages:
-                    logger.debug(f"️  已达OCR页数上限（{max_pages}页），停止")
+                    logger.debug(f"已达OCR页数上限（{max_pages}页），停止")
                     break
 
                 page: Page = doc[page_num]

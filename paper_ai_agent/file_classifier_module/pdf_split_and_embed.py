@@ -1,12 +1,13 @@
 import os
 import pickle
 from collections import Counter, defaultdict
+from pathlib import Path
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from langchain_community.embeddings import DashScopeEmbeddings
 import json
-from log_module import *  # 导入全局日志模块
+from log_module import logger
 from global_module import API_KEY
 
 from .corpus_singleton import CorpusSingleton
@@ -129,10 +130,13 @@ class PDFRagWorker:
         return splitted_doc
 
     def __embed(self, docs):
-        # 项目根目录
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        # faiss文件保存目录
-        save_embed_folder = os.path.join(project_root, "DB", "embedding")
+        # 使用全局模块的路径配置
+        from global_module import DATABASE_PATH
+        
+        # faiss文件保存目录 - 与数据库同级的embedding目录
+        db_parent = Path(DATABASE_PATH).parent
+        save_embed_folder = str(db_parent / "embedding")
+        
         # 获取embedding模型（支持本地和API两种方式）
         if self.embedding_model is None:
             logger.warning("实例化PDFRagWorker时未传入本地embeeding模型，fallback调用api模型")
@@ -142,15 +146,60 @@ class PDFRagWorker:
         vector_store.add_documents(docs)
 
     def get_faiss_retrieval(self, query, k):
+        """FAISS向量相似度检索（基于语义理解的检索）
+        
+        评分标准：
+            - 基于向量空间中的L2距离（欧几里得距离）
+            - 分数越小表示越相似（与BM25相反！）
+            - 典型范围：0.0（完全相同）到 2.0+（差异较大）
+            - 评分考虑因素：
+              1. 语义相似度：理解句子含义而非精确词匹配
+              2. 向量空间距离：embedding向量之间的几何距离
+              3. 上下文理解：考虑词语在不同语境中的含义
+            - 推荐阈值：< 1.5 为相关，< 1.0 为高度相关
+            
+        注意：
+            FAISS分数和BM25分数评判标准完全不同：
+            - FAISS分数：越小越好（距离度量）
+            - BM25分数：越大越好（相关度评分）
+            - FAISS适合模糊搜索和语义理解，BM25适合精确关键词匹配
+            - 两者结合使用（hybrid search）可以获得最佳检索效果
+            
+        Args:
+            query: 查询文本
+            k: 返回的最相似文档数量
+            
+        Returns:
+            list: [(Document, score), ...] 按相似度排序（分数从小到大，越小越相似）
+                - Document: langchain Document对象，包含page_content和metadata
+                - score: L2距离分数（float，越小表示越相似）
+        """
         embeddings_model = self.embedding_model
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        # faiss文件保存目录
-        save_embed_folder = os.path.join(project_root, "DB", "embedding")
+        # 使用全局模块的路径配置
+        from global_module import DATABASE_PATH
+        
+        db_parent = Path(DATABASE_PATH).parent
+        save_embed_folder = str(db_parent / "embedding")
         vector_store = FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
         return vector_store.similarity_search_with_score(query, k)
 
     def get_bm25_retrieval(self, query, k=10, score_threshold=0.0):
-        """从BM25索引中检索最相关的k条记录
+        """BM25关键词匹配检索
+        
+        评分标准：
+            - 基于TF-IDF改进的概率排序模型
+            - 分数越大表示越相关（词频和文档频率的综合评分）
+            - 典型范围：0.0（无匹配）到 10.0+（高度匹配）
+            - 评分考虑因素：
+              1. 词频（TF）：查询词在文档中出现的频率
+              2. 逆文档频率（IDF）：查询词的稀有程度
+              3. 文档长度归一化：避免长文档的优势
+            - 推荐阈值：> 1.0 为相关，> 3.0 为高度相关
+            
+        注意：
+            - BM25分数和FAISS分数评判标准完全不同
+            - BM25适合关键词精确匹配，FAISS适合语义相似度搜索
+            - 两者结合使用可以获得更好的检索效果
 
         Args:
             query: 查询文本
@@ -160,10 +209,11 @@ class PDFRagWorker:
         Returns:
             list: 排序后的结果列表，每个元素为字典包含：
                 - document: 文档信息
-                - score: 相似度得分
-                - rank: 排名
+                - score: BM25相关度得分（越大越相关）
+                - rank: 排名（1为最相关）
                 - file_id: 文件ID
                 - file_name: 文件名
+                - matched_terms: 匹配到的查询词列表
         """
         corpus_manager = CorpusSingleton()
         corpus = corpus_manager.get_corpus()
@@ -271,11 +321,13 @@ class PDFRagWorker:
             corpus = corpus_manager.get_corpus()
 
             # 6. 保存词频统计到JSON（便于查看）- 这部分可以保留
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            bm25_folder = os.path.join(project_root, "DB", "BM25")
-            os.makedirs(bm25_folder, exist_ok=True)
+            from global_module import DATABASE_PATH
+            
+            db_parent = Path(DATABASE_PATH).parent
+            bm25_folder = db_parent / "BM25"
+            bm25_folder.mkdir(parents=True, exist_ok=True)
 
-            term_freq_path = os.path.join(bm25_folder, "term_freq.json")
+            term_freq_path = str(bm25_folder / "term_freq.json")
 
             # 加载现有词频统计
             if os.path.exists(term_freq_path):
@@ -406,8 +458,9 @@ class PDFRagWorker:
                 "曾经",
             }
         else:
-            # 英文停用词表（包含连词、代词、介词、be动词等）
+            # 英文停用词表（扩展版：适用于学术论文检索）
             stop_words = {
+                # ========== 基础停用词 ==========
                 # 冠词
                 "a",
                 "an",
@@ -549,6 +602,239 @@ class PDFRagWorker:
                 "there",
                 "how",
                 "why",
+                # ========== 学术论文专用停用词 ==========
+                # 论文结构相关
+                "paper",
+                "article",
+                "work",
+                "study",
+                "research",
+                "section",
+                "chapter",
+                "abstract",
+                "introduction",
+                "conclusion",
+                "discussion",
+                "background",
+                "related",
+                "literature",
+                "review",
+                "summary",
+                "overview",
+                "appendix",
+                "reference",
+                "references",
+                "bibliography",
+                "acknowledgment",
+                "acknowledgments",
+                # 描述性动词（通用）
+                "show",
+                "shows",
+                "showed",
+                "shown",
+                "present",
+                "presents",
+                "presented",
+                "propose",
+                "proposes",
+                "proposed",
+                "describe",
+                "describes",
+                "described",
+                "discuss",
+                "discusses",
+                "discussed",
+                "demonstrate",
+                "demonstrates",
+                "demonstrated",
+                "illustrate",
+                "illustrates",
+                "illustrated",
+                "introduce",
+                "introduces",
+                "introduced",
+                "examine",
+                "examines",
+                "examined",
+                "investigate",
+                "investigates",
+                "investigated",
+                "explore",
+                "explores",
+                "explored",
+                "analyze",
+                "analyzes",
+                "analyzed",
+                "evaluate",
+                "evaluates",
+                "evaluated",
+                "consider",
+                "considers",
+                "considered",
+                "provide",
+                "provides",
+                "provided",
+                "use",
+                "uses",
+                "used",
+                "using",
+                "apply",
+                "applies",
+                "applied",
+                "develop",
+                "develops",
+                "developed",
+                "focus",
+                "focuses",
+                "focused",
+                # 指示性词汇
+                "main",
+                "major",
+                "key",
+                "important",
+                "significant",
+                "primary",
+                "secondary",
+                "first",
+                "second",
+                "third",
+                "next",
+                "previous",
+                "following",
+                "last",
+                "final",
+                "initial",
+                "above",
+                "below",
+                "see",
+                "figure",
+                "fig",
+                "table",
+                "equation",
+                "eq",
+                # 通用学术词汇
+                "method",
+                "methods",
+                "approach",
+                "approaches",
+                "technique",
+                "techniques",
+                "model",
+                "models",
+                "result",
+                "results",
+                "finding",
+                "findings",
+                "outcome",
+                "outcomes",
+                "data",
+                "dataset",
+                "datasets",
+                "experiment",
+                "experiments",
+                "experimental",
+                "analysis",
+                "evaluation",
+                "performance",
+                "comparison",
+                "framework",
+                "system",
+                "systems",
+                "problem",
+                "problems",
+                "issue",
+                "issues",
+                "challenge",
+                "challenges",
+                "solution",
+                "solutions",
+                "contribution",
+                "contributions",
+                # 比较和关系词
+                "based",
+                "different",
+                "similar",
+                "various",
+                "several",
+                "many",
+                "multiple",
+                "number",
+                "one",
+                "two",
+                "three",
+                "etc",
+                "including",
+                "also",
+                "well",
+                "however",
+                "therefore",
+                "thus",
+                "hence",
+                "moreover",
+                "furthermore",
+                "additionally",
+                "particularly",
+                "especially",
+                "specifically",
+                "generally",
+                "typically",
+                "usually",
+                "often",
+                "sometimes",
+                "always",
+                "never",
+                # 程度和频率词
+                "high",
+                "low",
+                "large",
+                "small",
+                "new",
+                "old",
+                "good",
+                "better",
+                "best",
+                "bad",
+                "worse",
+                "worst",
+                "much",
+                "less",
+                "least",
+                "way",
+                "ways",
+                "make",
+                "makes",
+                "made",
+                "get",
+                "gets",
+                "got",
+                "become",
+                "becomes",
+                "became",
+                # 常见连接词
+                "within",
+                "without",
+                "throughout",
+                "across",
+                "among",
+                "amongst",
+                "via",
+                "per",
+                "upon",
+                "onto",
+                "regarding",
+                "concerning",
+                "according",
+                "due",
+                "despite",
+                "whereas",
+                "whether",
+                "either",
+                "neither",
+                "rather",
+                "instead",
+                "besides",
+                "unlike",
+                "like",
             }
 
         return stop_words
