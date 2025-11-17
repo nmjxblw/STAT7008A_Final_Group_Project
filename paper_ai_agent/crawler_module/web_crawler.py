@@ -2,6 +2,7 @@
 
 import enum
 import random
+import sys
 import threading
 from typing import Any, Callable, Sequence
 from requests import Response
@@ -427,6 +428,7 @@ class WebCrawler(metaclass=SingletonMeta):
     def start_crawling_task(self) -> bool:
         """启动爬虫任务（多线程版本）"""
         try:
+            logger.debug(f"{sys._getframe().f_code.co_name}开始执行爬虫任务...")
             # 创建保存目录和日志目录
             self.resource_path.mkdir(parents=True, exist_ok=True)
 

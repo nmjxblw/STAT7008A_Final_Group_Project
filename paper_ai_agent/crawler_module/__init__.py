@@ -3,9 +3,7 @@
 from __future__ import annotations  # 兼容未来版本的类型注解
 
 # 延迟导入可选模块,避免缺少依赖时导入失败
-__all__ = [
-    "crawler",
-]
+__all__ = ["crawler", "State"]
 
 # 导出核心类
 from .web_crawler import *
