@@ -111,15 +111,40 @@ def query_files_by_attributes(attributes: dict[str, Any]) -> list[dict[str, Any]
 
 def get_retrieval_content(query: str, k_segments: int = 20, k_articles: int = 5):
     """
-    获取检索内容（FAISS向量相似度检索 + BM25文档检索）
+    RAG综合检索接口（FAISS向量相似度检索 + BM25关键词检索）
+    
+    这是供其他模块（如answer_generator）调用的主要检索接口。
+    结合了两种检索方式，提供更全面的检索结果。
     
     Args:
         query: 查询字符串
-        k_segments: FAISS检索返回的段落数量
-        k_articles: BM25检索返回的文章数量
+        k_segments: FAISS检索返回的段落数量（默认20）
+        k_articles: BM25检索返回的文章数量（默认5）
         
     Returns:
-        dict: 包含最相似段落和最相似论文的字典
+        dict: 包含两种检索结果的字典
+            {
+                'most_similar_paragrapghs': [  # FAISS检索结果
+                    (Document, score),  # score越小越相似，推荐阈值 < 1.5
+                    ...
+                ],
+                'most_similar_paper': [  # BM25检索结果
+                    {
+                        'document': {...},
+                        'score': float,  # score越大越相关，推荐阈值 > 1.0
+                        'rank': int,
+                        'file_id': str,
+                        'file_name': str,
+                        'matched_terms': [str, ...]
+                    },
+                    ...
+                ]
+            }
+            
+    注意：
+        - FAISS分数：越小越相似（距离度量）
+        - BM25分数：越大越相关（相关度评分）
+        - 两种分数评判标准完全不同，不可直接比较
     """
     from .pdf_split_and_embed import PDFRagWorker
     
