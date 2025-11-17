@@ -76,13 +76,13 @@ def start_file_classify_task(
         # 保存到数据库
         if save_to_database(save_dict):
             logger.info(
-                f"✔ 文件分类任务：文件 {pdf_info_dict['file_name']} 已成功保存到数据库"
+                f"文件分类任务：文件 {pdf_info_dict['file_name']} 已成功保存到数据库"
             )
             # 移动已处理的文件到已分类目录
             move_files(unclassified_path, classified_path, [name])
         else:
             logger.error(
-                f"✖ 文件分类任务：文件 {pdf_info_dict['file_name']} 保存到数据库失败"
+                f"文件分类任务：文件 {pdf_info_dict['file_name']} 保存到数据库失败"
             )
 
 

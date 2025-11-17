@@ -41,7 +41,7 @@ def move_files(source, target, success_filename_list):
         return True
 
     except Exception as e:
-        logger.debug(f"✖ 文件移动操作失败: {e}")
+        logger.debug(f"文件移动操作失败: {e}")
         return False
 
 
@@ -73,11 +73,11 @@ def delete_files(source, success_filename_list):
             else:
                 logger.debug(f"Not found: {filename}")
 
-        logger.info(f"✔ 已删除 {deleted_count} 个已处理的文件")
+        logger.info(f"已删除 {deleted_count} 个已处理的文件")
         return True
 
     except Exception as e:
-        logger.error(f"✖ 文件删除操作失败: {e}")
+        logger.error(f"文件删除操作失败: {e}")
         return False
 
 

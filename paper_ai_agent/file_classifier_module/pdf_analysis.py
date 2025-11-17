@@ -59,7 +59,7 @@ class PDFContentAnalyzer:
     def __call_ai_model(self, text):
         # 从global_module获取API key
         if not API_KEY:
-            logger.debug("️✖ DeepSeek API Key未配置，跳过AI分析")
+            logger.debug("DeepSeek API Key未配置，跳过AI分析")
             return {"title": "", "summary": "", "keywords": []}
 
         try:
@@ -122,7 +122,7 @@ class PDFContentAnalyzer:
             return result
 
         except Exception as e:
-            logger.debug(f"✖ 调用AI API时出错: {e}")
+            logger.debug(f"调用AI API时出错: {e}")
             return {"title": "", "summary": "", "keywords": []}
 
     def __extract_key_sections(self, text, max_chars=10000):

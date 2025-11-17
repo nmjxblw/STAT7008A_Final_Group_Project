@@ -80,7 +80,7 @@ class PDFTransformer:
 
             for page_num in range(total_pages):
                 if pages_ocred >= max_pages:
-                    logger.debug(f"️  已达OCR页数上限（{max_pages}页），停止")
+                    logger.debug(f"已达OCR页数上限（{max_pages}页），停止")
                     break
 
                 page: Page = doc[page_num]

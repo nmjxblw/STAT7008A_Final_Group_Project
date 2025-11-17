@@ -39,13 +39,13 @@ class CorpusSingleton(metaclass=SingletonMeta):
                 with open(self.corpus_path, "rb") as f:
                     self._corpus = pickle.load(f)
                 logger.debug(
-                    f"✔ 已从 {self.corpus_path} 加载BM25语料库，包含 {len(self._corpus)} 个文档"
+                    f"已从 {self.corpus_path} 加载BM25语料库，包含 {len(self._corpus)} 个文档"
                 )
             else:
                 self._corpus = []
                 logger.debug("未找到现有BM25语料库文件，已初始化一个空语料库")
         except Exception as e:
-            logger.error(f"✖ 加载BM25语料库时出错: {e}，将初始化一个空语料库")
+            logger.error(f"加载BM25语料库时出错: {e}，将初始化一个空语料库")
             self._corpus = []
 
     def add_document(self, document_data):
@@ -67,11 +67,11 @@ class CorpusSingleton(metaclass=SingletonMeta):
         if existing_index is not None:
             # 更新已存在的文档
             self._corpus[existing_index] = document_data
-            logger.debug(f"✔ BM25语料库：更新了文档 {document_data.get('file_name', 'Unknown')}")
+            logger.debug(f"BM25语料库：更新了文档 {document_data.get('file_name', 'Unknown')}")
         else:
             # 添加新文档
             self._corpus.append(document_data)
-            logger.debug(f"✔ BM25语料库：添加了新文档 {document_data.get('file_name', 'Unknown')}")
+            logger.debug(f"BM25语料库：添加了新文档 {document_data.get('file_name', 'Unknown')}")
 
         # 添加或更新后，自动保存
         self.save_corpus()
@@ -90,9 +90,9 @@ class CorpusSingleton(metaclass=SingletonMeta):
         try:
             with open(self.corpus_path, "wb") as f:
                 pickle.dump(self._corpus, f)
-            logger.debug(f"✔ BM25语料库已保存至 {self.corpus_path}")
+            logger.debug(f"BM25语料库已保存至 {self.corpus_path}")
         except Exception as e:
-            logger.error(f"✖ 保存BM25语料库时出错: {e}")
+            logger.error(f"保存BM25语料库时出错: {e}")
 
     def get_document_by_id(self, file_id: str) -> dict | None:
         """
