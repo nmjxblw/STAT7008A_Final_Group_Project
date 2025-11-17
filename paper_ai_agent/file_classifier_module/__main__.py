@@ -42,6 +42,9 @@ def start_file_classify_task(
 
     if file_name is None:
         for file_in_dir in os.listdir(unclassified_path):  # 仅当前目录
+            # 过滤系统文件和隐藏文件
+            if file_in_dir.startswith('.') or file_in_dir == 'DS_Store':
+                continue
             if file_in_dir.endswith(file_type):
                 file_name_list.append(file_in_dir)
     else:
