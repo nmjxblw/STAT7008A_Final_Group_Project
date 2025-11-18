@@ -5,73 +5,26 @@
     "model": "deepseek-chat",
     "temperature": 0.2
   },
-  "blueprints": [
-    {
-      "function_name": "start_crawling_task",
-      "method": "POST",
-      "url": "crawler/start_crawling_task"
-    },
-    {
-      "function_name": "stop_crawling_task",
-      "method": "POST",
-      "url": "crawler/stop_crawling_task"
-    },
-    {
-      "function_name": "current_crawling_web",
-      "method": "GET",
-      "url": "crawler/current_crawling_web"
-    },
-    {
-      "function_name": "current_crawling_progress",
-      "method": "GET",
-      "url": "crawler/current_crawling_progress"
-    },
-    {
-      "function_name": "start_classify_task",
-      "method": "POST",
-      "url": "classifier/start_classify_task"
-    },
-    {
-      "function_name": "stop_classify_task",
-      "method": "POST",
-      "url": "classifier/stop_classify_task"
-    },
-    {
-      "function_name": "get_classify_progress",
-      "method": "GET",
-      "url": "classifier/get_classify_progress"
-    },
-    {
-      "function_name": "export_analysis_to_excel",
-      "method": "POST",
-      "url": "classifier/export_analysis_to_excel"
-    },
-    {
-      "function_name": "set_demand",
-      "method": "POST",
-      "url": "generator/set_demand"
-    },
-    {
-      "function_name": "get_query_files",
-      "method": "GET",
-      "url": "generator/get_query_files"
-    },
-    {
-      "function_name": "get_qualified_files_info",
-      "method": "GET",
-      "url": "generator/get_qualified_files_info/<int:top_n>"
-    },
-    {
-      "function_name": "get_query_task_result",
-      "method": "GET",
-      "url": "generator/get_query_task_result"
-    },
-    {
-      "function_name": "get_LLM_reply",
-      "method": "POST",
-      "url": "generator/get_LLM_reply"
+  "blueprints": {
+    "crawler_bp": {
+      "module_path": "launcher_module.core.flask_blueprints.crawler_blueprint",
+      "url_prefix": "/crawler",
+      "urls": [
+        {
+          "function_name": "crawling_task",
+          "method": ["POST"],
+          "request_message": ["start", "stop", "pause", "resume"],
+          "url": "crawling_task"
+        },
+        {
+          "function_name": "current_crawling_web",
+          "method": ["GET", "POST"],
+          "request_message": [],
+          "url": "current_crawling_web"
+        }
+      ]
     }
-  ],
+  },
   "crawler_config": {
     "blocked_sites": ["None"],
     "crawling_keywords": [],
