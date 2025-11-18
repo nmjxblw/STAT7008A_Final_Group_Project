@@ -4,7 +4,6 @@ import threading
 from typing import Any, Dict, Optional, Union
 from utility_module import SingletonMeta
 from pathlib import Path
-import pathlib
 
 
 class GlobalDynamicObject(metaclass=SingletonMeta):
@@ -167,6 +166,17 @@ class GlobalDynamicObject(metaclass=SingletonMeta):
                     raise TypeError("此节点不是列表，无法转换为列表")
                 return [self._unwrap(v) for v in self._items]
 
+        def __repr__(self) -> str:
+            """节点的字符串表示"""
+            with self._lock:
+                if self._items is not None:
+                    return str(self._items)
+                return str(self._data)
+
+        def __str__(self) -> str:
+            """节点的字符串表示"""
+            return self.__repr__()
+
     # ============= 顶层单例对象 =============
     def __init__(self, data: Any = None):
         # 顶层可重入锁，供全树共享
@@ -290,6 +300,15 @@ class GlobalDynamicObject(metaclass=SingletonMeta):
         with self._lock:
             return json.dumps(self._root.to_dict(), ensure_ascii=False, indent=indent)
 
+    def __repr__(self) -> str:
+        """全局动态对象的字符串表示"""
+        with self._lock:
+            return repr(self._root)
+
+    def __str__(self) -> str:
+        """全局动态对象的字符串表示"""
+        return self.__repr__()
+
 
 globals: GlobalDynamicObject = GlobalDynamicObject()
 """全局变量实例（单例）"""
@@ -326,3 +345,7 @@ file_classifier_config: GlobalDynamicObject._Node = _load_config_or_raise_error(
     "file_classifier_config", "文件分类器配置未找到或未正确加载。"
 )
 """全局文件分类器配置对象"""
+blueprints: GlobalDynamicObject._Node = _load_config_or_raise_error(
+    "blueprints", "Flask 蓝图配置未找到或未正确加载。"
+)
+"""全局 Flask 蓝图配置对象"""

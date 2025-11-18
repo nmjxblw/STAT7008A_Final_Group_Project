@@ -8,13 +8,17 @@
     - get_local_embedding_model: 获取本地embedding模型
 """
 
-from .__main__ import start_file_classify_task, run, test_retrieval
-from .utils import get_retrieval_content, get_local_embedding_model
+from .__main__ import *
+
+from .utils import *
 
 __all__ = [
     "start_file_classify_task",
+    "stop_file_classify_task",
+    "pause_file_classify_task",
+    "resume_file_classify_task",
     "run",
     "test_retrieval",
     "get_retrieval_content",
-    "get_local_embedding_model"
+    "get_local_embedding_model",
 ]

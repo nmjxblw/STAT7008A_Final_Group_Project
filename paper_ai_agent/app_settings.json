@@ -6,23 +6,59 @@
     "temperature": 0.2
   },
   "blueprints": {
-    "crawler_bp": {
-      "module_path": "launcher_module.core.flask_blueprints.crawler_blueprint",
-      "url_prefix": "/crawler",
+    "classifier_bp": {
+      "module_path": "launcher_module.core.flask_blueprints.classifier_blueprint",
+      "url_prefix": "/classifier",
       "urls": [
         {
-          "function_name": "crawling_task",
+          "function_name": "classify_file",
           "method": ["POST"],
-          "request_message": ["start", "stop", "pause", "resume"],
-          "url": "crawling_task"
-        },
-        {
-          "function_name": "current_crawling_web",
-          "method": ["GET", "POST"],
-          "request_message": [],
-          "url": "current_crawling_web"
+          "request_message": ["file_path"],
+          "url": "/file_classify_task"
         }
       ]
+    },
+    "crawler_bp": {
+      "crawler_bp_crawling_task": {
+        "method": ["POST"],
+        "request_message": ["start", "stop", "pause", "resume"],
+        "url": "/crawling_task"
+      },
+      "crawler_bp_get_current_crawling_web": {
+        "method": ["GET", "POST"],
+        "request_message": [],
+        "url": "/get_current_crawling_web"
+      },
+      "crawler_bp_setup_crawler_config": {
+        "method": ["POST"],
+        "request_message": [
+          "blocked_sites",
+          "crawling_keywords",
+          "crawling_source_list",
+          "file_type",
+          "save_directory",
+          "timeliness",
+          "trigger_time"
+        ],
+        "url": "/setup_crawler_config"
+      },
+      "module_path": "launcher_module.core.flask_blueprints.crawler_blueprint",
+      "url_prefix": "/crawler"
+    },
+    "example_bp": {
+      "module_path": "launcher_module.core.flask_blueprints.example_blueprint",
+      "url_prefix": "/example",
+      "urls": []
+    },
+    "generator_bp": {
+      "module_path": "launcher_module.core.flask_blueprints.generator_blueprint",
+      "url_prefix": "/generator",
+      "urls": []
+    },
+    "main_bp": {
+      "module_path": "launcher_module.core.flask_blueprints.main_blueprint",
+      "url_prefix": "/",
+      "urls": []
     }
   },
   "crawler_config": {
@@ -47,7 +83,6 @@
       "Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Ubuntu/11.04 Chromium/16.0.912.77 Chrome/16.0.912.77 Safari/535.7",
       "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:10.0) Gecko/20100101 Firefox/10.0 "
     ],
-    "max_workers": 5,
     "public_proxies": [
       "103.152.112.162:80",
       "103.155.54.185:83",
@@ -57,7 +92,6 @@
     ],
     "request_timeout": 30,
     "retry_attempts": 3,
-    "save_directory": "Resource/Unclassified",
     "timeliness": 365,
     "trigger_time": "8:00AM,UTC+08:00"
   },
