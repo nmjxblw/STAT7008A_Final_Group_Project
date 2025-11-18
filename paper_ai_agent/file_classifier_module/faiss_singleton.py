@@ -27,9 +27,9 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
             # 注册退出处理函数，确保只注册一次
             try:
                 atexit.register(self._auto_save_on_exit)
-                logger.debug("✔ FAISS向量数据库自动保存方法注册成功。")
+                logger.debug("FAISS向量数据库自动保存方法注册成功。")
             except Exception as e:
-                logger.error(f"✘ FAISS向量数据库自动保存方法注册失败：{e}")
+                logger.error(f"FAISS向量数据库自动保存方法注册失败：{e}")
 
     def _lazy_initialize(self, docs: list[Document] | None = None):
         """
@@ -47,7 +47,7 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
                 self._embeddings_model,
                 allow_dangerous_deserialization=True,
             )
-            logger.debug("✔ 检测到现有索引文件，已加载。")
+            logger.debug("检测到现有索引文件，已加载。")
             record_count = self._vector_db.index.ntotal
             logger.debug(f"当前索引数量：{record_count}")
         else:
@@ -57,7 +57,7 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
                     "索引文件不存在，必须先使用add_documents提供文档(docs)以创建新索引。"
                 )
             self._vector_db = FAISS.from_documents(docs, self._embeddings_model)
-            logger.debug("✔ 未找到现有索引，已从文档创建新索引。")
+            logger.debug("未找到现有索引，已从文档创建新索引。")
             record_count = self._vector_db.index.ntotal
             logger.debug(f"当前索引数量：{record_count}")
         # 标记初始化完成
@@ -71,7 +71,7 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         else:
             self._vector_db.add_documents(docs)
         # 注意：添加文档后不立即保存，由退出时统一保存以提高性能
-        logger.debug(f"✔ 已添加 {len(docs)} 个文档到索引（更改暂存于内存）。")
+        logger.debug(f"已添加 {len(docs)} 个文档到索引（更改暂存于内存）。")
         record_count = self._vector_db.index.ntotal
         logger.debug(f"当前索引数量：{record_count}")
     def similarity_search_with_score(self, query, k=4):
@@ -94,14 +94,14 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
             record_count = self._vector_db.index.ntotal
 
             self._vector_db.save_local(self._save_path)
-            logger.debug(f"✔ 程序退出，向量索引已自动保存至 {self._save_path}。当前有{record_count}个索引。")
+            logger.debug(f"程序退出，向量索引已自动保存至 {self._save_path}。当前有{record_count}个索引。")
         else:
-            logger.debug("✔ 程序退出，无需保存（向量数据库未初始化或为空）。")
+            logger.debug("程序退出，无需保存（向量数据库未初始化或为空）。")
 
     def manual_save(self):
         """也提供一个手动保存的接口，以备不时之需。"""
         if self._vector_db is not None and self._initialized:
             self._vector_db.save_local(self._save_path)
-            logger.debug(f"✔ 向量索引已手动保存至 {self._save_path}。")
+            logger.debug(f"向量索引已手动保存至 {self._save_path}。")
         else:
-            logger.debug("✔ 无需手动保存（向量数据库未初始化或为空）。")
+            logger.debug("无需手动保存（向量数据库未初始化或为空）。")

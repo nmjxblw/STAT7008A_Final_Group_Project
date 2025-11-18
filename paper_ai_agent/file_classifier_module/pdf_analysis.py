@@ -2,7 +2,7 @@ import json
 
 from langchain_openai import OpenAI
 from log_module import logger
-import os
+from global_module import API_KEY
 
 
 class PDFContentAnalyzer:
@@ -57,18 +57,16 @@ class PDFContentAnalyzer:
         return file_data_dict
 
     def __call_ai_model(self, text):
-        api_key = os.getenv("API_KEY")
-
-        # 如果没有API key，返回默认值
-        if not api_key:
-            logger.debug("️✖ DeepSeek API Key未配置，跳过AI分析")
+        # 从global_module获取API key
+        if not API_KEY:
+            logger.debug("DeepSeek API Key未配置，跳过AI分析")
             return {"title": "", "summary": "", "keywords": []}
 
         try:
             # 初始化OpenAI客户端
             from openai import OpenAI as OpenAIClient
 
-            client = OpenAIClient(api_key=api_key, base_url="https://api.deepseek.com")
+            client = OpenAIClient(api_key=API_KEY, base_url="https://api.deepseek.com")
 
             """调用大模型API生成摘要和关键词"""
             # 智能提取关键章节（优先Abstract, Introduction, Method, Conclusion）
@@ -124,7 +122,7 @@ class PDFContentAnalyzer:
             return result
 
         except Exception as e:
-            logger.debug(f"✖ 调用AI API时出错: {e}")
+            logger.debug(f"调用AI API时出错: {e}")
             return {"title": "", "summary": "", "keywords": []}
 
     def __extract_key_sections(self, text, max_chars=10000):
