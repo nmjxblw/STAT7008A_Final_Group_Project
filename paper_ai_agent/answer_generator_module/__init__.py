@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = [
     "generator",
 ]
-from .semantic_service import Generator
+from .answer_generator import Generator
 
 generator = Generator()
 """ 回答生成器实例 """
