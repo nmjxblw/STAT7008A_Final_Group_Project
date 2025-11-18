@@ -1,21 +1,32 @@
 import os
 from pathlib import Path
+from typing import Optional
+from global_module import RESOURCE_DIR
 from log_module import logger
+import threading
+
+_pause_event = threading.Event()
+"""暂停事件，用于控制文件分类任务的暂停和恢复"""
+_stop_event = threading.Event()
+"""停止事件，用于控制文件分类任务的终止"""
 
 
 def start_file_classify_task(
-    unclassified_path, classified_path, file_type, file_name=None
-) -> None:
+    unclassified_path: Path = RESOURCE_DIR / "Unclassified",
+    classified_path: Path = RESOURCE_DIR / "Classified",
+    file_type: str = "pdf",
+    file_name: Optional[str] = None,
+) -> bool:
     """
     文件分类任务主函数
-    
+
     处理流程：
         1. PDF转换提取文本
         2. AI分析生成标题、摘要、关键词
         3. RAG处理（embedding + BM25索引）
         4. 保存到数据库
         5. 移动文件到已分类目录
-        
+
     数据格式：
         "file_id": 文件MD5哈希ID
         "title": 文件标题
@@ -26,6 +37,12 @@ def start_file_classify_task(
         "text_length": 文本长度
         "file_name": 文件名
     """
+    if not _stop_event.is_set():
+        logger.debug("文件分类任务已在执行中...")
+        return False
+    _stop_event.clear()  # 重置停止事件
+    _pause_event.set()  # 确保任务开始时为非暂停状态
+
     from .pdf_analysis import PDFContentAnalyzer
     from .pdf_split_and_embed import PDFRagWorker
     from .pdf_transform import PDFTransformer
@@ -34,7 +51,10 @@ def start_file_classify_task(
     # 这里先以单文件为例顺序执行,后续可以实现根据流式处理的多线程调度
 
     # pdf转换,目前实现转文字,且未筛选有效信息
-    # TODO:优化文理,优化正则匹配效果,剔除无用信息; OCR
+    # 优化文理,优化正则匹配效果,剔除无用信息; OCR
+
+    unclassified_path.mkdir(parents=True, exist_ok=True)
+    classified_path.mkdir(parents=True, exist_ok=True)
 
     if file_type != "pdf":
         raise RuntimeError("当前只能处理pdf")
@@ -43,7 +63,7 @@ def start_file_classify_task(
     if file_name is None:
         for file_in_dir in os.listdir(unclassified_path):  # 仅当前目录
             # 过滤系统文件和隐藏文件
-            if file_in_dir.startswith('.') or file_in_dir == 'DS_Store':
+            if file_in_dir.startswith(".") or file_in_dir == "DS_Store":
                 continue
             if file_in_dir.endswith(file_type):
                 file_name_list.append(file_in_dir)
@@ -53,6 +73,10 @@ def start_file_classify_task(
     embedding_model = get_local_embedding_model()
 
     for name in file_name_list:
+        if _stop_event.is_set():
+            logger.debug("文件分类任务已停止...")
+            break
+        _pause_event.wait()  # 如果_pause_event.is_set() = False，线程将在此阻塞，直到_pause_event.set()被调用
         transformer = PDFTransformer()
         pdf_info_dict = transformer.transform(unclassified_path, name)
 
@@ -70,7 +94,9 @@ def start_file_classify_task(
             "title": pdf_info_dict.get("file_title", ""),
             "summary": pdf_info_dict.get("file_summary", ""),
             "content": pdf_info_dict["file_text"],
-            "keywords": pdf_info_dict.get("file_keywords", []),  # 传递列表，让database_module处理
+            "keywords": pdf_info_dict.get(
+                "file_keywords", []
+            ),  # 传递列表，让database_module处理
             "author": "",
             "text_length": len(pdf_info_dict["file_text"]),
             "file_name": pdf_info_dict["file_name"],
@@ -88,21 +114,37 @@ def start_file_classify_task(
                 f"文件分类任务：文件 {pdf_info_dict['file_name']} 保存到数据库失败"
             )
 
+    _stop_event.set()  # 任务完成后设置停止事件
+    _pause_event.set()  # 确保线程不会因为暂停而阻塞
+    return True
+
+
+def pause():
+    """暂停文件分类任务"""
+    logger.debug("文件分类任务已暂停...")
+    _pause_event.clear()
+
+
+def resume():
+    """恢复文件分类任务"""
+    logger.debug("文件分类任务已恢复...")
+    _pause_event.set()
+
+
+def stop():
+    """停止文件分类任务"""
+    logger.debug("文件分类任务已停止...")
+    _stop_event.set()
+    _pause_event.set()  # 确保线程不会因为暂停而阻塞
+
+
+stop()  # 初始化时设置为未停止状态
+
 
 def run():
     """运行文件分类任务（使用默认路径）"""
-    # 使用Path进行跨平台路径处理
-    current_dir = Path(__file__).parent
-    parent_dir = current_dir.parent
-    resource_dir = parent_dir / "Resource"
-    unclassified_dir = resource_dir / "Unclassified"  # 直接在Unclassified下
-    classified_dir = resource_dir / "Classified"
-    
-    # 确保目录存在
-    unclassified_dir.mkdir(parents=True, exist_ok=True)
-    classified_dir.mkdir(parents=True, exist_ok=True)
-    
-    start_file_classify_task(str(unclassified_dir), str(classified_dir), "pdf")
+
+    start_file_classify_task()
 
 
 def test_retrieval():
