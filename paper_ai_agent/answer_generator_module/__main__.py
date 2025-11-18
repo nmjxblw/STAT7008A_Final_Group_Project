@@ -1,7 +1,7 @@
 query = 'what is mamba in ai?'
 #query = 'find the paper about mamba.'
 
-from .semantic_service import Generator
+from .answer_generator import Generator
 A = Generator()
 query_type, reference = A.set_demand(query)
 ref_id = [ref[0] for ref in reference]
