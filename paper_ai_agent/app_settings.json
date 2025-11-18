@@ -1,7 +1,7 @@
 {
   "answer_generator_config": {
     "base_url": "https://api.deepseek.com",
-    "max_tokens": 512,
+    "max_tokens": 2048,
     "model": "deepseek-chat",
     "temperature": 0.2
   },
