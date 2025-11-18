@@ -3,7 +3,6 @@
 import pystray
 from pystray._base import Icon, MenuItem
 from PIL import Image
-from cv2 import log
 from global_module import PROJECT_NAME, ICON_NAME
 from pathlib import Path
 
