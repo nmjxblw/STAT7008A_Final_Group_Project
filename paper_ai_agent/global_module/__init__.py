@@ -43,4 +43,6 @@ AUTO_CRAWL: bool = os.getenv("AUTO_CRAWL", "").lower() in ("1", "true", "yes")
 """是否自动爬取"""
 ICON_NAME: str = os.getenv("ICON_NAME", "app.ico")
 """图标文件名"""
+RESOURCE_DIR: Path = Path.joinpath(Path.cwd(), os.getenv("RESOURCE_DIR", "Resource"))
+"""PDF存放资源目录"""
 # endregion

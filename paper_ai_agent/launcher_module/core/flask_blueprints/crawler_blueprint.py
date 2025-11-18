@@ -16,38 +16,60 @@ crawler_bp = Blueprint(
 )
 """爬虫蓝图模块"""
 
-thread_event = threading.Event()
-""" 线程事件，用于控制爬虫任务线程的启动和停止 """
-
 
 @crawler_bp.route("/setup_crawler_config", methods=["POST"])
 def crawler_bp_setup_crawler_config():
     """设置爬虫配置"""
     logger.debug(f"{sys._getframe().f_code.co_name}收到设置爬虫配置请求")
     try:
-        config_data: dict[str, Any] = request.get_json()
+        request_dict = request.get_json()
+        if request_dict is None:
+            abort(400, description="✖ 请求数据无效")
+        elif isinstance(request_dict, dict):
+            config_data = request_dict.get("message")
+        else:
+            abort(400, description="✖ 请求数据格式错误")
+        if not isinstance(config_data, dict):
+            abort(400, description="✖ 请求数据格式错误")
         logger.debug(f"爬虫配置请求数据: {config_data}")
-        crawler.update_crawler_config(**config_data)
-        response_data = {"status": "success", "message": "爬虫配置已更新"}
-        logger.debug("✔ 爬虫配置更新成功")
+        _flag = crawler.update_crawler_config(**config_data)
+        response_data = {"status": "success", "message": f"爬虫配置更新结果: {_flag}"}
+        logger.debug(f"✔ 爬虫配置更新处理完成，结果: {_flag}")
         return jsonify(response_data)
     except Exception as e:
         logger.debug(f"✖ 爬虫配置更新失败: {e}")
         abort(500, description="✖ 设置爬虫配置失败")
 
 
-@crawler_bp.route("/start_crawling_task", methods=["GET", "POST"])
+@crawler_bp.route("/crawling_task", methods=["POST"])
 def crawler_bp_start_crawling_task() -> Any:
     """启动爬虫任务"""
-    logger.debug(f"{sys._getframe().f_code.co_name}收到启动爬虫任务请求")
+    logger.debug(f"{sys._getframe().f_code.co_name}收到爬虫任务请求")
     try:
-        if crawler.current_state == State.CRAWLING:
-            response_data = {"status": "success", "message": "爬虫任务已经在执行中"}
-        else:
-            response_data = {"status": "success", "message": "爬虫任务开始执行"}
-            thread_event.set()
-            thread = threading.Thread(target=crawler.start_crawling_task, daemon=True)
-            thread.start()
+        request_data: dict[str, Any] = request.get_json()
+        if request_data is None:
+            abort(400, description="✖ 请求数据无效")
+        logger.debug(f"爬虫任务请求数据: {request_data}")
+        command: str = request_data.get("message", "start")
+        command = command.lower()
+        if command == "pause":
+            crawler.pause()
+            response_data = {"status": "success", "message": "爬虫任务已暂停"}
+        elif command == "resume":
+            crawler.resume()
+            response_data = {"status": "success", "message": "爬虫任务已恢复"}
+        elif command == "stop":
+            crawler.stop()
+            response_data = {"status": "success", "message": "爬虫任务已停止"}
+        else:  # 默认启动爬虫任务
+            if crawler.current_state == State.CRAWLING:
+                response_data = {"status": "success", "message": "爬虫任务已经在执行中"}
+            else:
+                response_data = {"status": "success", "message": "爬虫任务开始执行"}
+                _thread = threading.Thread(
+                    target=crawler.start_crawling_task, daemon=True
+                )
+                _thread.start()
 
         return jsonify(response_data)
     except Exception as e:
