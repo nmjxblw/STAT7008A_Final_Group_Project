@@ -1,0 +1,187 @@
+========================================
+文档归类模块 - 爬虫模块调用接口说明
+========================================
+
+问题背景：
+----------
+爬虫模块在内置线程中调用文档归类接口时，如果爬虫主线程被销毁，
+归类线程也会自动销毁，导致归类任务做不完。
+
+解决方案：
+----------
+使用异步消息队列机制。爬虫模块只需将任务添加到队列即可立即返回，
+文档归类模块在后台独立线程中持续处理任务。
+即使爬虫线程销毁，归类任务也会继续完成。
+
+
+========================================
+推荐接口（异步队列）
+========================================
+
+1. add_classify_task(file_path: str) -> bool
+   --------------------------------------------
+   添加文档归类任务到队列（立即返回，不阻塞）
+   
+   参数：
+     file_path: 待归类PDF文件的完整路径（str或Path对象）
+   
+   返回：
+     bool: 是否成功添加到队列
+   
+   示例：
+     from file_classifier_module import add_classify_task
+     
+     # 爬取到新文件后
+     success = add_classify_task("/path/to/unclassified/paper.pdf")
+     if success:
+         print("任务已加入队列，爬虫可以继续工作")
+
+2. get_queue_status() -> dict
+   ----------------------------
+   获取任务队列状态
+   
+   返回字典包含：
+     - is_running: 工作线程是否在运行 (bool)
+     - queue_size: 队列中待处理的任务数 (int)
+     - total_tasks: 总任务数 (int)
+     - completed_tasks: 已完成任务数 (int)
+     - failed_tasks: 失败任务数 (int)
+     - current_task: 当前正在处理的任务路径 (str|None)
+     - pending_tasks: 待处理任务数 (int)
+   
+   示例：
+     from file_classifier_module import get_queue_status
+     
+     status = get_queue_status()
+     print(f"队列中有 {status['queue_size']} 个任务等待处理")
+     print(f"已完成 {status['completed_tasks']}/{status['total_tasks']} 个任务")
+
+3. stop_queue_worker(timeout: float = 30.0)
+   ------------------------------------------
+   停止任务队列工作线程（优雅停止）
+   
+   说明：
+     - 会等待当前任务完成并处理队列中的剩余任务
+     - 通常在程序退出时调用
+     - 不需要手动调用，程序会自动处理
+   
+   参数：
+     timeout: 等待超时时间（秒），默认30秒
+   
+   示例：
+     from file_classifier_module import stop_queue_worker
+     
+     # 程序退出前
+     stop_queue_worker(timeout=60)
+
+
+========================================
+典型使用场景
+========================================
+
+场景1: 爬虫模块持续爬取
+------------------------
+from file_classifier_module import add_classify_task, get_queue_status
+
+def crawler_thread():
+    while crawling:
+        # 爬取PDF文件
+        pdf_path = download_paper(url)
+        
+        # 添加到归类队列（立即返回）
+        add_classify_task(pdf_path)
+        
+        # 继续爬取下一篇
+    
+    # 爬虫线程结束，但归类任务会继续进行
+    print("爬虫完成，归类任务将在后台继续")
+
+场景2: 批量添加任务
+-------------------
+from file_classifier_module import add_classify_task, get_queue_status
+from pathlib import Path
+
+# 批量添加
+unclassified_dir = Path("/path/to/unclassified")
+for pdf_file in unclassified_dir.glob("*.pdf"):
+    add_classify_task(str(pdf_file))
+
+# 查看状态
+status = get_queue_status()
+print(f"已添加 {status['total_tasks']} 个任务到队列")
+
+场景3: 监控处理进度
+-------------------
+from file_classifier_module import get_queue_status
+import time
+
+while True:
+    status = get_queue_status()
+    
+    if status['pending_tasks'] == 0:
+        print("所有任务已完成")
+        break
+    
+    print(f"进度: {status['completed_tasks']}/{status['total_tasks']}")
+    time.sleep(5)
+
+
+========================================
+注意事项
+========================================
+
+1. 线程安全：
+   所有接口都是线程安全的，可以在任何线程中调用
+
+2. 自动启动：
+   首次调用 add_classify_task 时会自动启动后台工作线程，
+   无需手动调用 start_queue_worker
+
+3. 文件要求：
+   - 目前只支持PDF文件
+   - 文件必须存在且可读
+   - 建议使用绝对路径
+
+4. 性能：
+   - 后台工作线程会依次处理队列中的任务
+   - 单个任务处理时间取决于PDF大小和复杂度（通常10-60秒）
+   - 可以持续添加任务，队列会自动调度
+
+5. 错误处理：
+   - 如果任务失败，不会影响后续任务
+   - 失败任务会记录在 failed_tasks 计数中
+   - 可以通过日志查看失败原因
+
+
+========================================
+旧接口（保持兼容）
+========================================
+
+以下接口仍然可用，但推荐使用上述异步接口：
+
+- start_file_classify_task(...): 同步阻塞式归类（会阻塞调用线程）
+- run(): 运行默认配置的分类任务
+- test_retrieval(): 测试检索功能
+
+
+========================================
+技术实现说明
+========================================
+
+后台工作线程：
+  - 使用独立线程（非daemon），不受调用线程生命周期影响
+  - 采用单例模式，全局只有一个工作线程
+  - 线程安全的消息队列（queue.Queue）
+
+优雅停止机制：
+  - 收到停止信号后，会先处理完当前任务
+  - 然后清空队列中的所有剩余任务
+  - 确保不会丢失任何已添加的任务
+
+
+========================================
+联系方式
+========================================
+
+如有问题，请联系 file_classifier_module 负责人。
+
