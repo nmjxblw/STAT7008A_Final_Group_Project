@@ -66,7 +66,7 @@ class Generator(metaclass=SingletonMeta):
             _id = doc.metadata.get("file_id")
             if _id is None:
                 continue
-            file_set[_id] = max(round(score, 2), file_set.get(_id, 0))
+            file_set[_id] = max(round(float(score), 2), file_set.get(_id, 0.0))
         logger.debug(f"相关文件及相似度: {file_set}")
         self._current_query_results = list(file_set.items())
         return demand, self._current_query_results
@@ -179,7 +179,7 @@ class Generator(metaclass=SingletonMeta):
         """set_demand调用_classify_demand调用"""
         """用LLM进行意图分类"""
         if not self._client:
-            logger.debug('ERROR: no client.')
+            logger.debug("ERROR: no client.")
             return None
 
         system_prompt = (
@@ -211,10 +211,12 @@ class Generator(metaclass=SingletonMeta):
             raw = raw.replace(".", "").strip().upper()
             if raw in ("FILE", "QA"):
                 return raw
-            logger.debug('ERROR: unexpected demand type.')
+            logger.debug("ERROR: unexpected demand type.")
             return None
         except Exception:
-            logger.debug(f'ERROR: client errors | api_key: {self._client.api_key} | base_url: {self._client.base_url}')
+            logger.debug(
+                f"ERROR: client errors | api_key: {self._client.api_key} | base_url: {self._client.base_url}"
+            )
             return None
 
     # ======================
