@@ -22,7 +22,6 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         if embeddings_model is not None and save_path is not None:
             self._embeddings_model = embeddings_model
             self._save_path = save_path
-            self._vector_db = None
             os.makedirs(save_path, exist_ok=True)  # 确保目录存在
             # 注册退出处理函数，确保只注册一次
             try:
@@ -74,7 +73,8 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         logger.debug(f"已添加 {len(docs)} 个文档到索引（更改暂存于内存）。")
         record_count = self._vector_db.index.ntotal
         logger.debug(f"当前索引数量：{record_count}")
-    def similarity_search_with_score(self, query, k=4):
+
+    def similarity_search_with_score(self, query, k=4) -> list[tuple[Document, float]]:
         """
         执行相似性搜索并返回文档及其分数。
         分数为L2距离，越低表示越相似
@@ -94,7 +94,9 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
             record_count = self._vector_db.index.ntotal
 
             self._vector_db.save_local(self._save_path)
-            logger.debug(f"程序退出，向量索引已自动保存至 {self._save_path}。当前有{record_count}个索引。")
+            logger.debug(
+                f"程序退出，向量索引已自动保存至 {self._save_path}。当前有{record_count}个索引。"
+            )
         else:
             logger.debug("程序退出，无需保存（向量数据库未初始化或为空）。")
 

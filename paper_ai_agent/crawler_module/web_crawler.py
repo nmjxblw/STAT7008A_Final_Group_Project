@@ -6,6 +6,7 @@ import threading
 import enum
 import random
 from typing import Any, Callable, Sequence
+from cv2 import add
 from requests import Response
 import requests
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
@@ -20,7 +21,7 @@ from pathlib import Path
 from global_module import crawler_config, USING_PROXY, CLASSIFIED_DIR, UNCLASSIFIED_DIR
 from utility_module import SingletonMeta
 from log_module import logger
-from file_classifier_module import start_file_classify_task
+from file_classifier_module import add_classify_task
 
 
 class _State(enum.Enum):
@@ -724,11 +725,7 @@ class WebCrawler(metaclass=SingletonMeta):
             # 保存文件
             with open(file_path, "wb") as f:
                 f.write(content)
-            thread = threading.Thread(
-                target=start_file_classify_task,
-                kwargs={"file_name": filename},
-            )
-            thread.start()
+            add_classify_task(file_path)
             # 线程安全地增加计数
             self._increment_download_count()
 
