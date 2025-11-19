@@ -97,11 +97,15 @@ class Generator(metaclass=SingletonMeta):
         """输入 [file_id] | 输出回答"""
 
         if not self._current_demand_raw:
-            return "no demand set"
+            logger.debug("ERROR: no demand set.")
+            return "ERROR: no demand set."
         if self._current_demand_type == DemandType.FILE_QUERY:
-            return "not in QA mode"
+            logger.debug("ERROR: not in QA mode.")
+            return "ERROR: not in QA mode."
         if not isinstance(self._client, OpenAI) or API_KEY.strip() == "":
-            return "QA without api key"
+            logger.debug("ERROR: QA without api key.")
+            return "ERROR: QA without api key."
+
         self._prompt = self._build_llm_prompt(
             query=self._current_demand_raw, files=reference, use_content=False
         )
@@ -175,6 +179,7 @@ class Generator(metaclass=SingletonMeta):
         """set_demand调用_classify_demand调用"""
         """用LLM进行意图分类"""
         if not self._client:
+            logger.debug('ERROR: no client.')
             return None
 
         system_prompt = (
@@ -204,11 +209,12 @@ class Generator(metaclass=SingletonMeta):
 
             raw = reply_text
             raw = raw.replace(".", "").strip().upper()
-            return raw if raw in ("FILE", "QA") else None
-        except Exception as e:
-            logger.debug(
-                f"{sys._getframe().f_code.co_name}: LLM classification error - {e}"
-            )
+            if raw in ("FILE", "QA"):
+                return raw
+            logger.debug('ERROR: unexpected demand type.')
+            return None
+        except Exception:
+            logger.debug(f'ERROR: client errors | api_key: {self._client.api_key} | base_url: {self._client.base_url}')
             return None
 
     # ======================
