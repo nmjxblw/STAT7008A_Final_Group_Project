@@ -45,4 +45,12 @@ ICON_NAME: str = os.getenv("ICON_NAME", "app.ico")
 """图标文件名"""
 RESOURCE_DIR: Path = Path.joinpath(Path.cwd(), os.getenv("RESOURCE_DIR", "Resource"))
 """PDF存放资源目录"""
+CLASSIFIED_DIR: Path = Path.joinpath(
+    RESOURCE_DIR, os.getenv("CLASSIFIED_DIR", "Classified")
+)
+"""已分类文件目录"""
+UNCLASSIFIED_DIR: Path = Path.joinpath(
+    RESOURCE_DIR, os.getenv("UNCLASSIFIED_DIR", "Unclassified")
+)
+"""未分类文件目录"""
 # endregion

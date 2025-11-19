@@ -1,9 +1,10 @@
 """爬虫模块 - 网页爬虫类实现"""
 
+import sys
+import os
+import threading
 import enum
 import random
-import sys
-import threading
 from typing import Any, Callable, Sequence
 from requests import Response
 import requests
@@ -13,23 +14,24 @@ from bs4 import BeautifulSoup, PageElement, NavigableString, Tag
 import urllib.robotparser
 from urllib.parse import ParseResult, ParseResultBytes, urljoin, urlparse
 import time
-import os
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from global_module import crawler_config, USING_PROXY
+from global_module import crawler_config, USING_PROXY, CLASSIFIED_DIR, UNCLASSIFIED_DIR
 from utility_module import SingletonMeta
-from log_module import logger  # 导入全局日志模块
+from log_module import logger
+from file_classifier_module import start_file_classify_task
 
 
-class State(enum.Enum):
+class _State(enum.Enum):
     """爬虫状态枚举类"""
 
     IDLE = "IDLE"
-    CRAWLING = "CRAWLING"
+    """ 空闲状态 """
+    RUNNING = "RUNNING"
+    """ 运行中状态 """
     PAUSED = "PAUSED"
-    COMPLETED = "COMPLETED"
-    ERROR = "ERROR"
+    """ 暂停状态 """
 
 
 class WebCrawler(metaclass=SingletonMeta):
@@ -61,9 +63,9 @@ class WebCrawler(metaclass=SingletonMeta):
 
         self.respect_robots_txt: bool = True
         """ 是否遵守robots.txt协议 """
-        self.current_crawling_web: str = ""
+        self.current_crawling_web: str = "Empty"
         """ 当前正在爬取的网页 """
-        self.current_crawling_article: str = ""
+        self.current_crawling_article: str = "Empty"
         """ 当前正在爬取的文章 """
         self.total_files_downloaded: int = 0
         """ 已下载的文件总数 """
@@ -74,16 +76,10 @@ class WebCrawler(metaclass=SingletonMeta):
         self._log_lock: threading.RLock = threading.RLock()
         """ 日志列表锁 """
 
-        # 设置保存路径
-        self.project_root: Path = Path.cwd()
-        """ 项目根目录 """
-        self.resource_path: Path = self.project_root / "Resource" / "Unclassified"
-        """ 资源保存路径 """
-
         # 爬虫进度标识符
         self.task_progress: float = 0.0
         """ 爬虫任务进度 """
-        self.current_state: State = State.IDLE
+        self.current_state: _State = _State.IDLE
         """ 爬虫当前状态 """
 
         # 任务时间戳
@@ -117,9 +113,10 @@ class WebCrawler(metaclass=SingletonMeta):
         """ 爬取完成回调函数列表 """
 
         self._stop_event = threading.Event()
-        """ 线程事件，用于控制爬虫任务线程的启动和停止 """
-        self._pause_event = threading.Event()
-        """ 线程事件，用于控制爬虫任务线程的暂停和恢复 """
+        """ 线程事件，用于控制爬虫任务线程的启动和停止 set()表示停止，clear()表示运行 """
+        self._resume_event = threading.Event()
+        """ 线程事件，用于控制爬虫任务线程的暂停和恢复 set()表示运行，clear()表示暂停 """
+        self.flush_runtime_cache_and_reset_state()
         logger.debug(f"✔ 网页爬虫类实例化完成")
 
     def setup_session(self):
@@ -216,8 +213,8 @@ class WebCrawler(metaclass=SingletonMeta):
 
     def flush_runtime_cache_and_reset_state(self):
         """清除运行时临时缓存数据并重置状态"""
-        self.current_crawling_web = ""
-        self.current_crawling_article = ""
+        self.current_crawling_web = "Empty"
+        self.current_crawling_article = "Empty"
 
         # 清空队列
         while not self._pending_urls.empty():
@@ -235,7 +232,7 @@ class WebCrawler(metaclass=SingletonMeta):
             self.total_files_downloaded = 0
 
         self.task_progress = 0.0
-        self.current_state = State.IDLE
+        self.current_state = _State.IDLE
 
         # 清理线程池
         if self._thread_pool:
@@ -246,7 +243,8 @@ class WebCrawler(metaclass=SingletonMeta):
         # 重置代理相关状态
         if hasattr(self, "use_proxy"):
             self.current_proxy = ""
-        self.stop()
+        self._stop_event.clear()  # 重置停止事件
+        self._resume_event.set()  # 重置暂停状态为运行
         logger.debug("✔ 爬虫运行时缓存数据已清除，状态已重置")
 
     def _add_url_to_pending(self, url: str) -> None:
@@ -389,8 +387,11 @@ class WebCrawler(metaclass=SingletonMeta):
                     del self._robots_parsers[netloc]
                 self._site_rules.pop(netloc, None)
 
-    def download_file(self, url: str, file_type: str) -> bytes | None:
+    def download_file_as_bytes(self, url: str, file_type: str) -> bytes | None:
         """下载特定类型文件"""
+        self._resume_event.wait()  # 等待恢复信号为True,否则线程阻塞在此
+        if self._stop_event.is_set():
+            return None  # 任务已停止
         if not self.check_robots_txt(url):
             logger.debug(f'✘ 尝试下载 "{url}" ，但被 robots.txt 禁止抓取')
             return None
@@ -434,17 +435,17 @@ class WebCrawler(metaclass=SingletonMeta):
     def start_crawling_task(self) -> bool:
         """启动爬虫任务（多线程版本）"""
         try:
-            if not self._pause_event.is_set():
+            if self.current_state == _State.RUNNING:
+                logger.debug("✘ 爬虫任务已在运行中，无法重复启动...")
+                return False
+            elif self.current_state == _State.PAUSED:
                 # 如果处于暂停状态则恢复
-                self.resume()
-                return False
-            if not self._stop_event.is_set():
-                logger.debug("爬虫任务已经在执行中，无法重复启动...")
-                return False
-            self._pause_event.wait()  # 如果_pause_event.is_set() = False，线程将在此阻塞，直到_pause_event.set()被调用
-            logger.debug(f"{sys._getframe().f_code.co_name}开始执行爬虫任务...")
-            # 创建保存目录和日志目录
-            self.resource_path.mkdir(parents=True, exist_ok=True)
+                self.resume_crawling_task()
+            else:
+                self.current_state = _State.RUNNING
+                self._stop_event.clear()  # 任务开始前确保停止事件未设置
+                self._resume_event.set()  # 确保恢复事件被设置
+                logger.debug(f"{sys._getframe().f_code.co_name}开始执行爬虫任务...")
 
             # 创建线程池
             self._thread_pool = ThreadPoolExecutor(
@@ -468,7 +469,7 @@ class WebCrawler(metaclass=SingletonMeta):
                 except Exception as e:
                     logger.debug(f"拉取 robots.txt 失败，继续尝试抓取 {website}: {e}")
 
-                self.current_state = State.CRAWLING
+                self.current_state = _State.RUNNING
                 self._add_url_to_pending(website)
                 self.origin_url = website
                 self.crawl_website_multithread()
@@ -482,12 +483,36 @@ class WebCrawler(metaclass=SingletonMeta):
                 self._thread_pool.shutdown(wait=True)
             self.flush_runtime_cache_and_reset_state()
 
+    def pause_crawling_task(self) -> bool:
+        """暂停爬虫任务"""
+        self._stop_event.clear()  # 清除停止标志
+        self._resume_event.clear()  # 清除标志， 方法中的 `_pause_event.wait()` 阻塞
+        self.current_state = _State.PAUSED
+        logger.debug("收到爬虫任务暂停指令...")
+        return True
+
+    def resume_crawling_task(self) -> bool:
+        """恢复爬虫任务"""
+        self._stop_event.clear()  # 清除停止标志
+        self._resume_event.set()  # 设置标志，使 `_pause_event.wait()` 立即返回
+        self.current_state = _State.RUNNING
+        logger.debug("收到爬虫任务恢复指令...")
+        return True
+
+    def stop_crawling_task(self) -> bool:
+        """终止爬虫任务"""
+        self._stop_event.set()  # 设置停止标志
+        self._resume_event.set()  # 同时恢复线程，确保它能立即退出等待状态，检查到停止信号
+        self.current_state = _State.IDLE
+        logger.debug("收到爬虫任务终止指令...")
+        return True
+
     def crawl_website_multithread(self):
         """多线程爬取指定网站"""
         processed_count = 0
 
         while not self._pending_urls.empty():
-            self._pause_event.wait()
+            self._resume_event.wait()  # 等待恢复信号为True,否则线程阻塞在此
             if self._stop_event.is_set():
                 logger.debug("爬虫任务已停止，退出爬取循环...")
                 break
@@ -533,7 +558,7 @@ class WebCrawler(metaclass=SingletonMeta):
             # 添加批处理间的延迟，避免过于频繁的请求
             time.sleep(random.uniform(0.5, 2.0))
 
-        self.current_state = State.COMPLETED
+        self.current_state = _State.IDLE
         logger.debug(f"✔ 网站爬取完成，处理了 {processed_count} 个URL")
 
         for callback in self.callbacks_on_crawl_complete:
@@ -545,6 +570,9 @@ class WebCrawler(metaclass=SingletonMeta):
     def _crawl_single_url(self, url: str) -> set[str] | None:
         """单个URL爬取工作函数（工作线程执行）"""
         try:
+            if self._stop_event.is_set():
+                return None  # 任务已停止
+            self._resume_event.wait()  # 等待恢复信号为True,否则线程阻塞在此
             if self._stop_event.is_set():
                 return None  # 任务已停止
             # 标记URL为已访问
@@ -594,6 +622,9 @@ class WebCrawler(metaclass=SingletonMeta):
         self, soup: BeautifulSoup, page_url: str
     ) -> set[str]:
         """提取潜在链接并保存文件"""
+        self._resume_event.wait()  # 等待恢复信号为True,否则线程阻塞在此
+        if self._stop_event.is_set():
+            return set()  # 任务已停止
         logger.debug(f'正在从"{page_url}"中提取链接...')
         links: set[str] = set()
         # 查找所有可能的文件链接
@@ -605,6 +636,7 @@ class WebCrawler(metaclass=SingletonMeta):
             logger.debug(f'✘ "{page_url}"中未发现任何<a>标签，跳过文件提取...')
             return links
         for anchor in anchors:
+            self._resume_event.wait()  # 等待恢复信号为True,否则线程阻塞在此
             if anchor is None:
                 continue
             if isinstance(anchor, Tag):  # 确保是Tag对象
@@ -649,8 +681,11 @@ class WebCrawler(metaclass=SingletonMeta):
 
     def download_and_save_file(self, url: str, file_type: str):
         """下载并保存文件"""
+        self._resume_event.wait()  # 等待恢复信号为True,否则线程阻塞在此
+        if self._stop_event.is_set():
+            return  # 任务已停止
         try:
-            file_content: bytes | None = self.download_file(url, file_type)
+            file_content: bytes | None = self.download_file_as_bytes(url, file_type)
             if isinstance(file_content, bytes):
                 self.save_file(file_content, url, file_type)
             else:
@@ -668,7 +703,7 @@ class WebCrawler(metaclass=SingletonMeta):
 
             # 创建按类型和时间分类的目录
             file_type_name: str = file_type.upper().replace(r"[^A-Z0-9]", "")
-            save_dir: Path = self.resource_path / file_type_name  # / timestamp
+            save_dir: Path = Path.joinpath(UNCLASSIFIED_DIR, file_type_name)
             save_dir.mkdir(parents=True, exist_ok=True)
 
             # 生成文件名（使用当前计数值避免线程竞争）
@@ -689,7 +724,11 @@ class WebCrawler(metaclass=SingletonMeta):
             # 保存文件
             with open(file_path, "wb") as f:
                 f.write(content)
-
+            thread = threading.Thread(
+                target=start_file_classify_task,
+                kwargs={"file_name": filename},
+            )
+            thread.start()
             # 线程安全地增加计数
             self._increment_download_count()
 
@@ -719,7 +758,6 @@ class WebCrawler(metaclass=SingletonMeta):
             logger.debug(f"✘ 更新爬虫配置失败: {e}")
             return False
 
-    # API接口方法
     def get_current_crawling_web(self) -> str:
         """获取当前正在爬取的网页"""
         return self.current_crawling_web
@@ -728,21 +766,11 @@ class WebCrawler(metaclass=SingletonMeta):
         """获取当前正在爬取的文章"""
         return self.current_crawling_article
 
-    def get_crawling_task_progress(self) -> float:
-        """获取爬取工作进度（线程安全）"""
-        if not crawler_config.crawling_source_list:
-            return 0.0
+    def get_visited_urls_count(self) -> int:
+        """获取爬取进度 - 已访问URL数量"""
 
         with self._visited_urls_lock:
-            visited_count = len(self.visited_urls)
-
-        # 简单的进度计算: 已访问URL数 / 预估总URL数
-        # 这是一个简化的实现
-        return min(
-            100.0,
-            (visited_count / max(1, len(crawler_config.crawling_source_list) * 10))
-            * 100,
-        )
+            return len(self.visited_urls)
 
     def get_block_list(self) -> list[str]:
         """获取当前的黑名单列表"""
@@ -750,20 +778,6 @@ class WebCrawler(metaclass=SingletonMeta):
             return crawler_config.blocked_sites.to_list()
         return []
 
-    def pause(self):
-        """暂停线程"""
-        self._pause_event.clear()  # 清除标志， 方法中的 `_pause_event.wait()` 阻塞
-        self.current_state = State.PAUSED
-        logger.debug("收到爬虫任务暂停指令...")
-
-    def resume(self):
-        """恢复线程"""
-        self._pause_event.set()  # 设置标志，使 `_pause_event.wait()` 立即返回
-        self.current_state = State.CRAWLING
-        logger.debug("收到爬虫任务恢复指令...")
-
-    def stop(self):
-        """终止线程（优雅退出）"""
-        self._stop_event.set()  # 设置停止标志
-        self._pause_event.set()  # 同时恢复线程，确保它能立即退出等待状态，检查到停止信号
-        self.current_state = State.IDLE
+    def is_crawler_running(self) -> bool:
+        """检查爬虫是否正在运行"""
+        return self.current_state == _State.RUNNING
