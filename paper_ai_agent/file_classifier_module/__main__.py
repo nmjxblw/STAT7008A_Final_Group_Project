@@ -37,7 +37,20 @@ def start_file_classify_task(
     # TODO:优化文理,优化正则匹配效果,剔除无用信息; OCR
 
     if file_type != "pdf":
-        raise RuntimeError("当前只能处理pdf")
+        error_msg = f"不支持的文件类型：{file_type}。当前只支持PDF文件（.pdf）"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg)
+    
+    if not unclassified_path or not os.path.exists(unclassified_path):
+        error_msg = f"未分类目录不存在或路径无效：{unclassified_path}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
+    if not classified_path:
+        error_msg = f"已分类目录路径无效：{classified_path}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
     file_name_list = []
 
     if file_name is None:
@@ -51,14 +64,34 @@ def start_file_classify_task(
         file_name_list.append(file_name)
 
     embedding_model = get_local_embedding_model()
+    if embedding_model is None:
+        error_msg = "无法加载embedding模型，请检查网络连接或模型安装"
+        logger.error(error_msg)
+        raise RuntimeError(error_msg)
+
+    if not file_name_list:
+        logger.warning(f"未分类目录中未找到任何PDF文件：{unclassified_path}")
+        return
 
     for name in file_name_list:
-        transformer = PDFTransformer()
-        pdf_info_dict = transformer.transform(unclassified_path, name)
+        try:
+            logger.info(f"开始处理文件：{name}")
+            transformer = PDFTransformer()
+            pdf_info_dict = transformer.transform(unclassified_path, name)
+            
+            if not pdf_info_dict or not pdf_info_dict.get("file_text"):
+                error_msg = f"文件文本提取失败：{name}。可能原因：PDF文件损坏、加密或格式不支持"
+                logger.error(error_msg)
+                continue
 
-        # pdf分析,目前使用了deepseek api
-        analyzer = PDFContentAnalyzer()
-        pdf_info_dict = analyzer.analyze(pdf_info_dict)
+            # pdf分析,目前使用了deepseek api
+            analyzer = PDFContentAnalyzer()
+            pdf_info_dict = analyzer.analyze(pdf_info_dict)
+        except Exception as e:
+            error_msg = f"处理文件时发生错误：{name} - {type(e).__name__}: {e}"
+            logger.error(error_msg)
+            logger.debug(f"错误详情：{e}", exc_info=True)
+            continue
 
         # rag前期工作,包括embedding和BM25,目前仅有基于embedding api的模型,且数据切分很粗糙,后续需要优化
         ragWorker = PDFRagWorker(embedding_model=embedding_model)  # 明确指定本地模型

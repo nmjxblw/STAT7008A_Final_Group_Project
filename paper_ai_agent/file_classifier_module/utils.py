@@ -150,19 +150,61 @@ def get_retrieval_content(
         - BM25分数：越大越相关（相关度评分）
         - 两种分数评判标准完全不同，不可直接比较
     """
-    from .pdf_split_and_embed import PDFRagWorker
-
-    embedding_model = get_local_embedding_model()
-    worker = PDFRagWorker(embedding_model)
-    faiss_retrieval: list[tuple[Document, float]] = worker.get_faiss_retrieval(
-        query, k_segments
-    )
-    bm25_retrieval: list[dict[str, Any]] = worker.get_bm25_retrieval(query, k_articles)
-    retrieval: dict[str, list[Any]] = {
-        "most_similar_paragrapghs": faiss_retrieval,
-        "most_similar_paper": bm25_retrieval,
-    }
-    return retrieval
+    if not query or not isinstance(query, str) or not query.strip():
+        error_msg = f"查询字符串无效：{query}。查询不能为空"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
+    if k_segments <= 0 or k_articles <= 0:
+        error_msg = f"检索数量参数无效：k_segments={k_segments}, k_articles={k_articles}。必须大于0"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
+    try:
+        from .pdf_split_and_embed import PDFRagWorker
+        
+        embedding_model = get_local_embedding_model()
+        if embedding_model is None:
+            error_msg = "无法加载embedding模型进行检索，请检查网络连接或模型安装"
+            logger.error(error_msg)
+            raise RuntimeError(error_msg)
+        
+        worker = PDFRagWorker(embedding_model)
+        
+        # FAISS检索
+        try:
+            faiss_retrieval: list[tuple[Document, float]] = worker.get_faiss_retrieval(query, k_segments)
+        except Exception as e:
+            error_msg = f"FAISS检索失败：{type(e).__name__}: {e}"
+            logger.error(error_msg)
+            logger.debug(f"错误详情：{e}", exc_info=True)
+            faiss_retrieval = []  # 返回空列表而不是抛出异常
+        
+        # BM25检索
+        try:
+            bm25_retrieval: list[dict[str, Any]] = worker.get_bm25_retrieval(query, k_articles)
+        except Exception as e:
+            error_msg = f"BM25检索失败：{type(e).__name__}: {e}"
+            logger.error(error_msg)
+            logger.debug(f"错误详情：{e}", exc_info=True)
+            bm25_retrieval = []  # 返回空列表而不是抛出异常
+        
+        retrieval: dict[str, list[Any]] = {
+            "most_similar_paragrapghs": faiss_retrieval,
+            "most_similar_paper": bm25_retrieval,
+        }
+        
+        if not faiss_retrieval and not bm25_retrieval:
+            logger.warning(f"检索结果为空，查询：{query}。可能原因：数据库中没有文档或查询不匹配")
+        
+        return retrieval
+    except (RuntimeError, ValueError):
+        raise
+    except Exception as e:
+        error_msg = f"RAG检索过程发生未知错误：{type(e).__name__}: {e}"
+        logger.error(error_msg)
+        logger.debug(f"错误详情：{e}", exc_info=True)
+        raise RuntimeError(error_msg) from e
 
 
 class EmbeddingModelSingleton(metaclass=SingletonMeta):
@@ -225,9 +267,11 @@ class EmbeddingModelSingleton(metaclass=SingletonMeta):
                 logger.info(f"Embedding模型加载成功: {self._model_name}")
 
             except Exception as e:
-                logger.error(f"Embedding模型加载失败: {e}")
+                error_msg = f"Embedding模型加载失败：{type(e).__name__}: {e}"
+                logger.error(error_msg)
                 logger.debug("首次使用需要下载模型，请确保网络连接")
                 logger.debug("或安装: pip install sentence-transformers")
+                logger.debug(f"错误详情：{e}", exc_info=True)
                 return None
         else:
             logger.debug("使用已缓存的Embedding模型实例")
