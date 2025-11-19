@@ -124,12 +124,11 @@ def start_file_classify_task(
 
 def run():
     """运行文件分类任务（使用默认路径）"""
-    # 使用Path进行跨平台路径处理
-    current_dir = Path(__file__).parent
-    parent_dir = current_dir.parent
-    resource_dir = parent_dir / "Resource"
-    unclassified_dir = resource_dir / "Unclassified"  # 直接在Unclassified下
-    classified_dir = resource_dir / "Classified"
+    # 从global_module读取路径配置
+    from global_module import UNCLASSIFIED_DIR, CLASSIFIED_DIR
+    
+    unclassified_dir = UNCLASSIFIED_DIR
+    classified_dir = CLASSIFIED_DIR
     
     # 确保目录存在
     unclassified_dir.mkdir(parents=True, exist_ok=True)

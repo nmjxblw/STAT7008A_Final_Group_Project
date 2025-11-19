@@ -282,17 +282,16 @@ class TaskQueueManager(metaclass=SingletonMeta):
             file_path: 文件完整路径
         """
         from .__main__ import start_file_classify_task
-        from global_module import file_classifier_config
+        from global_module import UNCLASSIFIED_DIR, CLASSIFIED_DIR
 
         path = Path(file_path)
 
-        # 获取配置
-        config = file_classifier_config
-        unclassified_dir = config.get("unclassified_dir", "")
-        classified_dir = config.get("classified_dir", "")
+        # 从global_module读取路径配置
+        unclassified_dir = str(UNCLASSIFIED_DIR)
+        classified_dir = str(CLASSIFIED_DIR)
 
         # 如果文件不在未分类目录下，使用文件所在目录
-        if not unclassified_dir or str(path.parent) != unclassified_dir:
+        if str(path.parent) != unclassified_dir:
             unclassified_dir = str(path.parent)
 
         # 调用归类任务
