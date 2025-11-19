@@ -139,14 +139,11 @@ class PDFRagWorker:
         save_embed_folder = str(db_parent / "embedding")
 
         # 获取embedding模型（支持本地和API两种方式）
-        if self.embedding_model is None:
-            logger.warning(
-                "实例化PDFRagWorker时未传入本地embeeding模型，fallback调用api模型"
-            )
-            self.embeddings_model = self.__get_api_embedding_model()
-        vector_store = FAISSVectorStoreSingleton(
-            self.embedding_model, save_embed_folder
-        )
+        embeddings_model = self.embedding_model
+        if embeddings_model is None:
+            logger.warning("实例化PDFRagWorker时未传入本地embeeding模型，fallback调用api模型")
+            embeddings_model = self.__get_api_embedding_model()
+        vector_store = FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
 
         vector_store.add_documents(docs)
 
@@ -179,7 +176,12 @@ class PDFRagWorker:
                 - Document: langchain Document对象，包含page_content和metadata
                 - score: L2距离分数（float，越小表示越相似）
         """
+        # 如果embedding_model为None，使用API模型作为fallback
         embeddings_model = self.embedding_model
+        if embeddings_model is None:
+            logger.warning("get_faiss_retrieval: embedding_model为None，使用API模型作为fallback")
+            embeddings_model = self.__get_api_embedding_model()
+        
         # 使用全局模块的路径配置
         from global_module import DATABASE_PATH
 
