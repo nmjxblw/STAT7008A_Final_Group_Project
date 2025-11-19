@@ -210,16 +210,42 @@ class PDFTransformer:
     def __pdf_to_text(self, full_path):
         """将PDF文件转换为文本文件"""
         try:
+            if not os.path.exists(full_path):
+                error_msg = f"PDF文件不存在：{full_path}"
+                logger.error(error_msg)
+                raise FileNotFoundError(error_msg)
+            
             text_content = ""
             with open(full_path, "rb") as file:
                 pdf_reader = PyPDF2.PdfReader(file)
-                for page in pdf_reader.pages:
-                    text_content += page.extract_text() + "\n"
+                if len(pdf_reader.pages) == 0:
+                    error_msg = f"PDF文件为空或损坏：{full_path}"
+                    logger.error(error_msg)
+                    raise ValueError(error_msg)
+                
+                for page_num, page in enumerate(pdf_reader.pages):
+                    try:
+                        page_text = page.extract_text()
+                        if page_text:
+                            text_content += page_text + "\n"
+                    except Exception as e:
+                        logger.warning(f"提取第{page_num+1}页文本失败：{e}")
+                        continue
+            
+            if not text_content.strip():
+                error_msg = f"PDF文件未提取到任何文本内容：{full_path}。可能原因：扫描版PDF、加密PDF或文件损坏"
+                logger.warning(error_msg)
+                return ""
+            
             cleaned_text_content = self.__clean_text(text_content)
+            logger.debug(f"成功提取文本：{len(cleaned_text_content)}字符")
             return cleaned_text_content
+        except FileNotFoundError:
+            raise
         except Exception as e:
-            logger.debug(e)
-            logger.debug("failed at changing pdf to text")
+            error_msg = f"PDF转文本失败：{full_path} - {type(e).__name__}: {e}"
+            logger.error(error_msg)
+            logger.debug(f"错误详情：{e}", exc_info=True)
             return None
 
     def __generate_file_unique_id(self, pdf_path):

@@ -19,6 +19,11 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
 
     def __init__(self, embeddings_model, save_path: str) -> None:
         """初始化函数，实际初始化在需要时进行（懒加载）。"""
+        # 始终初始化 _vector_db，避免属性不存在错误
+        self._vector_db = None
+        self._embeddings_model = None
+        self._save_path = None
+        
         if embeddings_model is not None and save_path is not None:
             self._embeddings_model = embeddings_model
             self._save_path = save_path
@@ -29,12 +34,18 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
                 logger.debug("FAISS向量数据库自动保存方法注册成功。")
             except Exception as e:
                 logger.error(f"FAISS向量数据库自动保存方法注册失败：{e}")
+        else:
+            logger.warning("FAISSVectorStoreSingleton初始化时embeddings_model或save_path为None，某些功能可能无法使用")
 
     def _lazy_initialize(self, docs: list[Document] | None = None):
         """
         懒加载初始化向量数据库。
         docs: 仅在需要创建新索引时提供。
         """
+        # 检查必要的属性是否已初始化
+        if self._embeddings_model is None or self._save_path is None:
+            raise ValueError("FAISSVectorStoreSingleton未正确初始化：embeddings_model或save_path为None，无法进行懒加载初始化")
+        
         if self._vector_db is not None:
             return  # 已经初始化，直接返回
 
@@ -79,6 +90,10 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         执行相似性搜索并返回文档及其分数。
         分数为L2距离，越低表示越相似
         """
+        # 检查必要的属性是否已初始化
+        if self._embeddings_model is None or self._save_path is None:
+            raise ValueError("FAISSVectorStoreSingleton未正确初始化：embeddings_model或save_path为None")
+        
         if not self._initialized or self._vector_db is None:
             self._lazy_initialize()
 

@@ -39,6 +39,16 @@
      用途：提前启动后台工作线程（预热）
      特点：通常不需要手动调用，首次调用add_classify_task时会自动启动
    
+   - pause_queue_worker:
+     功能：暂停队列工作线程
+     用途：临时暂停任务处理，当前任务会继续完成
+     特点：暂停后新任务不会处理，但已添加的任务不会丢失，恢复后会继续处理
+   
+   - resume_queue_worker:
+     功能：恢复队列工作线程
+     用途：恢复暂停的任务处理
+     特点：恢复后会继续处理队列中的任务
+   
    - stop_queue_worker:
      功能：优雅停止队列工作线程
      用途：程序退出前确保所有任务处理完成
@@ -135,6 +145,8 @@ from .task_queue import (
     add_classify_task,
     get_queue_status,
     start_queue_worker,
+    pause_queue_worker,
+    resume_queue_worker,
     stop_queue_worker
 )
 
@@ -148,6 +160,8 @@ __all__ = [
     "add_classify_task",
     "get_queue_status",
     "start_queue_worker",
+    "pause_queue_worker",
+    "resume_queue_worker",
     "stop_queue_worker",
     
     # RAG检索接口

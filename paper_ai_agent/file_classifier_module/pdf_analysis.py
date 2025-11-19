@@ -122,7 +122,10 @@ class PDFContentAnalyzer:
             return result
 
         except Exception as e:
-            logger.debug(f"调用AI API时出错: {e}")
+            error_msg = f"调用AI API生成摘要和关键词失败：{type(e).__name__}: {e}"
+            logger.error(error_msg)
+            logger.debug(f"错误详情：{e}", exc_info=True)
+            logger.warning("将使用默认值：空标题、空摘要、空关键词列表")
             return {"title": "", "summary": "", "keywords": []}
 
     def __extract_key_sections(self, text, max_chars=10000):
