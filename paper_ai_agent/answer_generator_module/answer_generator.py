@@ -1,8 +1,9 @@
 import asyncio
-from typing import List, Optional, AsyncGenerator
+import sys
+from typing import Any, List, Optional, AsyncGenerator
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
-
+from langchain_core.documents import Document
 from global_module import answer_generator_config, API_KEY
 from utility_module import SingletonMeta
 from database_module import *
@@ -10,7 +11,8 @@ from database_module.models import File
 
 from file_classifier_module.utils import get_retrieval_content
 from .utils import DemandType, query_files_by_attributes
-from log_module import *
+from log_module import logger
+
 
 class Generator(metaclass=SingletonMeta):
     """
@@ -21,13 +23,14 @@ class Generator(metaclass=SingletonMeta):
         2. 文档搜索与富集
         3. 基于上下文的LLM问答
     """
+
     def __init__(self):
 
         self._current_demand_raw: str = ""
         self._current_demand_type: Optional[DemandType] = None
         self._current_query_results: List[tuple[str, float]] = []
         self._stopped: bool = False
-        self._prompt: str = ''
+        self._prompt: str = ""
 
         # LLM配置与客户端
         self._client: Optional[OpenAI] = OpenAI(
@@ -39,42 +42,35 @@ class Generator(metaclass=SingletonMeta):
     # 公共API
     # ======================
 
-    def set_demand(self, user_input: str) -> tuple[str, List]:
+    def set_demand(self, user_input: str) -> tuple[str, List[tuple]]:
         """设置用户需求"""
-
+        logger.debug(f"{sys._getframe().f_code.co_name}收到用户需求: {user_input}")
         num_doc = 5
         self._stopped = False
-        self._prompt = ''
+        self._prompt = ""
         self._current_demand_raw = user_input.strip()
         self._current_demand_type = self._classify_demand(user_input)
 
         if self._current_demand_type == DemandType.FILE_QUERY:
-            demand = 'file'
+            demand = "file"
         elif self._current_demand_type == DemandType.QA:
-            demand = 'qa'
-        else: demand = 'file'
+            demand = "qa"
+        else:
+            demand = "file"
+        logger.debug(f"识别需求类型: {demand}")
+        retrieval: dict[str, list[Any]] = get_retrieval_content(
+            self._current_demand_raw, k_articles=num_doc
+        )
+        _retrieval: list[tuple[Document, float]] = retrieval["most_similar_paragrapghs"]
+        file_set: dict[str, float] = {}
 
-        retrieval = get_retrieval_content(self._current_demand_raw, k_articles=num_doc)
-        retrieval = retrieval["most_similar_paragrapghs"]
-        file_id, sim = [], []
-
-        for doc in retrieval:
-            file_id.append(doc[0].metadata['file_id'])
-            sim.append(round(doc[1], 2))
-        
-        # remove file_id duplicates
-        if file_id:
-            unique_id, unique_sim = [], []
-            for i in range(1, len(file_id) + 1):
-                if file_id[-i] in unique_id:
-                    continue
-                unique_id.append(file_id[-i])
-                unique_sim.append(sim[-i])
-                if len(unique_id) >= num_doc:
-                    break
-            file_id, sim = unique_id, unique_sim
-
-        self._current_query_results = list(zip(file_id, sim))
+        for doc, score in _retrieval:
+            _id = doc.metadata.get("file_id")
+            if _id is None or _id in file_set:
+                continue
+            file_set[_id] = round(score, 2)
+        logger.debug(f"相关文件及相似度: {file_set}")
+        self._current_query_results = list(file_set.items())
         return demand, self._current_query_results
 
     def stop_current_task(self) -> bool:
@@ -82,22 +78,22 @@ class Generator(metaclass=SingletonMeta):
         self._stopped = True
         return True
 
-    def redo_task(self, user_input: str) -> bool:
+    def redo_task(self, user_input: str) -> tuple[str, List]:
         """重新运行任务"""
         return self.set_demand(user_input)
-    
+
     def get_query_result_titles(self) -> List[str]:
         """返回匹配的文档标题列表（用于UI）"""
         titles = []
         for doc in self._current_query_results:
             try:
                 file_id = doc[0]
-                file = query_files_by_attributes({'file_id' : file_id})[0]
-                titles.append(file['title'])
+                file = query_files_by_attributes({"file_id": file_id})[0]
+                titles.append(file["title"])
             except:
                 continue
         return titles
-    
+
     def get_LLM_reply(self, reference: List[str]) -> str:
         """获取LLM回复"""
         """输入 [file_id] | 输出回答"""
@@ -113,9 +109,7 @@ class Generator(metaclass=SingletonMeta):
             return "ERROR: QA without api key."
 
         self._prompt = self._build_llm_prompt(
-            query=self._current_demand_raw,
-            files=reference,
-            use_content=False
+            query=self._current_demand_raw, files=reference, use_content=False
         )
 
         try:
@@ -134,7 +128,7 @@ class Generator(metaclass=SingletonMeta):
                 reply_text = "(LLM returned non-text content)"
         except Exception as e:
             reply_text = f"(LLM call failed) {e}"
-        
+
         return reply_text
 
     # ======================
@@ -150,12 +144,33 @@ class Generator(metaclass=SingletonMeta):
             return DemandType.FILE_QUERY
         if llm_label == "QA":
             return DemandType.QA
-        
+
         # 关键字 fallback
-        logger.debug('LLM_QUERY_CLASSIFICATION_ERROR')
+        logger.debug(
+            f"{sys._getframe().f_code.co_name}: LLM_QUERY_CLASSIFICATION_ERROR"
+        )
         text = user_input.lower()
-        file_keywords = ["file", "document", "doc", "list", "show", "open", "report", "pdf", "find", "search",]
-        qa_keywords = ["why", "how", "explain", "difference", "compare", "what is", "what's",]
+        file_keywords = [
+            "file",
+            "document",
+            "doc",
+            "list",
+            "show",
+            "open",
+            "report",
+            "pdf",
+            "find",
+            "search",
+        ]
+        qa_keywords = [
+            "why",
+            "how",
+            "explain",
+            "difference",
+            "compare",
+            "what is",
+            "what's",
+        ]
 
         has_file = any(k in text for k in file_keywords)
         has_qa = any(k in text for k in qa_keywords)
@@ -203,7 +218,7 @@ class Generator(metaclass=SingletonMeta):
         except Exception:
             logger.debug(f'ERROR: client errors | api_key: {self._client.api_key} | base_url: {self._client.base_url}')
             return None
-    
+
     # ======================
     # 内部方法：Prompt构建
     # ======================
@@ -213,11 +228,11 @@ class Generator(metaclass=SingletonMeta):
         reference = []
         for file_id in files:
             try:
-                file = query_files_by_attributes({'file_id' : file_id})[0]
+                file = query_files_by_attributes({"file_id": file_id})[0]
                 if use_content:
-                    content = file['content']
+                    content = file["content"]
                 else:
-                    content = file['summary']
+                    content = file["summary"]
                 reference.append(f"[{file['title']}]\n{content}\n")
             except:
                 continue
