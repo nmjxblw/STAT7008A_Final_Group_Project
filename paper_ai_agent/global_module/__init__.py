@@ -21,7 +21,9 @@ __all__ = [
     "answer_generator_config",
     "file_classifier_config",
 ]
-load_dotenv(encoding="utf-8", verbose=True)  # 从.env文件加载环境变量
+assert load_dotenv(
+    encoding="utf-8", verbose=True
+), f".env文件加载失败, 请确保.env文件路径在[{os.getcwd()}]下"  # 从.env文件加载环境变量
 # region 项目静态信息
 PROJECT_NAME: str = os.getenv("PROJECT_NAME", "")
 """项目名称"""
@@ -35,6 +37,7 @@ HOST: str = os.getenv("HOST", "0.0.0.0")
 """主机名"""
 PORT: int = int(os.getenv("PORT", 8080))
 """端口号"""
+assert os.getenv("API_KEY"), "API_KEY环境变量未设置，请在.env文件中配置"
 API_KEY: str = os.getenv("API_KEY", "")
 """API密钥"""
 USING_PROXY: bool = os.getenv("USING_PROXY", "").lower() in ("1", "true", "yes")

@@ -1,8 +1,8 @@
 {
   "request_format": {
     "params": {
-      "file_ids": [],
-      "question": ""
+      "demand": "",
+      "file_ids": []
     },
     "task": 0
   },

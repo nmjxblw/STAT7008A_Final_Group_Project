@@ -2,6 +2,7 @@ import os
 import pickle
 from collections import Counter, defaultdict
 from pathlib import Path
+from typing import Any, Tuple
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -132,22 +133,26 @@ class PDFRagWorker:
     def __embed(self, docs):
         # 使用全局模块的路径配置
         from global_module import DATABASE_PATH
-        
+
         # faiss文件保存目录 - 与数据库同级的embedding目录
         db_parent = Path(DATABASE_PATH).parent
         save_embed_folder = str(db_parent / "embedding")
-        
+
         # 获取embedding模型（支持本地和API两种方式）
         if self.embedding_model is None:
-            logger.warning("实例化PDFRagWorker时未传入本地embeeding模型，fallback调用api模型")
+            logger.warning(
+                "实例化PDFRagWorker时未传入本地embeeding模型，fallback调用api模型"
+            )
             self.embeddings_model = self.__get_api_embedding_model()
-        vector_store = FAISSVectorStoreSingleton(self.embedding_model, save_embed_folder)
+        vector_store = FAISSVectorStoreSingleton(
+            self.embedding_model, save_embed_folder
+        )
 
         vector_store.add_documents(docs)
 
-    def get_faiss_retrieval(self, query, k):
+    def get_faiss_retrieval(self, query, k) -> list[tuple[Document, float]]:
         """FAISS向量相似度检索（基于语义理解的检索）
-        
+
         评分标准：
             - 基于向量空间中的L2距离（欧几里得距离）
             - 分数越小表示越相似（与BM25相反！）
@@ -157,18 +162,18 @@ class PDFRagWorker:
               2. 向量空间距离：embedding向量之间的几何距离
               3. 上下文理解：考虑词语在不同语境中的含义
             - 推荐阈值：< 1.5 为相关，< 1.0 为高度相关
-            
+
         注意：
             FAISS分数和BM25分数评判标准完全不同：
             - FAISS分数：越小越好（距离度量）
             - BM25分数：越大越好（相关度评分）
             - FAISS适合模糊搜索和语义理解，BM25适合精确关键词匹配
             - 两者结合使用（hybrid search）可以获得最佳检索效果
-            
+
         Args:
             query: 查询文本
             k: 返回的最相似文档数量
-            
+
         Returns:
             list: [(Document, score), ...] 按相似度排序（分数从小到大，越小越相似）
                 - Document: langchain Document对象，包含page_content和metadata
@@ -177,15 +182,17 @@ class PDFRagWorker:
         embeddings_model = self.embedding_model
         # 使用全局模块的路径配置
         from global_module import DATABASE_PATH
-        
+
         db_parent = Path(DATABASE_PATH).parent
         save_embed_folder = str(db_parent / "embedding")
         vector_store = FAISSVectorStoreSingleton(embeddings_model, save_embed_folder)
         return vector_store.similarity_search_with_score(query, k)
 
-    def get_bm25_retrieval(self, query, k=10, score_threshold=0.0):
+    def get_bm25_retrieval(
+        self, query, k=10, score_threshold=0.0
+    ) -> list[dict[str, Any]]:
         """BM25关键词匹配检索
-        
+
         评分标准：
             - 基于TF-IDF改进的概率排序模型
             - 分数越大表示越相关（词频和文档频率的综合评分）
@@ -195,7 +202,7 @@ class PDFRagWorker:
               2. 逆文档频率（IDF）：查询词的稀有程度
               3. 文档长度归一化：避免长文档的优势
             - 推荐阈值：> 1.0 为相关，> 3.0 为高度相关
-            
+
         注意：
             - BM25分数和FAISS分数评判标准完全不同
             - BM25适合关键词精确匹配，FAISS适合语义相似度搜索
@@ -216,7 +223,7 @@ class PDFRagWorker:
                 - matched_terms: 匹配到的查询词列表
         """
         corpus_manager = CorpusSingleton()
-        corpus = corpus_manager.get_corpus()
+        corpus: list[dict[str, Any]] = corpus_manager.get_corpus()
         if not corpus:
             logger.warning("BM25语料库为空，无法进行检索")
             return []
@@ -322,7 +329,7 @@ class PDFRagWorker:
 
             # 6. 保存词频统计到JSON（便于查看）- 这部分可以保留
             from global_module import DATABASE_PATH
-            
+
             db_parent = Path(DATABASE_PATH).parent
             bm25_folder = db_parent / "BM25"
             bm25_folder.mkdir(parents=True, exist_ok=True)
@@ -972,7 +979,7 @@ class PDFRagWorker:
                 # BM25公式计算
                 numerator = term_frequency * (k1 + 1)
                 denominator = term_frequency + k1 * (
-                        1 - b + b * (doc_length / self.avg_doc_length)
+                    1 - b + b * (doc_length / self.avg_doc_length)
                 )
 
                 term_score = idf * (numerator / denominator)
