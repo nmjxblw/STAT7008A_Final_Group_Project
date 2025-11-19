@@ -10,6 +10,7 @@ from database_module.models import File
 
 from file_classifier_module.utils import get_retrieval_content
 from .utils import DemandType, query_files_by_attributes
+from log_module import *
 
 class Generator(metaclass=SingletonMeta):
     """
@@ -102,11 +103,14 @@ class Generator(metaclass=SingletonMeta):
         """输入 [file_id] | 输出回答"""
 
         if not self._current_demand_raw:
-            return {"error": "no demand set"}
+            logger.debug("ERROR: no demand set.")
+            return "ERROR: no demand set."
         if self._current_demand_type == DemandType.FILE_QUERY:
-            return {"error": "not in QA mode"}
+            logger.debug("ERROR: not in QA mode.")
+            return "ERROR: not in QA mode."
         if not isinstance(self._client, OpenAI) or API_KEY.strip() == "":
-            return {"error": "QA without api key"}
+            logger.debug("ERROR: QA without api key.")
+            return "ERROR: QA without api key."
 
         self._prompt = self._build_llm_prompt(
             query=self._current_demand_raw,
@@ -148,7 +152,7 @@ class Generator(metaclass=SingletonMeta):
             return DemandType.QA
         
         # 关键字 fallback
-        print('LLM_QUERY_CLASSIFICATION_ERROR')
+        logger.debug('LLM_QUERY_CLASSIFICATION_ERROR')
         text = user_input.lower()
         file_keywords = ["file", "document", "doc", "list", "show", "open", "report", "pdf", "find", "search",]
         qa_keywords = ["why", "how", "explain", "difference", "compare", "what is", "what's",]
@@ -162,6 +166,7 @@ class Generator(metaclass=SingletonMeta):
         """set_demand调用_classify_demand调用"""
         """用LLM进行意图分类"""
         if not self._client:
+            logger.debug('ERROR: no client.')
             return None
 
         system_prompt = (
@@ -191,8 +196,12 @@ class Generator(metaclass=SingletonMeta):
 
             raw = reply_text
             raw = raw.replace(".", "").strip().upper()
-            return raw if raw in ("FILE", "QA") else None
+            if raw in ("FILE", "QA"):
+                return raw
+            logger.debug('ERROR: unexpected demand type.')
+            return None
         except Exception:
+            logger.debug(f'ERROR: client errors | api_key: {self._client.api_key} | base_url: {self._client.base_url}')
             return None
     
     # ======================
