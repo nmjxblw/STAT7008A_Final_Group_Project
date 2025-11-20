@@ -852,7 +852,10 @@
                     🛑 终止任务
                 </button>
                 <button class="action-button" @click="exportToExcel">
-                    📊 导出 Excel1
+                    📊 导出 Excel
+                </button>
+                <button class="action-button" @click="test1">
+                    📊 测试1
                 </button>
             </div>
         </div>
@@ -1843,6 +1846,11 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
 
                 // 导出Excel
                 async exportToExcel() {
+                    alert('导出excel');
+                },
+
+                // 测试
+                async test1() {
                     try {
                         const response = await fetch(`${CONFIG.API_URL}/generator/set_demand`, {
                             method: 'POST',
