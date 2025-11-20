@@ -852,7 +852,10 @@
                     🛑 终止任务
                 </button>
                 <button class="action-button" @click="exportToExcel">
-                    📊 导出 Excel1
+                    📊 导出 Excel
+                </button>
+                <button class="action-button" @click="test1">
+                    📊 测试1
                 </button>
             </div>
         </div>
@@ -1843,6 +1846,17 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
 
                 // 导出Excel
                 async exportToExcel() {
+                    await this.apiDownloadSummary();
+                },
+
+                // ========== API 交互方法 ==========
+
+                /**
+                 * 设置用户需求 - /generator/set_demand
+                 * @param {string} question - 用户问题
+                 * @returns {Promise<Object>} - 返回 {answer_type, details: [{file_id, title, summary, ...}]}
+                 */
+                async apiSetDemand(question) {
                     try {
                         const response = await fetch(`${CONFIG.API_URL}/generator/set_demand`, {
                             method: 'POST',
@@ -1851,17 +1865,126 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                             },
                             body: JSON.stringify({
                                 params: {
-                                    question: 'what is transformer'
+                                    question: question
                                 }
                             })
                         });
 
                         const result = await response.json();
-                        console.log('后端响应:', result);
-                        alert('请求成功，请查看控制台');
+                        console.log('apiSetDemand 响应:', result);
 
+                        if (result.status === 'success') {
+                            return result.message; // {answer_type, details}
+                        } else {
+                            throw new Error(result.message || '请求失败');
+                        }
                     } catch (error) {
-                        console.error('请求失败:', error);
+                        console.error('apiSetDemand 失败:', error);
+                        throw error;
+                    }
+                },
+
+                /**
+                 * 获取LLM回复 - /generator/get_LLM_reply
+                 * @param {Array<string>} fileIds - 选中的文件ID列表
+                 * @returns {Promise<string>} - 返回LLM生成的回复
+                 */
+                async apiGetLLMReply(fileIds = []) {
+                    try {
+                        const response = await fetch(`${CONFIG.API_URL}/generator/get_LLM_reply`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: {
+                                    file_ids: fileIds
+                                }
+                            })
+                        });
+
+                        const result = await response.json();
+                        console.log('apiGetLLMReply 响应:', result);
+
+                        if (result.status === 'success') {
+                            return result.message; // LLM回复内容
+                        } else {
+                            throw new Error(result.message || '获取回复失败');
+                        }
+                    } catch (error) {
+                        console.error('apiGetLLMReply 失败:', error);
+                        throw error;
+                    }
+                },
+
+                /**
+                 * 启动爬虫任务 - /crawler/crawling_task
+                 * @param {string} command - 命令: 'start', 'pause', 'resume', 'stop'
+                 * @returns {Promise<string>} - 返回操作结果消息
+                 */
+                async apiCrawlingTask(command = 'start') {
+                    try {
+                        const response = await fetch(`${CONFIG.API_URL}/crawler/crawling_task`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: command
+                            })
+                        });
+
+                        const result = await response.json();
+                        console.log('apiCrawlingTask 响应:', result);
+
+                        if (result.status === 'success') {
+                            return result.message;
+                        } else {
+                            throw new Error(result.message || '爬虫操作失败');
+                        }
+                    } catch (error) {
+                        console.error('apiCrawlingTask 失败:', error);
+                        throw error;
+                    }
+                },
+
+                /**
+                 * 停止爬虫任务 - /crawler/crawling_task (stop)
+                 * @returns {Promise<string>} - 返回操作结果消息
+                 */
+                async apiStopCrawler() {
+                    return await this.apiCrawlingTask('stop');
+                },
+
+                /**
+                 * 下载总结CSV - /download/summary
+                 * 直接触发浏览器下载
+                 */
+                async apiDownloadSummary() {
+                    try {
+                        const url = `${CONFIG.API_URL}/download/summary`;
+                        // 使用 window.open 或创建 a 标签触发下载
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'summary.csv';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        console.log('apiDownloadSummary: 下载已触发');
+                    } catch (error) {
+                        console.error('apiDownloadSummary 失败:', error);
+                        throw error;
+                    }
+                },
+
+                // 测试按钮方法
+                async test1() {
+                    try {
+                        // 测试 set_demand
+                        const demandResult = await this.apiSetDemand('what is transformer');
+                        console.log('set_demand 结果:', demandResult);
+                        alert('请求成功，请查看控制台');
+                    } catch (error) {
                         alert('请求失败: ' + error.message);
                     }
                 },
