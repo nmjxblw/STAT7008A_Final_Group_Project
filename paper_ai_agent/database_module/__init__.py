@@ -10,4 +10,5 @@ __all__ = [
     "session",
     "query_files_by_attributes",
     "add_or_update_file_to_database",
+    "get_all",
 ]

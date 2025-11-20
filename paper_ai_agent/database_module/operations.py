@@ -1,10 +1,17 @@
 """数据库操作模块"""
 
 from datetime import date, datetime
+from os import PathLike
 import sys
 from typing import Any
+import csv
+import json
+import pandas as pd
+from sympy import im
+from zipp import Path
 from .models import File
 from .core import session
+from global_module import SUMMARY_FILE
 from log_module import *  # 导入全局日志模块
 
 
@@ -80,4 +87,85 @@ def add_or_update_file_to_database(file_data: object | dict) -> bool:
     except Exception as e:
         # 处理异常情况，记录日志等
         logger.debug(f"✖ 添加或更新文件记录失败: {e}")
+        return False
+
+
+def get_all() -> list[dict[str, Any]]:
+    """
+    获取数据库中所有文件记录
+
+    返回：
+        files (list[dict[str, Any]]): 所有文件记录列表
+    """
+    try:
+        logger.debug(f"{sys._getframe().f_code.co_name}接口被调用...")
+
+        files_list: list[File] = session.query(File).all()
+        result: list[dict[str, Any]] = [file.to_dict() for file in files_list]
+        logger.debug(f"✔ 成功获取所有文件记录，共 {len(result)} 条记录")
+        return result
+    except Exception as e:
+        # 处理异常情况，记录日志等
+        logger.debug(f"✖ 获取所有文件记录失败: {e}")
+        return []
+
+
+def export_files_to_csv(csv_path: PathLike | str = SUMMARY_FILE) -> str | PathLike:
+    """
+    将数据库中的文件记录导出为CSV文件
+
+    参数：
+        csv_path (str|PathLike): 导出CSV文件的路径
+    """
+    try:
+        logger.debug(f"{sys._getframe().f_code.co_name}接口被调用...")
+
+        files_list: list[File] = session.query(File).all()
+        if not files_list:
+            logger.debug("✖ 数据库中没有文件记录可导出")
+            return ""
+
+        with open(csv_path, mode="w", newline="", encoding="utf-8") as csv_file:
+            fieldnames = [column.key for column in File.__table__.columns]
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer.writeheader()
+            for file in files_list:
+                writer.writerow(file.to_dict())
+        logger.debug(f"✔ 成功将文件记录导出为CSV文件，路径为: {csv_path}")
+        return csv_path
+    except Exception as e:
+        # 处理异常情况，记录日志等
+        logger.debug(f"✖ 导出文件记录为CSV失败: {e}")
+        return ""
+
+
+def import_csv_to_database(csv_path: str) -> bool:
+    """
+    从CSV文件导入文件记录到数据库
+
+    参数：
+        csv_path (str): 导入CSV文件的路径
+    返回：
+        success (bool): 操作是否成功
+    """
+    try:
+        logger.debug(f"{sys._getframe().f_code.co_name}接口被调用...")
+
+        df = pd.read_csv(csv_path)
+        for _, row in df.iterrows():
+            file_dict = row.to_dict()
+            # 处理keywords字段，将字符串转换为列表
+            if "keywords" in file_dict and isinstance(file_dict["keywords"], str):
+                file_dict["keywords"] = json.loads(file_dict["keywords"])
+            success = add_or_update_file_to_database(file_dict)
+            if not success:
+                logger.debug(
+                    f"✖ 导入文件记录失败，文件ID为{{{file_dict.get('file_id', '未知')}}}"
+                )
+                return False
+        logger.debug(f"✔ 成功从CSV文件导入文件记录，路径为: {csv_path}")
+        return True
+    except Exception as e:
+        # 处理异常情况，记录日志等
+        logger.debug(f"✖ 从CSV文件导入文件记录失败: {e}")
         return False
