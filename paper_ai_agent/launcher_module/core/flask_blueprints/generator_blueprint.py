@@ -45,6 +45,9 @@ def set_demand() -> Any:
             "status": "success",
             "message": {"answer_type": _answer_type, "details": _reference_list},
         }
+        logger.debug(
+            f"{sys._getframe().f_code.co_name}接口最终响应数据：{ response_data }"
+        )
         return jsonify(response_data)
     except Exception as e:
         logger.debug(f"✖ 设置用户需求失败: {e}")
