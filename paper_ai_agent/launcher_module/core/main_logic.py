@@ -6,6 +6,7 @@
 
 import re
 from flask import Flask, Blueprint
+from flask_cors import CORS
 from log_module import *
 from global_module import AUTO_CRAWL
 
@@ -74,6 +75,10 @@ def setup_flask_app(_flask_app: Flask):
     """设置Flask应用"""
 
     from global_module import HOST, PORT
+
+    # 启用CORS支持
+    CORS(_flask_app)
+    logger.debug("✔ CORS已启用")
 
     logger.debug("启动 Flask 应用...")
     _flask_app.run(

@@ -852,7 +852,7 @@
                     🛑 终止任务
                 </button>
                 <button class="action-button" @click="exportToExcel">
-                    📊 导出 Excel
+                    📊 导出 Excel1
                 </button>
             </div>
         </div>
@@ -865,7 +865,7 @@
         const CONFIG = {
             USE_MOCK: true,        // 是否使用Mock数据
             MOCK_DELAY: 1500,      // Mock延迟时间(毫秒)
-            API_URL: ''            // 真实API地址(暂时不用)
+            API_URL: 'http://localhost:8080'  // 后端API地址
         };
 
         // ========== 可复用的悬浮提示组件 ==========
@@ -1772,7 +1772,7 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                         this.scrollToBottom();
                     });
 
-                    // 模拟获取文件列表
+                        // 模拟获取文件列表
                     await this.sleep(CONFIG.MOCK_DELAY);
 
                     if (!this.isProcessing) return; // 已终止
@@ -1842,8 +1842,28 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                 },
 
                 // 导出Excel
-                exportToExcel() {
-                    alert('导出Excel功能(占位),实际项目中可使用SheetJS等库实现');
+                async exportToExcel() {
+                    try {
+                        const response = await fetch(`${CONFIG.API_URL}/generator/set_demand`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                params: {
+                                    question: 'what is transformer'
+                                }
+                            })
+                        });
+
+                        const result = await response.json();
+                        console.log('后端响应:', result);
+                        alert('请求成功，请查看控制台');
+
+                    } catch (error) {
+                        console.error('请求失败:', error);
+                        alert('请求失败: ' + error.message);
+                    }
                 },
 
                 // 获取Mock数据
