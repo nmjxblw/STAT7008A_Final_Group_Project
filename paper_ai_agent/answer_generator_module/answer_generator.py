@@ -235,7 +235,7 @@ class Generator(metaclass=SingletonMeta):
                     content = file["content"]
                 else:
                     content = file["summary"]
-                reference.append(f"[{file['title']}]\n{content}\n")
+                reference.append(f"[{file['file_id']}]\n{content}\n")
             except:
                 continue
         context = "\n".join(reference)
@@ -246,8 +246,9 @@ You should follow the ANSWERING RULES to answer the user's question.
 [ANSWERING RULES]
 1. You can ONLY use the information in the following DOCUMENTS.
 2. Do NOT invent information that is not in the documents.
-3. When you cite a document, add its title in square brackets at the end of the sentence, e.g. [DOCUMENT_TITLE].
-4. If multiple documents mention the same thing, you can cite multiple titles, e.g. [DOCUMENT_TITLE_1][DOCUMENT_TITLE_2].
+3. Each document starts with its DOCUMENT_ID contained in square brackets.
+4. When you cite a document, add its DOCUMENT_ID in square brackets at the end of the sentence, e.g. [DOCUMENT_ID].
+5. If multiple documents mention the same thing, you can cite multiple DOCUMENT_ID, e.g. [DOCUMENT_ID_1][DOCUMENT_ID_2].
 
 [DOCUMENTS]
 {context}
