@@ -40,6 +40,8 @@ PORT: int = int(os.getenv("PORT", 8080))
 assert os.getenv("API_KEY"), "API_KEY环境变量未设置，请在.env文件中配置"
 API_KEY: str = os.getenv("API_KEY", "")
 """API密钥"""
+if len(API_KEY) <= 0:
+    raise ValueError("API_KEY环境变量未设置，请在.env文件中配置")
 USING_PROXY: bool = os.getenv("USING_PROXY", "").lower() in ("1", "true", "yes")
 """是否使用代理"""
 AUTO_CRAWL: bool = os.getenv("AUTO_CRAWL", "").lower() in ("1", "true", "yes")
@@ -56,4 +58,8 @@ UNCLASSIFIED_DIR: Path = Path.joinpath(
     RESOURCE_DIR, os.getenv("UNCLASSIFIED_DIR", "Unclassified")
 )
 """未分类文件目录"""
+SUMMARY_FILE: Path = Path.joinpath(
+    RESOURCE_DIR, os.getenv("SUMMARY_FILE", "summary.csv")
+)
+"""总结文件名"""
 # endregion

@@ -31,5 +31,17 @@ blueprints = [
         "generator_bp",
         "/generator",
     ),
+    # 数据库管理蓝图
+    (
+        "launcher_module.core.flask_blueprints.database_blueprint",
+        "database_bp",
+        "/database",
+    ),
+    # 下载管理蓝图
+    (
+        "launcher_module.core.flask_blueprints.download_blueprint",
+        "download_bp",
+        "/download",
+    ),
 ]
 """蓝图配置模块"""

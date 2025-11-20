@@ -123,10 +123,10 @@ class Generator(metaclass=SingletonMeta):
             if isinstance(resp.choices[0].message.content, str):
                 reply_text: str = resp.choices[0].message.content.strip()
             else:
-                reply_text = "(LLM returned non-text content)"
+                reply_text = "(大语言模型返回了非文本内容)"
         except Exception as e:
-            reply_text = f"(LLM call failed) {e}"
-
+            logger.debug(f"大语言模型回答失败: {e}")
+            raise e
         return reply_text
 
     # ======================
@@ -142,6 +142,8 @@ class Generator(metaclass=SingletonMeta):
             return DemandType.FILE_QUERY
         if llm_label == "QA":
             return DemandType.QA
+
+        raise Exception("API_KEY在.env中未设置，无法使用LLM进行意图分类")
 
         # 关键字 fallback
         logger.debug(
@@ -180,7 +182,7 @@ class Generator(metaclass=SingletonMeta):
         """用LLM进行意图分类"""
         if not self._client:
             logger.debug("ERROR: no client.")
-            return None
+            raise Exception("No LLM client available.")
 
         system_prompt = (
             "You are an intent classifier. "
@@ -188,7 +190,7 @@ class Generator(metaclass=SingletonMeta):
             "Do NOT explain.\n"
             "- If the user wants to search/list/view/find/open documents/files/reports -> answer FILE.\n"
             "- If the user asks for explanation/analysis/how-to/reasoning -> answer QA.\n"
-            "- If it is mixed, prefer FILE."
+            "- If it is mixed, prefer QA."
         )
         user_prompt = f"User query:\n{user_input}\n\nYour answer (FILE or QA):"
 
