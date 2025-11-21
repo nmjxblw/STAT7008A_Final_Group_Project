@@ -23,6 +23,7 @@
     stop_queue_worker()
 """
 
+import atexit
 from os import PathLike
 import queue
 import threading
@@ -48,6 +49,7 @@ class TaskQueueManager(metaclass=SingletonMeta):
         self._is_running = False
         self._is_paused = False
         self._lock = threading.Lock()
+        self._exit_hook_registered = False
 
         # 统计信息
         self._total_tasks = 0
@@ -56,6 +58,10 @@ class TaskQueueManager(metaclass=SingletonMeta):
         self._current_task: Optional[str] = None
 
         logger.debug("TaskQueueManager单例已创建")
+
+        if not self._exit_hook_registered:
+            atexit.register(self._on_process_exit)
+            self._exit_hook_registered = True
 
     def start_worker(self):
         """启动后台工作线程"""
@@ -68,11 +74,20 @@ class TaskQueueManager(metaclass=SingletonMeta):
             self._worker_thread = threading.Thread(
                 target=self._worker_loop,
                 name="FileClassifierWorker",
-                daemon=True,  # 使用daemon，确保程序退出时线程自动结束,
+                daemon=True,  # 使用daemon，确保主程序退出时线程自动结束
             )
             self._worker_thread.start()
             self._is_running = True
             logger.info("文档归类任务队列工作线程已启动")
+
+    def _on_process_exit(self):
+        """主程序退出时自动停止后台线程"""
+        try:
+            if self._is_running:
+                logger.info("检测到主程序退出，自动停止文档归类任务队列")
+                self.stop_worker()
+        except Exception as exc:
+            logger.error(f"退出清理过程中停止任务队列失败：{exc}")
 
     def pause_worker(self):
         """
