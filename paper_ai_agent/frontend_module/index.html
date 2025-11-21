@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 查询助手</title>
+    <title>AI Query Assistant</title>
 
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -204,6 +204,7 @@
 
         .file-info {
             flex: 1;
+            margin-right: 35px;
         }
 
         .file-name {
@@ -399,6 +400,111 @@
         .hover-tag:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* 文件引用内联包装器 */
+        .file-ref-inline-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* 文件引用内联标记样式 */
+        .file-ref-inline {
+            display: inline;
+            padding: 2px 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 12px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-ref-inline:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* 文件引用tooltip */
+        .file-ref-tooltip {
+            display: none;
+            position: fixed;
+            width: 350px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            z-index: 10000;
+        }
+
+        .file-ref-tooltip.visible {
+            display: block;
+        }
+
+        .tooltip-header-inline {
+            display: block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .tooltip-body-inline {
+            display: block;
+            padding: 12px 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .tooltip-row-inline {
+            display: block;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .tooltip-row-inline:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .tooltip-label-inline {
+            display: block;
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .tooltip-value-inline {
+            display: block;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        /* 迷你进度条 */
+        .mini-bar {
+            display: inline-block;
+            width: 100px;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        .mini-bar-fill {
+            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         }
 
         /* 悬停卡片 - 支持多种数据类型 */
@@ -726,7 +832,7 @@
     <div id="app">
         <!-- 顶部标题 -->
         <div class="header">
-            <h1>🤖 AI 查询助手</h1>
+            <h1>🤖 AI Query Assistant</h1>
         </div>
 
         <!-- 对话区域 -->
@@ -744,20 +850,23 @@
                         <!-- 加载状态 -->
                         <div v-if="message.status === 'searching'" class="loading">
                             <div class="loading-spinner"></div>
-                            <span>正在寻找文献...</span>
+                            <span>Searching for relevant papers...</span>
                         </div>
 
                         <!-- 文件列表 -->
                         <div v-if="message.status === 'files' || message.status === 'thinking' || message.status === 'done'" class="files-section">
-                            <div class="files-header">📄 相关文件：</div>
+                            <div class="files-header">📄 Related Files:</div>
+                            <div v-if="message.status === 'files' && message.answerType === 'qa'" class="files-hint" style="font-size: 12px; color: #666; margin-bottom: 8px;">Please select the files you want to use as references</div>
                             <div
                                 v-for="file in message.files"
                                 :key="file.id"
                                 class="file-item"
-                                :class="{ 'file-selected': file.selected, 'file-disabled': message.status !== 'files' }"
-                                @click="toggleFileSelection(file, message)"
+                                :class="{ 'file-selected': file.selected && message.answerType === 'qa', 'file-disabled': message.status !== 'files' || message.answerType === 'file' }"
+                                :style="{ cursor: message.answerType === 'file' ? 'default' : 'pointer' }"
+                                @click="message.answerType === 'qa' ? toggleFileSelection(file, message) : null"
                             >
                                 <input
+                                    v-if="message.answerType === 'qa'"
                                     type="checkbox"
                                     :id="'file-' + file.id"
                                     v-model="file.selected"
@@ -766,20 +875,20 @@
                                 >
                                 <span class="file-icon">{{ getFileIcon(file.type) }}</span>
                                 <div class="file-info">
-                                    <div class="file-name">{{ file.name }}</div>
+                                    <div class="file-name">{{ file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name }}</div>
                                     <div class="file-relevance">
-                                        <span class="relevance-label">相关度:</span>
+                                        <span class="relevance-label">relevance:</span>
                                         <div class="relevance-bar">
-                                            <div class="relevance-fill" :style="{ width: (file.relevance * 100) + '%' }"></div>
+                                            <div class="relevance-fill" :style="{ width: file.barPercent + '%' }"></div>
                                         </div>
-                                        <span class="relevance-percent">{{ Math.round(file.relevance * 100) }}%</span>
+                                        <span class="relevance-percent">{{ file.relevance.toFixed(2) }}</span>
                                     </div>
                                 </div>
 
                                 <!-- 文件悬浮提示 -->
                                 <div class="file-hover-trigger" @click.stop>ℹ️
                                     <tooltip-card
-                                        title="📄 文件详情"
+                                        title="📄 File Details"
                                         :data="buildFileTooltipData(file)"
                                         position="left"
                                     ></tooltip-card>
@@ -788,19 +897,19 @@
 
                             <!-- 确认按钮 -->
                             <button
-                                v-if="message.status === 'files'"
+                                v-if="message.status === 'files' && message.answerType === 'qa'"
                                 class="confirm-button"
                                 @click="confirmFiles(message)"
                                 :disabled="!hasSelectedFiles(message)"
                             >
-                                确认选择
+                                Confirm Selection
                             </button>
                         </div>
 
                         <!-- 思考中 -->
                         <div v-if="message.status === 'thinking'" class="loading" style="margin-top: 15px;">
                             <div class="loading-spinner"></div>
-                            <span>正在思考...</span>
+                            <span>Thinking...</span>
                         </div>
 
                         <!-- AI回答 -->
@@ -808,7 +917,8 @@
                             <div class="ai-answer-content">
                                 <answer-with-sources
                                     :markdown="message.answer"
-                                    :sources="message.answerSources">
+                                    :sources="message.answerSources"
+                                    :cached-files="cachedFiles">
                                 </answer-with-sources>
                             </div>
                         </div>
@@ -828,7 +938,7 @@
             <div class="input-wrapper">
                 <textarea
                     v-model="userInput"
-                    placeholder="请输入您的问题..."
+                    placeholder="Enter your question..."
                     rows="2"
                     @keydown.enter.exact.prevent="sendMessage"
                     @keydown.shift.enter="handleShiftEnter"
@@ -839,23 +949,19 @@
                     @click="sendMessage"
                     :disabled="!userInput.trim() || isProcessing"
                 >
-                    {{ isProcessing ? '发送中...' : '发送' }}
+                    {{ isProcessing ? 'Sending...' : 'Send' }}
                 </button>
             </div>
 
             <div class="action-buttons">
-                <button
-                    class="action-button terminate"
-                    @click="terminateTask"
-                    :disabled="!isProcessing"
-                >
-                    🛑 终止任务
-                </button>
                 <button class="action-button" @click="exportToExcel">
-                    📊 导出 Excel
+                    📊 Export Excel
                 </button>
-                <button class="action-button" @click="test1">
-                    📊 测试1
+                <button class="action-button" @click="startCrawler">
+                    🕷️ Start Crawler
+                </button>
+                <button class="action-button" @click="stopCrawler">
+                    🛑 Stop Crawler
                 </button>
             </div>
         </div>
@@ -1077,68 +1183,35 @@
                     >
                     <div class="tooltip-header">{{ title }}</div>
                     <div class="tooltip-content">
-                        <!-- 通用文本字段 -->
+                        <!-- title -->
                         <div v-if="data.text" class="tooltip-item">
+                            <div class="tooltip-label">title</div>
                             <div class="tooltip-value">{{ data.text }}</div>
                         </div>
 
-                        <!-- 来源/引用 -->
-                        <div v-if="data.source" class="tooltip-item">
-                            <div class="tooltip-label">引用文献</div>
-                            <div class="tooltip-value">{{ data.source }}</div>
-                        </div>
-
-                        <!-- 描述 -->
+                        <!-- summary -->
                         <div v-if="data.description" class="tooltip-item">
-                            <div class="tooltip-label">描述</div>
+                            <div class="tooltip-label">summary</div>
                             <div class="tooltip-value">{{ data.description }}</div>
                         </div>
 
-                        <!-- 统计数据 -->
-                        <div v-if="data.stats && data.stats.length > 0" class="tooltip-item">
-                            <div class="tooltip-label">{{ data.statsLabel || '统计信息' }}</div>
-                            <div class="tooltip-stats">
-                                <div v-for="(stat, idx) in data.stats" :key="idx" class="stat-item">
-                                    <div class="stat-value">{{ stat.value }}</div>
-                                    <div class="stat-label">{{ stat.label }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 列表数据 -->
-                        <div v-if="data.list && data.list.length > 0" class="tooltip-item">
-                            <div class="tooltip-label">{{ data.listLabel || '详细信息' }}</div>
-                            <ul class="tooltip-list">
-                                <li v-for="(item, idx) in data.list" :key="idx">{{ item }}</li>
-                            </ul>
-                        </div>
-
-                        <!-- 标签 -->
+                        <!-- keyword -->
                         <div v-if="data.tags && data.tags.length > 0" class="tooltip-item">
-                            <div class="tooltip-label">{{ data.tagsLabel || '标签' }}</div>
+                            <div class="tooltip-label">{{ data.tagsLabel || 'keyword' }}</div>
                             <div class="tooltip-tags">
                                 <span v-for="(tag, idx) in data.tags" :key="idx" class="tooltip-tag">{{ tag }}</span>
                             </div>
                         </div>
 
-                        <!-- 元数据 -->
-                        <div v-if="data.metadata" class="tooltip-item">
-                            <div class="tooltip-label">{{ data.metadataLabel || '元数据' }}</div>
-                            <div class="tooltip-value">{{ data.metadata }}</div>
-                        </div>
-
-                        <!-- 图表 -->
-                        <div v-if="data.chartData" class="tooltip-item">
-                            <div class="tooltip-label">{{ data.chartLabel || '数据可视化' }}</div>
-                            <div class="tooltip-chart">
-                                <canvas :id="chartId"></canvas>
+                        <!-- relevance -->
+                        <div v-if="data.relevance !== undefined" class="tooltip-item">
+                            <div class="tooltip-label">relevance</div>
+                            <div class="tooltip-relevance">
+                                <div class="relevance-bar" style="flex: 1; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                                    <div class="relevance-fill" :style="{ width: data.barPercent + '%', height: '100%', background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)' }"></div>
+                                </div>
+                                <span style="margin-left: 8px; font-weight: 500;">{{ data.relevance.toFixed(2) }}</span>
                             </div>
-                        </div>
-
-                        <!-- 图片(备用,如果没有chartData但有image) -->
-                        <div v-else-if="data.image" class="tooltip-item">
-                            <div class="tooltip-label">{{ data.imageLabel || '相关图表' }}</div>
-                            <img :src="data.image" class="tooltip-image" :alt="data.imageLabel || '图片'">
                         </div>
                     </div>
                     </div>
@@ -1155,6 +1228,10 @@
                     required: true
                 },
                 sources: {
+                    type: Array,
+                    default: () => []
+                },
+                cachedFiles: {
                     type: Array,
                     default: () => []
                 }
@@ -1176,11 +1253,17 @@
                 parseParagraphs() {
                     if (!this.markdown) {
                         this.paragraphs = [];
+                        this.fileRefs = [];
                         return;
                     }
 
                     // 使用marked渲染Markdown
                     let html = marked.parse(this.markdown);
+
+                    // 替换[id]引用为文件悬浮按钮占位符
+                    const result = this.replaceFileReferences(html);
+                    html = result.html;
+                    this.fileRefs = result.fileRefs;
 
                     // 将HTML分段
                     const segments = html.split('</h1>').join('</h1>|||SPLIT|||')
@@ -1198,36 +1281,80 @@
                         source: this.sources && this.sources[index] ? this.sources[index] : null
                     }));
                 },
+
+                // 替换[id]引用为文件悬浮按钮占位符
+                replaceFileReferences(html) {
+                    const fileRefs = [];
+                    if (!this.cachedFiles || this.cachedFiles.length === 0) {
+                        return { html, fileRefs };
+                    }
+
+                    let refIndex = 0;
+                    // 匹配所有[...]格式的引用
+                    const newHtml = html.replace(/\[([^\]]+)\]/g, (match, content) => {
+                        // 检查content是否是缓存文件的id
+                        const file = this.cachedFiles.find(f => String(f.id) === String(content));
+                        if (file) {
+                            // 存储文件引用信息
+                            fileRefs.push({
+                                index: refIndex,
+                                file: file
+                            });
+                            // 生成占位符
+                            const placeholder = `<span class="file-ref-placeholder" data-ref-index="${refIndex}"></span>`;
+                            refIndex++;
+                            return placeholder;
+                        }
+                        // 不是文件id，保持原样
+                        return match;
+                    });
+
+                    return { html: newHtml, fileRefs };
+                },
+
+                // 构建文件tooltip数据(与文件选择框一致)
+                buildFileRefTooltipData(file) {
+                    return {
+                        text: file.name,
+                        description: file.description,
+                        tags: file.keywords,
+                        tagsLabel: 'keywords',
+                        list: file.summary,
+                        listLabel: 'summary',
+                        relevance: file.relevance,
+                        barPercent: file.barPercent
+                    };
+                },
                 buildSourceTooltipData(source) {
                     if (!source) return null;
 
                     const data = {
                         source: source.source,
                         tags: source.tags,
-                        tagsLabel: '标签',
+                        tagsLabel: 'tags',
                         list: source.quotes,
-                        listLabel: '关键引用',
+                        listLabel: 'key quotes',
                         url: source.url,
-                        urlLabel: '详细信息',
-                        urlText: '查看原文 →'
+                        urlLabel: 'details',
+                        urlText: 'View original →'
                     };
 
                     // 构建统计数据
                     if (source.confidence || source.citations) {
                         data.stats = [];
-                        data.statsLabel = '可信度';
+                        data.statsLabel = 'reliability';
 
                         if (source.confidence) {
                             data.stats.push({
                                 value: Math.round(source.confidence * 100) + '%',
-                                label: '置信度'
+                                label: 'confidence'
                             });
                         }
 
                         if (source.citations) {
                             data.stats.push({
                                 value: source.citations,
-                                label: '引用次数'
+                                label: 'citations'
                             });
                         }
                     }
@@ -1236,10 +1363,10 @@
                     if (source.citationTrend) {
                         data.chartData = {
                             type: 'line',
-                            title: '引用趋势',
+                            title: 'Citation Trend',
                             labels: source.citationTrend.years,
                             datasets: [{
-                                label: '年度引用次数',
+                                label: 'Annual Citations',
                                 data: source.citationTrend.counts,
                                 borderColor: 'rgb(102, 126, 234)',
                                 backgroundColor: 'rgba(102, 126, 234, 0.1)',
@@ -1247,7 +1374,7 @@
                                 fill: true
                             }]
                         };
-                        data.chartLabel = '引用趋势分析';
+                        data.chartLabel = 'Citation Trend Analysis';
                     }
 
                     return data;
@@ -1256,14 +1383,169 @@
             components: {
                 'tooltip-card': TooltipCard
             },
+            methods: {
+                parseParagraphs() {
+                    if (!this.markdown) {
+                        this.paragraphs = [];
+                        return;
+                    }
+
+                    // 使用marked渲染Markdown
+                    let html = marked.parse(this.markdown);
+
+                    // 将HTML分段
+                    const segments = html.split('</h1>').join('</h1>|||SPLIT|||')
+                                        .split('</h2>').join('</h2>|||SPLIT|||')
+                                        .split('</h3>').join('</h3>|||SPLIT|||')
+                                        .split('</p>').join('</p>|||SPLIT|||')
+                                        .split('</ul>').join('</ul>|||SPLIT|||')
+                                        .split('</ol>').join('</ol>|||SPLIT|||')
+                                        .split('|||SPLIT|||')
+                                        .filter(p => p.trim());
+
+                    // 为每个段落关联来源数据和文件引用
+                    this.paragraphs = segments.map((segmentHtml, index) => {
+                        // 提取该段落中的文件引用
+                        const fileRefs = this.extractFileReferences(segmentHtml);
+                        // 替换[id]为显示文本
+                        const processedHtml = this.replaceFileReferencesInHtml(segmentHtml);
+
+                        return {
+                            html: processedHtml,
+                            source: this.sources && this.sources[index] ? this.sources[index] : null,
+                            fileRefs: fileRefs
+                        };
+                    });
+                },
+
+                // 提取段落中的文件引用
+                extractFileReferences(html) {
+                    const fileRefs = [];
+                    if (!this.cachedFiles || this.cachedFiles.length === 0) {
+                        return fileRefs;
+                    }
+
+                    const regex = /\[([^\]]+)\]/g;
+                    let match;
+                    while ((match = regex.exec(html)) !== null) {
+                        const content = match[1];
+                        const file = this.cachedFiles.find(f => String(f.id) === String(content));
+                        if (file) {
+                            fileRefs.push(file);
+                        }
+                    }
+                    return fileRefs;
+                },
+
+                // 替换HTML中的[id]为带tooltip的文件引用按钮
+                replaceFileReferencesInHtml(html) {
+                    if (!this.cachedFiles || this.cachedFiles.length === 0) {
+                        return html;
+                    }
+
+                    return html.replace(/\[([^\]]+)\]/g, (match, content) => {
+                        const file = this.cachedFiles.find(f => String(f.id) === String(content));
+                        if (file) {
+                            // 替换为带tooltip的文件引用按钮
+                            const displayName = file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name;
+                            const keywords = file.keywords ? file.keywords.join(', ') : '';
+                            const summary = file.description || '';
+                            const relevance = file.relevance ? file.relevance.toFixed(2) : '';
+                            const barPercent = file.barPercent || 0;
+
+                            return `<span class="file-ref-inline-wrapper">
+                                <span class="file-ref-inline">📄 ${displayName}</span>
+                                <span class="file-ref-tooltip">
+                                    <span class="tooltip-header-inline">📄 File Details</span>
+                                    <span class="tooltip-body-inline">
+                                        <span class="tooltip-row-inline"><span class="tooltip-label-inline">title</span><span class="tooltip-value-inline">${file.name}</span></span>
+                                        <span class="tooltip-row-inline"><span class="tooltip-label-inline">summary</span><span class="tooltip-value-inline">${summary}</span></span>
+                                        <span class="tooltip-row-inline"><span class="tooltip-label-inline">keywords</span><span class="tooltip-value-inline">${keywords}</span></span>
+                                        <span class="tooltip-row-inline"><span class="tooltip-label-inline">relevance</span><span class="tooltip-value-inline"><span class="mini-bar"><span class="mini-bar-fill" style="width: ${barPercent}%"></span></span> ${relevance}</span></span>
+                                    </span>
+                                </span>
+                            </span>`;
+                        }
+                        return match;
+                    });
+                },
+
+                // 构建文件tooltip数据(与文件选择框一致)
+                buildFileRefTooltipData(file) {
+                    return {
+                        text: file.name,
+                        description: file.description,
+                        tags: file.keywords,
+                        tagsLabel: 'keywords',
+                        list: file.summary,
+                        listLabel: 'summary',
+                        relevance: file.relevance,
+                        barPercent: file.barPercent
+                    };
+                },
+                buildSourceTooltipData(source) {
+                    if (!source) return null;
+
+                    const data = {
+                        source: source.source,
+                        tags: source.tags,
+                        tagsLabel: 'tags',
+                        list: source.quotes,
+                        listLabel: 'key quotes',
+                        url: source.url,
+                        urlLabel: 'details',
+                        urlText: 'View original →'
+                    };
+
+                    // 构建统计数据
+                    if (source.confidence || source.citations) {
+                        data.stats = [];
+                        data.statsLabel = 'reliability';
+
+                        if (source.confidence) {
+                            data.stats.push({
+                                value: Math.round(source.confidence * 100) + '%',
+                                label: 'confidence'
+                            });
+                        }
+
+                        if (source.citations) {
+                            data.stats.push({
+                                value: source.citations,
+                                label: 'citations'
+                            });
+                        }
+                    }
+
+                    // 构建图表数据(示例:引用趋势)
+                    if (source.citationTrend) {
+                        data.chartData = {
+                            type: 'line',
+                            title: 'Citation Trend',
+                            labels: source.citationTrend.years,
+                            datasets: [{
+                                label: 'Annual Citations',
+                                data: source.citationTrend.counts,
+                                borderColor: 'rgb(102, 126, 234)',
+                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        };
+                        data.chartLabel = 'Citation Trend Analysis';
+                    }
+
+                    return data;
+                }
+            },
             template: `
                 <div>
                     <div v-for="(para, index) in paragraphs" :key="index" class="paragraph-wrapper">
                         <div v-html="para.html"></div>
                         <span v-if="para.source" class="hover-tag">
-                            📚 来源
+                            📚 Source
                             <tooltip-card
-                                title="📚 数据来源"
+                                title="📚 Data Source"
                                 :data="buildSourceTooltipData(para.source)"
                                 position="right">
                             </tooltip-card>
@@ -1737,7 +2019,8 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                     userInput: '',         // 用户输入
                     isProcessing: false,   // 是否正在处理
                     currentMockIndex: 0,   // 当前使用的Mock数据索引
-                    currentTaskId: null    // 当前任务ID(用于终止)
+                    currentTaskId: null,   // 当前任务ID(用于终止)
+                    cachedFiles: []        // 缓存的文件列表(每次setDemand刷新)
                 };
             },
 
@@ -1775,22 +2058,71 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                         this.scrollToBottom();
                     });
 
-                        // 模拟获取文件列表
-                    await this.sleep(CONFIG.MOCK_DELAY);
+                    try {
+                        // 调用后端API获取相关文件
+                        const result = await this.apiSetDemand(text);
 
-                    if (!this.isProcessing) return; // 已终止
+                        if (!this.isProcessing) return; // 已终止
 
-                    // 获取Mock数据
-                    const mockData = this.getMockData(text);
-                    aiMessage.files = mockData.files.map(f => ({ ...f, selected: false }));
-                    aiMessage.status = 'files';
-                    aiMessage.answer = mockData.answer;
-                    aiMessage.answerSources = mockData.answerSources;
-                    this.isProcessing = false;  // 重置处理状态
+                        // 转换后端返回的数据格式为前端显示格式
+                        // 后端返回: {answer_type, details: [{file_id, title, summary, content, keywords, author, text_length, file_name, similarity}]}
+                        // 计算相关度的最大最小值
+                        const similarities = result.details.map(item => item.similarity || 0);
+                        const maxSim = Math.max(...similarities);
+                        const minSim = Math.min(...similarities);
+                        const range = maxSim - minSim || 1; // 避免除以0
+
+                        const files = result.details.map((item, index) => {
+                            const sim = item.similarity || 0;
+                            // 将相关度映射到 20%-100% 的柱状图宽度
+                            const barPercent = 20 + ((sim - minSim) / range) * 80;
+
+                            return {
+                                id: item.file_id,
+                                name: item.title || item.file_name || `File ${index + 1}`,
+                                type: this.getFileType(item.file_name),
+                                relevance: sim,  // 直接使用原始分数
+                                barPercent: barPercent,  // 柱状图百分比
+                                matchScore: sim ? sim.toFixed(2) : 0,
+                                description: item.summary || 'no summary',
+                                keywords: item.keywords || [],
+                                summary: item.summary ? [item.summary.substring(0, 100) + '...'] : [],
+                                author: item.author || 'Unknown',
+                                selected: false
+                            };
+                        });
+
+                        // 按相关度降序排序
+                        files.sort((a, b) => b.relevance - a.relevance);
+
+                        // 缓存文件列表(每次setDemand刷新)
+                        this.cachedFiles = files;
+
+                        aiMessage.files = files;
+                        aiMessage.status = 'files';
+                        aiMessage.answerType = result.answer_type;
+
+                    } catch (error) {
+                        console.error('获取文件列表失败:', error);
+                        aiMessage.status = 'done';
+                        aiMessage.answer = `**Request failed**: ${error.message}`;
+                    }
+
+                    this.isProcessing = false;
 
                     this.$nextTick(() => {
                         this.scrollToBottom();
                     });
+                },
+
+                // 根据文件名获取文件类型
+                getFileType(fileName) {
+                    if (!fileName) return 'pdf';
+                    const ext = fileName.split('.').pop().toLowerCase();
+                    if (['pdf'].includes(ext)) return 'pdf';
+                    if (['doc', 'docx'].includes(ext)) return 'docx';
+                    if (['txt'].includes(ext)) return 'txt';
+                    return 'pdf';
                 },
 
                 // 切换文件选中状态
@@ -1807,6 +2139,9 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                     const selectedFiles = message.files.filter(f => f.selected);
                     if (selectedFiles.length === 0) return;
 
+                    // 获取选中文件的ID列表
+                    const fileIds = selectedFiles.map(f => f.id);
+
                     // 设置处理状态
                     this.isProcessing = true;
 
@@ -1816,13 +2151,22 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                         this.scrollToBottom();
                     });
 
-                    // 模拟思考过程
-                    await this.sleep(CONFIG.MOCK_DELAY);
+                    try {
+                        // 调用LLM接口获取回复
+                        const reply = await this.apiGetLLMReply(fileIds);
 
-                    if (!this.isProcessing) return; // 已终止
+                        if (!this.isProcessing) return; // 已终止
 
-                    // 显示答案
-                    message.status = 'done';
+                        // 显示答案
+                        message.status = 'done';
+                        message.answer = reply;
+
+                    } catch (error) {
+                        console.error('获取LLM回复失败:', error);
+                        message.status = 'done';
+                        message.answer = `**Failed to get reply**: ${error.message}`;
+                    }
+
                     this.isProcessing = false;
 
                     this.$nextTick(() => {
@@ -1830,23 +2174,29 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                     });
                 },
 
-                // 终止任务
-                terminateTask() {
-                    this.isProcessing = false;
-
-                    // 找到最后一条AI消息
-                    for (let i = this.messages.length - 1; i >= 0; i--) {
-                        if (this.messages[i].type === 'ai' && this.messages[i].status !== 'done') {
-                            this.messages[i].status = 'terminated';
-                            this.messages[i].answer = '**任务已被终止**';
-                            break;
-                        }
-                    }
-                },
-
                 // 导出Excel
                 async exportToExcel() {
                     await this.apiDownloadSummary();
+                },
+
+                // 开始爬虫
+                async startCrawler() {
+                    try {
+                        const result = await this.apiCrawlingTask('start');
+                        alert(result);
+                    } catch (error) {
+                        alert('Failed to start crawler: ' + error.message);
+                    }
+                },
+
+                // 停止爬虫
+                async stopCrawler() {
+                    try {
+                        const result = await this.apiStopCrawler();
+                        alert(result);
+                    } catch (error) {
+                        alert('Failed to stop crawler: ' + error.message);
+                    }
                 },
 
                 // ========== API 交互方法 ==========
@@ -1876,7 +2226,7 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                         if (result.status === 'success') {
                             return result.message; // {answer_type, details}
                         } else {
-                            throw new Error(result.message || '请求失败');
+                            throw new Error(result.message || 'Request failed');
                         }
                     } catch (error) {
                         console.error('apiSetDemand 失败:', error);
@@ -1909,7 +2259,7 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                         if (result.status === 'success') {
                             return result.message; // LLM回复内容
                         } else {
-                            throw new Error(result.message || '获取回复失败');
+                            throw new Error(result.message || 'Failed to get reply');
                         }
                     } catch (error) {
                         console.error('apiGetLLMReply 失败:', error);
@@ -1940,7 +2290,7 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                         if (result.status === 'success') {
                             return result.message;
                         } else {
-                            throw new Error(result.message || '爬虫操作失败');
+                            throw new Error(result.message || 'Crawler operation failed');
                         }
                     } catch (error) {
                         console.error('apiCrawlingTask 失败:', error);
@@ -2013,39 +2363,31 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                         text: file.name,
                         description: file.description,
                         tags: file.keywords,
-                        tagsLabel: '关键词',
+                        tagsLabel: 'keywords',
                         list: file.summary,
-                        listLabel: '内容摘要'
+                        listLabel: 'summary',
+                        relevance: file.relevance,
+                        barPercent: file.barPercent
                     };
 
                     // 构建统计数据
                     if (file.relevance || file.matchScore) {
                         data.stats = [];
-                        data.statsLabel = '相关度分析';
+                        data.statsLabel = 'Relevance Analysis';
 
                         if (file.relevance) {
                             data.stats.push({
                                 value: Math.round(file.relevance * 100) + '%',
-                                label: '匹配度'
+                                label: 'match rate'
                             });
                         }
 
                         if (file.matchScore) {
                             data.stats.push({
                                 value: file.matchScore,
-                                label: '匹配分数'
+                                label: 'match score'
                             });
                         }
-                    }
-
-                    // 构建元数据
-                    if (file.author || file.year || file.pages) {
-                        const parts = [];
-                        if (file.author) parts.push(`作者: ${file.author}`);
-                        if (file.year) parts.push(`年份: ${file.year}`);
-                        if (file.pages) parts.push(`页数: ${file.pages}`);
-                        data.metadata = parts.join(' | ');
-                        data.metadataLabel = '文档信息';
                     }
 
                     return data;
@@ -2103,6 +2445,119 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
                 'answer-with-sources': AnswerWithSources
             }
         }).mount('#app');
+
+        // 文件引用tooltip动态定位
+        (function() {
+            let hideTimeout = null;
+            let currentTooltip = null;
+
+            function showTooltip(trigger) {
+                const wrapper = trigger.closest('.file-ref-inline-wrapper');
+                if (!wrapper) return;
+
+                const tooltip = wrapper.querySelector('.file-ref-tooltip');
+                if (!tooltip) return;
+
+                // 清除隐藏定时器
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                    hideTimeout = null;
+                }
+
+                // 隐藏之前的tooltip
+                if (currentTooltip && currentTooltip !== tooltip) {
+                    currentTooltip.classList.remove('visible');
+                }
+
+                currentTooltip = tooltip;
+
+                // 显示tooltip以获取尺寸
+                tooltip.classList.add('visible');
+
+                const triggerRect = trigger.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const padding = 10;
+
+                let top, left;
+
+                // 计算垂直位置 - 优先显示在上方
+                if (triggerRect.top > tooltipRect.height + padding) {
+                    top = triggerRect.top - tooltipRect.height - 8;
+                } else {
+                    // 上方空间不足，显示在下方
+                    top = triggerRect.bottom + 8;
+                }
+
+                // 计算水平位置 - 居中对齐
+                left = triggerRect.left + (triggerRect.width / 2) - (tooltipRect.width / 2);
+
+                // 边界检查 - 左边
+                if (left < padding) {
+                    left = padding;
+                }
+
+                // 边界检查 - 右边
+                if (left + tooltipRect.width > window.innerWidth - padding) {
+                    left = window.innerWidth - tooltipRect.width - padding;
+                }
+
+                // 边界检查 - 底部
+                if (top + tooltipRect.height > window.innerHeight - padding) {
+                    top = window.innerHeight - tooltipRect.height - padding;
+                }
+
+                // 边界检查 - 顶部
+                if (top < padding) {
+                    top = padding;
+                }
+
+                tooltip.style.top = top + 'px';
+                tooltip.style.left = left + 'px';
+            }
+
+            function hideTooltip() {
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                }
+                hideTimeout = setTimeout(function() {
+                    if (currentTooltip) {
+                        currentTooltip.classList.remove('visible');
+                        currentTooltip = null;
+                    }
+                }, 100); // 延迟100ms隐藏，给鼠标移动到tooltip的时间
+            }
+
+            function cancelHide() {
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                    hideTimeout = null;
+                }
+            }
+
+            document.addEventListener('mouseenter', function(e) {
+                if (!e.target || !e.target.classList) return;
+
+                if (e.target.classList.contains('file-ref-inline')) {
+                    showTooltip(e.target);
+                }
+                // 鼠标进入tooltip时取消隐藏
+                if (e.target.classList.contains('file-ref-tooltip') || (e.target.closest && e.target.closest('.file-ref-tooltip'))) {
+                    cancelHide();
+                }
+            }, true);
+
+            document.addEventListener('mouseleave', function(e) {
+                if (!e.target || !e.target.classList) return;
+
+                if (e.target.classList.contains('file-ref-inline')) {
+                    hideTooltip();
+                }
+                // 鼠标离开tooltip时隐藏
+                if (e.target.classList.contains('file-ref-tooltip')) {
+                    hideTooltip();
+                }
+            }, true);
+        })();
     </script>
 </body>
 </html>
