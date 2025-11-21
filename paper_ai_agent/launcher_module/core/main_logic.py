@@ -9,6 +9,7 @@ from flask import Flask, Blueprint
 from flask_cors import CORS
 from log_module import *
 from global_module import AUTO_CRAWL
+import threading
 
 
 def register_blueprints(_flask_app: Flask):
@@ -84,4 +85,9 @@ def setup_flask_app(_flask_app: Flask):
     _flask_app.run(
         debug=True, host=HOST, port=PORT, load_dotenv=True, use_reloader=False
     )
+    current_thread = threading.current_thread()  # 获取当前线程（通常是主线程）
+    _thread_list: list[threading.Thread] = threading.enumerate()
+    for t in _thread_list:
+        if t is not current_thread:
+            t.join(timeout=5.0)
     logger.debug("主程序退出程序...")

@@ -1,10 +1,8 @@
 """数据库核心模块"""
 
 from sqlalchemy.orm import sessionmaker, Session
-
-
-_is_initialized = False
-"""数据库初始化标志位"""
+from global_module import DATABASE_PATH
+from log_module import logger
 
 
 def _initialize_database() -> Session:
@@ -21,9 +19,6 @@ def _initialize_database() -> Session:
         create_engine,
         MetaData,
     )
-
-    from global_module import DATABASE_PATH
-    from log_module import logger
 
     _engine: Engine = create_engine(
         url=f"sqlite:///{DATABASE_PATH}",
@@ -77,5 +72,7 @@ def _initialize_database() -> Session:
     return session
 
 
+_is_initialized = False
+"""数据库初始化标志位"""
 session = _initialize_database()
 """数据库会话实例"""
