@@ -2,13 +2,12 @@
 
 from datetime import date, datetime
 from os import PathLike
+from pathlib import Path
 import sys
 from typing import Any
 import csv
 import json
 import pandas as pd
-from sympy import im
-from zipp import Path
 from .models import File
 from .core import session
 from global_module import SUMMARY_FILE
@@ -25,7 +24,9 @@ def query_files_by_attributes(attributes: dict[str, Any]) -> list[dict[str, Any]
         files (list[dict[str, Any]]): 符合条件的文件记录列表
     """
     try:
-        logger.debug(f"正在根据属性查询文件记录，查询条件: {attributes}")
+        logger.debug(
+            f"{sys._getframe().f_code.co_name}接口正在根据属性查询文件记录，查询条件: {attributes}"
+        )
 
         query = session.query(File)
         for attr, value in attributes.items():
@@ -40,14 +41,14 @@ def query_files_by_attributes(attributes: dict[str, Any]) -> list[dict[str, Any]
                     query = query.filter(getattr(File, attr_name) == value)
         files_list: list[dict[str, Any]] = [f.to_dict() for f in query.all()]
         if not files_list:
-            logger.debug("✖ 未找到符合条件的记录")
+            logger.debug("✖ 数据库未找到符合条件的记录")
             return []
         else:
-            logger.debug(f"✔ 查询成功，找到 {len(files_list)} 条记录")
+            logger.debug(f"✔ 数据库查询成功，找到 {len(files_list)} 条记录")
             return files_list
     except Exception as e:
         # 处理异常情况，记录日志等
-        logger.debug(f"✖ 查询文件记录失败: {e}")
+        logger.debug(f"✖ 数据库查询文件记录失败: {e}")
         return []
 
 
