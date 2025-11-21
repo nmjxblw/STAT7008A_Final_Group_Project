@@ -41,14 +41,14 @@ def query_files_by_attributes(attributes: dict[str, Any]) -> list[dict[str, Any]
                     query = query.filter(getattr(File, attr_name) == value)
         files_list: list[dict[str, Any]] = [f.to_dict() for f in query.all()]
         if not files_list:
-            logger.debug("✖ 数据库未找到符合条件的记录")
+            logger.debug("✘ 数据库未找到符合条件的记录")
             return []
         else:
             logger.debug(f"✔ 数据库查询成功，找到 {len(files_list)} 条记录")
             return files_list
     except Exception as e:
         # 处理异常情况，记录日志等
-        logger.debug(f"✖ 数据库查询文件记录失败: {e}")
+        logger.debug(f"✘ 数据库查询文件记录失败: {e}")
         return []
 
 
@@ -87,7 +87,7 @@ def add_or_update_file_to_database(file_data: object | dict) -> bool:
         return True
     except Exception as e:
         # 处理异常情况，记录日志等
-        logger.debug(f"✖ 添加或更新文件记录失败: {e}")
+        logger.debug(f"✘ 添加或更新文件记录失败: {e}")
         return False
 
 
@@ -107,7 +107,7 @@ def get_all() -> list[dict[str, Any]]:
         return result
     except Exception as e:
         # 处理异常情况，记录日志等
-        logger.debug(f"✖ 获取所有文件记录失败: {e}")
+        logger.debug(f"✘ 获取所有文件记录失败: {e}")
         return []
 
 
@@ -123,7 +123,7 @@ def export_files_to_csv(csv_path: PathLike | str = SUMMARY_FILE) -> str | PathLi
 
         files_list: list[File] = session.query(File).all()
         if not files_list:
-            logger.debug("✖ 数据库中没有文件记录可导出")
+            logger.debug("✘ 数据库中没有文件记录可导出")
             return ""
 
         with open(csv_path, mode="w", newline="", encoding="utf-8") as csv_file:
@@ -136,7 +136,7 @@ def export_files_to_csv(csv_path: PathLike | str = SUMMARY_FILE) -> str | PathLi
         return csv_path
     except Exception as e:
         # 处理异常情况，记录日志等
-        logger.debug(f"✖ 导出文件记录为CSV失败: {e}")
+        logger.debug(f"✘ 导出文件记录为CSV失败: {e}")
         return ""
 
 
@@ -161,12 +161,12 @@ def import_csv_to_database(csv_path: str) -> bool:
             success = add_or_update_file_to_database(file_dict)
             if not success:
                 logger.debug(
-                    f"✖ 导入文件记录失败，文件ID为{{{file_dict.get('file_id', '未知')}}}"
+                    f"✘ 导入文件记录失败，文件ID为{{{file_dict.get('file_id', '未知')}}}"
                 )
                 return False
         logger.debug(f"✔ 成功从CSV文件导入文件记录，路径为: {csv_path}")
         return True
     except Exception as e:
         # 处理异常情况，记录日志等
-        logger.debug(f"✖ 从CSV文件导入文件记录失败: {e}")
+        logger.debug(f"✘ 从CSV文件导入文件记录失败: {e}")
         return False

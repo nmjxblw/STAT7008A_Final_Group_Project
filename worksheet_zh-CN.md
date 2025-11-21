@@ -159,6 +159,7 @@ class MyClass:
 
 ```mermaid
 graph TD
+  global_module[全局配置模块<br>1.dotenv加载环境变量<br>2.Global Object将json转化为可访问实例对象]
   launcher_module[启动器模块<br>1.上位机<br>2.网页后台]
   frontend_module[前端网页模块]
   clawer_module[爬虫模块<br>]-->|功能|clawer_api[1.提供爬虫类单例对象<br>]

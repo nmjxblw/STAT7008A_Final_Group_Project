@@ -27,21 +27,21 @@ def crawler_bp_setup_crawler_config():
     try:
         request_dict = request.get_json()
         if request_dict is None:
-            abort(400, description="✖ 请求数据无效")
+            abort(400, description="✘  请求数据无效")
         elif isinstance(request_dict, dict):
             config_data = request_dict.get("message")
         else:
-            abort(400, description="✖ 请求数据格式错误")
+            abort(400, description="✘  请求数据格式错误")
         if not isinstance(config_data, dict):
-            abort(400, description="✖ 请求数据格式错误")
+            abort(400, description="✘  请求数据格式错误")
         logger.debug(f"爬虫配置请求数据: {config_data}")
         _flag = update_crawler_config(**config_data)
         response_data = {"status": "success", "message": f"爬虫配置更新结果: {_flag}"}
         logger.debug(f"✔ 爬虫配置更新处理完成，结果: {_flag}")
         return jsonify(response_data)
     except Exception as e:
-        logger.debug(f"✖ 爬虫配置更新失败: {e}")
-        abort(500, description="✖ 设置爬虫配置失败")
+        logger.debug(f"✘  爬虫配置更新失败: {e}")
+        abort(500, description="✘  设置爬虫配置失败")
 
 
 @crawler_bp.route("/crawling_task", methods=["POST"])
@@ -51,7 +51,7 @@ def crawler_bp_crawling_task() -> Any:
     try:
         request_data: dict[str, Any] = request.get_json()
         if request_data is None:
-            abort(400, description="✖ 请求数据无效")
+            abort(400, description="✘  请求数据无效")
         logger.debug(f"爬虫任务请求数据: {request_data}")
         command: str = request_data.get("message", "start")
         command = command.lower()
@@ -71,7 +71,7 @@ def crawler_bp_crawling_task() -> Any:
 
         return jsonify(response_data)
     except Exception as e:
-        abort(500, description="✖ 启动爬虫任务失败")
+        abort(500, description="✘  启动爬虫任务失败")
         raise e
 
 
@@ -88,8 +88,8 @@ def crawler_bp_get_current_crawling_web() -> Any:
         logger.debug(f"✔ 获取当前爬虫网页成功: {current_web}")
         return jsonify(response_data)
     except Exception as e:
-        logger.debug(f"✖ 获取当前爬虫网页失败: {e}")
-        abort(500, description="✖ 获取当前爬虫网页失败")
+        logger.debug(f"✘  获取当前爬虫网页失败: {e}")
+        abort(500, description="✘  获取当前爬虫网页失败")
 
 
 @crawler_bp.route("/get_current_crawling_article", methods=["GET", "POST"])
@@ -105,8 +105,8 @@ def crawler_bp_get_current_crawling_article() -> Any:
         logger.debug("✔ 获取当前爬虫文章标题成功")
         return jsonify(response_data)
     except Exception as e:
-        logger.debug(f"✖ 获取当前爬虫文章标题失败: {e}")
-        abort(500, description="✖ 获取当前爬虫文章标题失败")
+        logger.debug(f"✘  获取当前爬虫文章标题失败: {e}")
+        abort(500, description="✘  获取当前爬虫文章标题失败")
 
 
 @crawler_bp.route("/get_visited_urls_count", methods=["GET", "POST"])
@@ -122,8 +122,8 @@ def crawler_bp_get_visited_urls_count() -> Any:
         logger.debug(f"✔ 获取已访问URL数量成功: {count}")
         return jsonify(response_data)
     except Exception as e:
-        logger.debug(f"✖ 获取已访问URL数量失败: {e}")
-        abort(500, description="✖ 获取已访问URL数量失败")
+        logger.debug(f"✘  获取已访问URL数量失败: {e}")
+        abort(500, description="✘  获取已访问URL数量失败")
 
 
 @crawler_bp.route("/get_block_list", methods=["GET", "POST"])
@@ -139,5 +139,5 @@ def crawler_bp_get_block_list() -> Any:
         logger.debug(f"✔ 获取屏蔽网址列表成功: {block_list}")
         return jsonify(response_data)
     except Exception as e:
-        logger.debug(f"✖ 获取屏蔽网址列表失败: {e}")
-        abort(500, description="✖ 获取屏蔽网址列表失败")
+        logger.debug(f"✘  获取屏蔽网址列表失败: {e}")
+        abort(500, description="✘  获取屏蔽网址列表失败")
