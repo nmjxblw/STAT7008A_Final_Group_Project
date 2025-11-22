@@ -10,7 +10,7 @@ from database_module import *
 from file_classifier_module.utils import get_retrieval_content
 from .utils import DemandType, query_files_by_attributes
 from log_module import logger
-
+import numpy as np
 
 class Generator(metaclass=SingletonMeta):
     """
@@ -56,19 +56,56 @@ class Generator(metaclass=SingletonMeta):
         else:
             demand = "file"
         logger.debug(f"识别需求类型: {demand}")
-        retrieval: dict[str, list[Any]] = get_retrieval_content(
-            self._current_demand_raw, k_articles=num_doc
-        )
-        _retrieval: list[tuple[Document, float]] = retrieval["most_similar_paragrapghs"]
-        file_set: dict[str, float] = {}
 
-        for doc, score in _retrieval:
+        retrieval: dict[str, list[Any]] = get_retrieval_content(
+            self._current_demand_raw,
+            k_segments=30,
+            k_articles=15,
+        )
+        segments_retrieval: list[tuple[Document, float]] = retrieval["most_similar_paragrapghs"]
+        articles_retrieval: list[dict[str, Any]] = retrieval["most_similar_paper"]
+
+        segment_set: dict[str, float] = {}
+        for doc, score in segments_retrieval:
             _id = doc.metadata.get("file_id")
             if _id is None:
                 continue
-            file_set[_id] = max(round(float(score), 2), file_set.get(_id, 0.0))
-        logger.debug(f"相关文件及相似度: {file_set}")
-        self._current_query_results = list(file_set.items())
+            segment_set[_id] = min(round(float(score), 2), segment_set.get(_id, 100.0))
+        #logger.debug(f'FAISS: {segment_set}')
+        segment_set = {key: round(1 / (1+np.exp(4*dist-5)), 2) for key, dist in segment_set.items()}
+        segment_set = list(segment_set.items())
+        #logger.debug(f'FAISS: {segment_set}')
+
+        article_set: dict[str, float] = {}
+        for result in articles_retrieval:
+            _id = result.get("file_id")
+            score = result.get("score")
+            if _id is None or score is None:
+                continue
+            article_set[_id] = max(round(float(score), 2), article_set.get(_id, 0.0))
+        #logger.debug(f'BM25: {article_set}')
+        article_set = {key: round(1 / (1+np.exp(3-score)), 2) for key, score in article_set.items()}
+        article_set = list(article_set.items())
+        #logger.debug(f'BM25: {article_set}')
+
+        candidates = dict()
+        threshold = 0.6
+        for key, sim in segment_set:
+            candidates[key] = sim + threshold
+        for key, sim in article_set:
+            if key in candidates:
+                candidates[key] *= sim + threshold
+            else:
+                candidates[key] = sim + threshold
+        for key in candidates:
+            candidates[key] = round(candidates.get(key, 0.0) / (threshold+1)**2, 2)
+        
+        candidates = list(candidates.items())
+        #logger.debug(f'candidates: {candidates}')
+        candidates = sorted(candidates, key=lambda x:x[1], reverse=True)[:num_doc]
+        #logger.debug(f'candidates: {candidates}')
+        
+        self._current_query_results = candidates
         return demand, self._current_query_results
 
     def stop_current_task(self) -> bool:
@@ -107,7 +144,9 @@ class Generator(metaclass=SingletonMeta):
             return "ERROR: QA without api key."
 
         self._prompt = self._build_llm_prompt(
-            query=self._current_demand_raw, files=reference, use_content=False
+            query=self._current_demand_raw,
+            files=reference,
+            use_content=False,
         )
 
         try:
@@ -231,10 +270,9 @@ class Generator(metaclass=SingletonMeta):
         for file_id in files:
             try:
                 file = query_files_by_attributes({"file_id": file_id})[0]
+                content = file["summary"]
                 if use_content:
-                    content = file["content"]
-                else:
-                    content = file["summary"]
+                    content += file["content"]
                 reference.append(f"[{file['file_id']}]\n{content}\n")
             except:
                 continue
@@ -245,10 +283,9 @@ You should follow the ANSWERING RULES to answer the user's question.
 
 [ANSWERING RULES]
 1. You can ONLY use the information in the following DOCUMENTS.
-2. Do NOT invent information that is not in the documents.
-3. Each document starts with its DOCUMENT_ID contained in square brackets.
-4. When you cite a document, add its DOCUMENT_ID in square brackets at the end of the sentence, e.g. [DOCUMENT_ID].
-5. If multiple documents mention the same thing, you can cite multiple DOCUMENT_ID, e.g. [DOCUMENT_ID_1][DOCUMENT_ID_2].
+2. Each document starts with its DOCUMENT_ID contained in square brackets.
+3. When you cite a document, add its DOCUMENT_ID in square brackets at the end of the sentence, e.g. [DOCUMENT_ID].
+4. If multiple documents mention the same thing, you can cite multiple DOCUMENT_ID, e.g. [DOCUMENT_ID_1][DOCUMENT_ID_2].
 
 [DOCUMENTS]
 {context}
