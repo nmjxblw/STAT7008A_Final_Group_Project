@@ -8,6 +8,8 @@ from global_module import (
 )  # 导入全局变量模块
 from log_module import *  # 导入全局日志模块
 import tray_module  # 导入托盘模块以确保托盘图标被创建
+import database_module  # 导入数据库模块以确保数据库初始化
+import file_classifier_module
 
 
 def create_app(

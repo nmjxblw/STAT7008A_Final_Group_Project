@@ -23,6 +23,7 @@
     stop_queue_worker()
 """
 
+import atexit
 from os import PathLike
 import queue
 import threading
@@ -41,11 +42,14 @@ class TaskQueueManager(metaclass=SingletonMeta):
         self._task_queue: queue.Queue = queue.Queue()
         self._worker_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
-        self._pause_event = threading.Event()  # 暂停事件：set()表示暂停，clear()表示运行
+        self._pause_event = (
+            threading.Event()
+        )  # 暂停事件：set()表示暂停，clear()表示运行
         self._pause_event.set()  # 初始状态为运行（clear表示运行）
         self._is_running = False
         self._is_paused = False
         self._lock = threading.Lock()
+        self._exit_hook_registered = False
 
         # 统计信息
         self._total_tasks = 0
@@ -54,6 +58,10 @@ class TaskQueueManager(metaclass=SingletonMeta):
         self._current_task: Optional[str] = None
 
         logger.debug("TaskQueueManager单例已创建")
+
+        if not self._exit_hook_registered:
+            atexit.register(self._on_process_exit)
+            self._exit_hook_registered = True
 
     def start_worker(self):
         """启动后台工作线程"""
@@ -66,16 +74,25 @@ class TaskQueueManager(metaclass=SingletonMeta):
             self._worker_thread = threading.Thread(
                 target=self._worker_loop,
                 name="FileClassifierWorker",
-                daemon=False,  # 不使用daemon，确保任务完成
+                daemon=True,  # 使用daemon，确保主程序退出时线程自动结束
             )
             self._worker_thread.start()
             self._is_running = True
             logger.info("文档归类任务队列工作线程已启动")
-    
+
+    def _on_process_exit(self):
+        """主程序退出时自动停止后台线程"""
+        try:
+            if self._is_running:
+                logger.info("检测到主程序退出，自动停止文档归类任务队列")
+                self.stop_worker()
+        except Exception as exc:
+            logger.error(f"退出清理过程中停止任务队列失败：{exc}")
+
     def pause_worker(self):
         """
         暂停工作线程（暂停处理新任务，当前任务会继续完成）
-        
+
         注意：暂停后，工作线程会等待当前任务完成，然后暂停处理新任务。
         已添加到队列的任务不会丢失，恢复后会继续处理。
         """
@@ -83,16 +100,16 @@ class TaskQueueManager(metaclass=SingletonMeta):
             if not self._is_running:
                 logger.warning("任务队列工作线程未运行，无法暂停")
                 return False
-            
+
             if self._is_paused:
                 logger.warning("任务队列工作线程已处于暂停状态")
                 return False
-            
+
             self._pause_event.clear()  # clear表示暂停（等待时会阻塞）
             self._is_paused = True
             logger.info("文档归类任务队列已暂停（当前任务完成后生效）")
             return True
-    
+
     def resume_worker(self):
         """
         恢复工作线程（继续处理队列中的任务）
@@ -101,15 +118,16 @@ class TaskQueueManager(metaclass=SingletonMeta):
             if not self._is_running:
                 logger.warning("任务队列工作线程未运行，无法恢复")
                 return False
-            
+
             if not self._is_paused:
                 logger.warning("任务队列工作线程未处于暂停状态，无需恢复")
                 return False
-            
+
             self._pause_event.set()  # set表示运行（等待时会立即返回）
             self._is_paused = False
             logger.info("文档归类任务队列已恢复，继续处理任务")
             return True
+
     def stop_worker(self, timeout: float = 30.0):
         """
         停止后台工作线程（优雅停止）
@@ -126,7 +144,7 @@ class TaskQueueManager(metaclass=SingletonMeta):
             self._stop_event.set()
             # 恢复暂停状态，确保线程能正常退出
             self._pause_event.set()
-        
+
         # 在锁外等待线程结束
         if self._worker_thread and self._worker_thread.is_alive():
             self._worker_thread.join(timeout=timeout)
@@ -138,6 +156,7 @@ class TaskQueueManager(metaclass=SingletonMeta):
         with self._lock:
             self._is_running = False
             self._is_paused = False
+
     def add_task(self, file_path: str) -> bool:
         """
         添加文档归类任务到队列
@@ -206,8 +225,11 @@ class TaskQueueManager(metaclass=SingletonMeta):
                 "completed_tasks": self._completed_tasks,
                 "failed_tasks": self._failed_tasks,
                 "current_task": self._current_task,
-                "pending_tasks": self._total_tasks - self._completed_tasks - self._failed_tasks
+                "pending_tasks": self._total_tasks
+                - self._completed_tasks
+                - self._failed_tasks,
             }
+
     def _worker_loop(self):
         """后台工作线程的主循环"""
         logger.info("文档归类工作线程开始运行")
@@ -216,7 +238,7 @@ class TaskQueueManager(metaclass=SingletonMeta):
             try:
                 # 检查暂停状态（如果暂停，会阻塞在这里）
                 self._pause_event.wait()  # 如果暂停（clear），会阻塞；如果运行（set），立即返回
-                
+
                 # 从队列获取任务（超时1秒，避免阻塞停止信号）
                 try:
                     file_path = self._task_queue.get(timeout=1.0)
@@ -380,13 +402,13 @@ def start_queue_worker():
 def pause_queue_worker():
     """
     暂停任务队列工作线程
-    
+
     暂停后，工作线程会等待当前任务完成，然后暂停处理新任务。
     已添加到队列的任务不会丢失，恢复后会继续处理。
-    
+
     Returns:
         bool: 是否成功暂停
-        
+
     Example:
         >>> from file_classifier_module import pause_queue_worker
         >>> if pause_queue_worker():
@@ -399,12 +421,12 @@ def pause_queue_worker():
 def resume_queue_worker():
     """
     恢复任务队列工作线程
-    
+
     恢复后，工作线程会继续处理队列中的任务。
-    
+
     Returns:
         bool: 是否成功恢复
-        
+
     Example:
         >>> from file_classifier_module import resume_queue_worker
         >>> if resume_queue_worker():

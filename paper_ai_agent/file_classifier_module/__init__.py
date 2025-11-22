@@ -139,15 +139,26 @@ Answer模块需要根据用户问题检索相关文档内容时，应调用：
    - 不适合在需要快速响应的线程中使用
 """
 
+from pathlib import Path
+
+from log_module import logger
+from global_module import DATABASE_PATH
+
 from .__main__ import start_file_classify_task, run, test_retrieval
-from .utils import get_retrieval_content, get_local_embedding_model
+from .corpus_singleton import CorpusSingleton
+from .faiss_singleton import FAISSVectorStoreSingleton
+from .utils import (
+    get_retrieval_content,
+    get_local_embedding_model,
+    EmbeddingModelSingleton,
+)
 from .task_queue import (
     add_classify_task,
     get_queue_status,
     start_queue_worker,
     pause_queue_worker,
     resume_queue_worker,
-    stop_queue_worker
+    stop_queue_worker,
 )
 
 __all__ = [
@@ -170,3 +181,37 @@ __all__ = [
     # 工具接口
     "get_local_embedding_model"
 ]
+
+
+# ========================================
+# 模块级单例预加载（确保启动阶段完成初始化）
+# ========================================
+_embedding_model_instance = None
+
+try:
+    _embedding_model_instance = EmbeddingModelSingleton().get_model()
+    if _embedding_model_instance is None:
+        logger.warning("Embedding模型预加载失败，后续调用时将按需重试加载")
+    else:
+        logger.info("Embedding模型已在模块导入阶段完成预加载")
+except Exception as exc:
+    logger.error(f"模块导入阶段预加载Embedding模型失败：{exc}")
+
+# 预初始化FAISS向量库（依赖embedding模型）
+if _embedding_model_instance is not None:
+    try:
+        db_parent = Path(DATABASE_PATH).parent
+        embedding_dir = db_parent / "embedding"
+        FAISSVectorStoreSingleton(_embedding_model_instance, str(embedding_dir))
+        logger.info("FAISS向量库单例已在模块导入阶段创建")
+    except Exception as exc:
+        logger.error(f"FAISS向量库预初始化失败：{exc}")
+else:
+    logger.warning("Embedding模型未就绪，跳过FAISS向量库预初始化")
+
+# 预初始化BM25语料库
+try:
+    CorpusSingleton()
+    logger.info("BM25语料库单例已在模块导入阶段创建")
+except Exception as exc:
+    logger.error(f"BM25语料库预初始化失败：{exc}")

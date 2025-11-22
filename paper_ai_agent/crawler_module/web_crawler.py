@@ -22,6 +22,7 @@ from global_module import crawler_config, USING_PROXY, CLASSIFIED_DIR, UNCLASSIF
 from utility_module import SingletonMeta
 from log_module import logger
 from file_classifier_module import add_classify_task
+from database_module import query_files_by_attributes
 
 
 class _State(enum.Enum):
@@ -560,7 +561,7 @@ class WebCrawler(metaclass=SingletonMeta):
             time.sleep(random.uniform(0.5, 2.0))
 
         self.current_state = _State.IDLE
-        logger.debug(f"✔ 网站爬取完成，处理了 {processed_count} 个URL")
+        logger.debug(f"✔ 网站爬取完成，处理了 {self.get_visited_urls_count()} 个URL")
 
         for callback in self.callbacks_on_crawl_complete:
             try:
@@ -721,6 +722,10 @@ class WebCrawler(metaclass=SingletonMeta):
 
             if file_path.exists():
                 logger.debug(f'✘ 同名文件已存在，跳过保存: "{file_path}"')
+                return
+            file_list: list = query_files_by_attributes({"file_name": filename})
+            if len(file_list) > 0:
+                logger.debug(f'✘ 数据库中已存在同名文件，跳过保存: "{file_path}"')
                 return
             # 保存文件
             with open(file_path, "wb") as f:
