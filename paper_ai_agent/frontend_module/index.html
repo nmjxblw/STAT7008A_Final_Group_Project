@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Query Assistant</title>
 
     <!-- Vue 3 CDN -->
@@ -15,1163 +15,1207 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
-        /* ========== 全局样式 ========== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      /* ========== 全局样式 ========== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f5f5;
-            height: 100vh;
-            overflow: hidden;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background-color: #f5f5f5;
+        height: 100vh;
+        overflow: hidden;
+      }
 
-        /* ========== 主容器 ========== */
-        #app {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+      /* ========== 主容器 ========== */
+      #app {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
 
-        /* ========== 顶部标题栏 ========== */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
+      /* ========== 顶部标题栏 ========== */
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
 
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
+      .header h1 {
+        font-size: 24px;
+        font-weight: 600;
+      }
 
-        /* ========== 对话区域 ========== */
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
+      /* ========== 对话区域 ========== */
+      .chat-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
 
-        .chat-container::-webkit-scrollbar {
-            width: 8px;
-        }
+      .chat-container::-webkit-scrollbar {
+        width: 8px;
+      }
 
-        .chat-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
+      .chat-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
 
-        .chat-container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
+      .chat-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
 
-        .chat-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+      .chat-container::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
 
-        /* ========== 消息气泡 ========== */
-        .message {
-            margin-bottom: 20px;
-            display: flex;
-            animation: fadeIn 0.3s ease-in;
-        }
+      /* ========== 消息气泡 ========== */
+      .message {
+        margin-bottom: 20px;
+        display: flex;
+        animation: fadeIn 0.3s ease-in;
+      }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
-
-        /* 用户消息 */
-        .message.user {
-            justify-content: flex-end;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
+      }
 
-        .message.user .message-content {
-            background-color: #e3f2fd;
-            color: #1976d2;
-            border-radius: 18px 18px 4px 18px;
-            max-width: 70%;
+      /* 用户消息 */
+      .message.user {
+        justify-content: flex-end;
+      }
+
+      .message.user .message-content {
+        background-color: #e3f2fd;
+        color: #1976d2;
+        border-radius: 18px 18px 4px 18px;
+        max-width: 70%;
+      }
+
+      /* AI消息 */
+      .message.ai {
+        justify-content: flex-start;
+      }
+
+      .message.ai .message-content {
+        background-color: white;
+        border-radius: 18px 18px 18px 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        max-width: 85%;
+      }
+
+      .message-content {
+        padding: 15px 20px;
+      }
+
+      .message-text {
+        line-height: 1.6;
+        word-wrap: break-word;
+      }
+
+      .message-time {
+        font-size: 12px;
+        color: #999;
+        margin-top: 8px;
+        text-align: right;
+      }
+
+      /* ========== 文件列表区域 ========== */
+      .files-section {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .files-header {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+
+      .file-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        margin-bottom: 10px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        transition: all 0.3s;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .file-item:hover {
+        background-color: #f0f0f0;
+        border-color: #2196f3;
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+      }
+
+      /* 选中状态 */
+      .file-item.file-selected {
+        background-color: #e3f2fd;
+        border-color: #2196f3;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+      }
+
+      .file-item.file-selected:hover {
+        background-color: #bbdefb;
+      }
+
+      /* 禁用状态 */
+      .file-item.file-disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      .file-item.file-disabled:hover {
+        transform: none;
+        border-color: #e0e0e0;
+        box-shadow: none;
+      }
+
+      .file-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-right: 12px;
+        cursor: pointer;
+      }
+
+      .file-icon {
+        font-size: 20px;
+        margin-right: 10px;
+      }
+
+      .file-info {
+        flex: 1;
+        margin-right: 35px;
+      }
+
+      .file-name {
+        font-size: 14px;
+        color: #333;
+        font-weight: 500;
+      }
+
+      .file-relevance {
+        display: flex;
+        align-items: center;
+        margin-top: 5px;
+      }
+
+      .relevance-label {
+        font-size: 12px;
+        color: #666;
+        margin-right: 8px;
+      }
+
+      .relevance-bar {
+        flex: 1;
+        height: 8px;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-right: 8px;
+      }
+
+      .relevance-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4caf50, #8bc34a);
+        transition: width 0.3s ease;
+      }
+
+      .relevance-percent {
+        font-size: 12px;
+        font-weight: 600;
+        color: #4caf50;
+        min-width: 40px;
+      }
+
+      /* 文件悬浮触发器 */
+      .file-hover-trigger {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: help;
+        transition: all 0.3s;
+        z-index: 100; /* 降低层级，不阻挡悬浮框 */
+        pointer-events: all; /* 确保可以触发hover */
+      }
+
+      .file-hover-trigger:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Tooltip容器样式 */
+      #tooltip-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* 不阻挡底层点击 */
+        z-index: 10000;
+      }
+
+      .confirm-button {
+        display: block;
+        margin: 15px auto 0;
+        padding: 10px 30px;
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .confirm-button:hover {
+        background-color: #1976d2;
+        transform: scale(1.05);
+      }
+
+      .confirm-button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        transform: scale(1);
+      }
+
+      /* ========== AI回答区域 ========== */
+      .ai-answer {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .ai-answer-content {
+        line-height: 1.8;
+      }
+
+      /* Markdown样式 */
+      .ai-answer-content h1,
+      .ai-answer-content h2,
+      .ai-answer-content h3 {
+        margin-top: 16px;
+        margin-bottom: 12px;
+        color: #333;
+      }
+
+      .ai-answer-content h1 {
+        font-size: 20px;
+        border-bottom: 2px solid #2196f3;
+        padding-bottom: 8px;
+      }
+
+      .ai-answer-content h2 {
+        font-size: 18px;
+      }
+
+      .ai-answer-content h3 {
+        font-size: 16px;
+      }
+
+      .ai-answer-content p {
+        margin-bottom: 12px;
+        color: #555;
+        position: relative;
+      }
+
+      .ai-answer-content ul,
+      .ai-answer-content ol {
+        margin-left: 20px;
+        margin-bottom: 12px;
+      }
+
+      .ai-answer-content li {
+        margin-bottom: 6px;
+        color: #555;
+      }
+
+      .ai-answer-content code {
+        background-color: #f5f5f5;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+      }
+
+      .ai-answer-content pre {
+        background-color: #f5f5f5;
+        padding: 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin-bottom: 12px;
+      }
+
+      /* 悬停标签样式 - 放在段落右侧 */
+      .paragraph-wrapper {
+        position: relative;
+        margin-bottom: 12px;
+      }
+
+      .hover-tag {
+        position: absolute;
+        right: 0;
+        top: 0;
+        padding: 4px 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 11px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        z-index: 100; /* 降低层级 */
+        pointer-events: all;
+      }
+
+      .hover-tag:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      /* 文件引用内联包装器 */
+      .file-ref-inline-wrapper {
+        position: relative;
+        display: inline-block;
+      }
+
+      /* 文件引用内联标记样式 */
+      .file-ref-inline {
+        display: inline;
+        padding: 2px 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 12px;
+        border-radius: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .file-ref-inline:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      /* 文件引用tooltip */
+      .file-ref-tooltip {
+        display: none;
+        position: fixed;
+        width: 350px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+      }
+
+      .file-ref-tooltip.visible {
+        display: block;
+      }
+
+      .tooltip-header-inline {
+        display: block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 10px 15px;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 12px 12px 0 0;
+      }
+
+      .tooltip-body-inline {
+        display: block;
+        padding: 12px 15px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .tooltip-row-inline {
+        display: block;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .tooltip-row-inline:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+      }
+
+      .tooltip-label-inline {
+        display: block;
+        font-size: 10px;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+
+      .tooltip-value-inline {
+        display: block;
+        font-size: 12px;
+        color: #333;
+        line-height: 1.5;
+      }
+
+      /* 迷你进度条 */
+      .mini-bar {
+        display: inline-block;
+        width: 100px;
+        height: 6px;
+        background: #e0e0e0;
+        border-radius: 3px;
+        overflow: hidden;
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+
+      .mini-bar-fill {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      }
+
+      /* 悬停卡片 - 支持多种数据类型 */
+      .hover-tooltip {
+        position: fixed; /* 改为fixed定位 */
+        background-color: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 0;
+        width: 400px;
+        max-width: 90vw;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+        overflow: hidden;
+        pointer-events: auto; /* 悬浮框可以交互 */
+      }
+
+      .hover-tooltip.visible {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      /* 悬停卡片头部 */
+      .tooltip-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 15px;
+        font-size: 13px;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      /* 悬停卡片内容 */
+      .tooltip-content {
+        padding: 15px;
+        max-height: 450px;
+        overflow-y: auto;
+      }
+
+      .tooltip-content::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .tooltip-content::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 3px;
+      }
+
+      /* 数据项样式 */
+      .tooltip-item {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .tooltip-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+      }
+
+      .tooltip-label {
+        font-size: 11px;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      .tooltip-value {
+        font-size: 13px;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      /* 图表/数据可视化容器 */
+      .tooltip-chart {
+        background-color: #f9f9f9;
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 8px;
+        position: relative;
+        min-height: 200px;
+      }
+
+      .tooltip-chart canvas {
+        max-height: 250px;
+      }
+
+      /* 图片样式(备用) */
+      .tooltip-image {
+        width: 100%;
+        border-radius: 8px;
+        margin-top: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 列表样式 */
+      .tooltip-list {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0 0;
+      }
+
+      .tooltip-list li {
+        padding: 6px 0;
+        font-size: 13px;
+        color: #555;
+        border-bottom: 1px solid #f5f5f5;
+      }
+
+      .tooltip-list li:last-child {
+        border-bottom: none;
+      }
+
+      .tooltip-list li::before {
+        content: "•";
+        color: #2196f3;
+        font-weight: bold;
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+      }
+
+      /* 标签样式 */
+      .tooltip-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .tooltip-tag {
+        background-color: #e3f2fd;
+        color: #2196f3;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      /* 统计数据样式 */
+      .tooltip-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .stat-item {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2196f3;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: #666;
+      }
+
+      /* 链接样式 */
+      .tooltip-link {
+        color: #2196f3;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .tooltip-link:hover {
+        color: #1976d2;
+        text-decoration: underline;
+      }
+
+      /* ========== 加载状态 ========== */
+      .loading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .loading-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e0e0e0;
+        border-top: 2px solid #2196f3;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-
-        /* AI消息 */
-        .message.ai {
-            justify-content: flex-start;
+        100% {
+          transform: rotate(360deg);
         }
+      }
 
+      /* ========== 输入区域 ========== */
+      .input-container {
+        background-color: white;
+        border-top: 1px solid #e0e0e0;
+        padding: 20px;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      .input-wrapper {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .input-wrapper textarea {
+        flex: 1;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 24px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: none;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .input-wrapper textarea:focus {
+        border-color: #2196f3;
+      }
+
+      .send-button {
+        padding: 12px 30px;
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+
+      .send-button:hover:not(:disabled) {
+        background-color: #1976d2;
+        transform: scale(1.05);
+      }
+
+      .send-button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        transform: scale(1);
+      }
+
+      /* ========== 底部按钮组 ========== */
+      .action-buttons {
+        display: flex;
+        gap: 12px;
+      }
+
+      .action-button {
+        padding: 8px 20px;
+        background-color: white;
+        color: #666;
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .action-button:hover {
+        background-color: #f5f5f5;
+        border-color: #2196f3;
+        color: #2196f3;
+      }
+
+      .action-button.terminate {
+        color: #f44336;
+      }
+
+      .action-button.terminate:hover {
+        border-color: #f44336;
+        background-color: #ffebee;
+      }
+
+      .action-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* ========== 响应式设计 ========== */
+      @media (max-width: 768px) {
+        .message.user .message-content,
         .message.ai .message-content {
-            background-color: white;
-            border-radius: 18px 18px 18px 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            max-width: 85%;
-        }
-
-        .message-content {
-            padding: 15px 20px;
-        }
-
-        .message-text {
-            line-height: 1.6;
-            word-wrap: break-word;
-        }
-
-        .message-time {
-            font-size: 12px;
-            color: #999;
-            margin-top: 8px;
-            text-align: right;
-        }
-
-        /* ========== 文件列表区域 ========== */
-        .files-section {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .files-header {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .file-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            margin-bottom: 10px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            border: 2px solid #e0e0e0;
-            transition: all 0.3s;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .file-item:hover {
-            background-color: #f0f0f0;
-            border-color: #2196f3;
-            transform: translateX(4px);
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
-        }
-
-        /* 选中状态 */
-        .file-item.file-selected {
-            background-color: #e3f2fd;
-            border-color: #2196f3;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
-        }
-
-        .file-item.file-selected:hover {
-            background-color: #bbdefb;
-        }
-
-        /* 禁用状态 */
-        .file-item.file-disabled {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .file-item.file-disabled:hover {
-            transform: none;
-            border-color: #e0e0e0;
-            box-shadow: none;
-        }
-
-        .file-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-right: 12px;
-            cursor: pointer;
-        }
-
-        .file-icon {
-            font-size: 20px;
-            margin-right: 10px;
-        }
-
-        .file-info {
-            flex: 1;
-            margin-right: 35px;
-        }
-
-        .file-name {
-            font-size: 14px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .file-relevance {
-            display: flex;
-            align-items: center;
-            margin-top: 5px;
-        }
-
-        .relevance-label {
-            font-size: 12px;
-            color: #666;
-            margin-right: 8px;
-        }
-
-        .relevance-bar {
-            flex: 1;
-            height: 8px;
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-right: 8px;
-        }
-
-        .relevance-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4caf50, #8bc34a);
-            transition: width 0.3s ease;
-        }
-
-        .relevance-percent {
-            font-size: 12px;
-            font-weight: 600;
-            color: #4caf50;
-            min-width: 40px;
-        }
-
-        /* 文件悬浮触发器 */
-        .file-hover-trigger {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            width: 24px;
-            height: 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            cursor: help;
-            transition: all 0.3s;
-            z-index: 100; /* 降低层级，不阻挡悬浮框 */
-            pointer-events: all; /* 确保可以触发hover */
-        }
-
-        .file-hover-trigger:hover {
-            transform: scale(1.1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        /* Tooltip容器样式 */
-        #tooltip-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* 不阻挡底层点击 */
-            z-index: 10000;
-        }
-
-        .confirm-button {
-            display: block;
-            margin: 15px auto 0;
-            padding: 10px 30px;
-            background-color: #2196f3;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .confirm-button:hover {
-            background-color: #1976d2;
-            transform: scale(1.05);
-        }
-
-        .confirm-button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-            transform: scale(1);
-        }
-
-        /* ========== AI回答区域 ========== */
-        .ai-answer {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .ai-answer-content {
-            line-height: 1.8;
-        }
-
-        /* Markdown样式 */
-        .ai-answer-content h1,
-        .ai-answer-content h2,
-        .ai-answer-content h3 {
-            margin-top: 16px;
-            margin-bottom: 12px;
-            color: #333;
-        }
-
-        .ai-answer-content h1 {
-            font-size: 20px;
-            border-bottom: 2px solid #2196f3;
-            padding-bottom: 8px;
-        }
-
-        .ai-answer-content h2 {
-            font-size: 18px;
-        }
-
-        .ai-answer-content h3 {
-            font-size: 16px;
-        }
-
-        .ai-answer-content p {
-            margin-bottom: 12px;
-            color: #555;
-            position: relative;
-        }
-
-        .ai-answer-content ul,
-        .ai-answer-content ol {
-            margin-left: 20px;
-            margin-bottom: 12px;
-        }
-
-        .ai-answer-content li {
-            margin-bottom: 6px;
-            color: #555;
-        }
-
-        .ai-answer-content code {
-            background-color: #f5f5f5;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-        }
-
-        .ai-answer-content pre {
-            background-color: #f5f5f5;
-            padding: 12px;
-            border-radius: 6px;
-            overflow-x: auto;
-            margin-bottom: 12px;
-        }
-
-        /* 悬停标签样式 - 放在段落右侧 */
-        .paragraph-wrapper {
-            position: relative;
-            margin-bottom: 12px;
-        }
-
-        .hover-tag {
-            position: absolute;
-            right: 0;
-            top: 0;
-            padding: 4px 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 11px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-            z-index: 100; /* 降低层级 */
-            pointer-events: all;
-        }
-
-        .hover-tag:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        /* 文件引用内联包装器 */
-        .file-ref-inline-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        /* 文件引用内联标记样式 */
-        .file-ref-inline {
-            display: inline;
-            padding: 2px 8px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 12px;
-            border-radius: 10px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .file-ref-inline:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        /* 文件引用tooltip */
-        .file-ref-tooltip {
-            display: none;
-            position: fixed;
-            width: 350px;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            z-index: 10000;
-        }
-
-        .file-ref-tooltip.visible {
-            display: block;
-        }
-
-        .tooltip-header-inline {
-            display: block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 10px 15px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 12px 12px 0 0;
-        }
-
-        .tooltip-body-inline {
-            display: block;
-            padding: 12px 15px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .tooltip-row-inline {
-            display: block;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .tooltip-row-inline:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .tooltip-label-inline {
-            display: block;
-            font-size: 10px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-
-        .tooltip-value-inline {
-            display: block;
-            font-size: 12px;
-            color: #333;
-            line-height: 1.5;
-        }
-
-        /* 迷你进度条 */
-        .mini-bar {
-            display: inline-block;
-            width: 100px;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            overflow: hidden;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-
-        .mini-bar-fill {
-            display: block;
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        }
-
-        /* 悬停卡片 - 支持多种数据类型 */
-        .hover-tooltip {
-            position: fixed; /* 改为fixed定位 */
-            background-color: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 0;
-            width: 400px;
-            max-width: 90vw;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-            overflow: hidden;
-            pointer-events: auto; /* 悬浮框可以交互 */
-        }
-
-        .hover-tooltip.visible {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        /* 悬停卡片头部 */
-        .tooltip-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 15px;
-            font-size: 13px;
-            font-weight: 600;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-
-        /* 悬停卡片内容 */
-        .tooltip-content {
-            padding: 15px;
-            max-height: 450px;
-            overflow-y: auto;
-        }
-
-        .tooltip-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .tooltip-content::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 3px;
-        }
-
-        /* 数据项样式 */
-        .tooltip-item {
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .tooltip-item:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .tooltip-label {
-            font-size: 11px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-
-        .tooltip-value {
-            font-size: 13px;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        /* 图表/数据可视化容器 */
-        .tooltip-chart {
-            background-color: #f9f9f9;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 8px;
-            position: relative;
-            min-height: 200px;
-        }
-
-        .tooltip-chart canvas {
-            max-height: 250px;
-        }
-
-        /* 图片样式(备用) */
-        .tooltip-image {
-            width: 100%;
-            border-radius: 8px;
-            margin-top: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        /* 列表样式 */
-        .tooltip-list {
-            list-style: none;
-            padding: 0;
-            margin: 8px 0 0 0;
-        }
-
-        .tooltip-list li {
-            padding: 6px 0;
-            font-size: 13px;
-            color: #555;
-            border-bottom: 1px solid #f5f5f5;
-        }
-
-        .tooltip-list li:last-child {
-            border-bottom: none;
-        }
-
-        .tooltip-list li::before {
-            content: "•";
-            color: #2196f3;
-            font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
-        }
-
-        /* 标签样式 */
-        .tooltip-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .tooltip-tag {
-            background-color: #e3f2fd;
-            color: #2196f3;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        /* 统计数据样式 */
-        .tooltip-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .stat-item {
-            background-color: #f9f9f9;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2196f3;
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: #666;
-        }
-
-        /* 链接样式 */
-        .tooltip-link {
-            color: #2196f3;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .tooltip-link:hover {
-            color: #1976d2;
-            text-decoration: underline;
-        }
-
-        /* ========== 加载状态 ========== */
-        .loading {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .loading-spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #e0e0e0;
-            border-top: 2px solid #2196f3;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* ========== 输入区域 ========== */
-        .input-container {
-            background-color: white;
-            border-top: 1px solid #e0e0e0;
-            padding: 20px;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+          max-width: 90%;
         }
 
         .input-wrapper {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .input-wrapper textarea {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 24px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: none;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .input-wrapper textarea:focus {
-            border-color: #2196f3;
+          flex-direction: column;
         }
 
         .send-button {
-            padding: 12px 30px;
-            background-color: #2196f3;
-            color: white;
-            border: none;
-            border-radius: 24px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
+          width: 100%;
         }
 
-        .send-button:hover:not(:disabled) {
-            background-color: #1976d2;
-            transform: scale(1.05);
-        }
-
-        .send-button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-            transform: scale(1);
-        }
-
-        /* ========== 底部按钮组 ========== */
         .action-buttons {
-            display: flex;
-            gap: 12px;
+          flex-direction: column;
         }
 
         .action-button {
-            padding: 8px 20px;
-            background-color: white;
-            color: #666;
-            border: 1px solid #e0e0e0;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
+          width: 100%;
         }
-
-        .action-button:hover {
-            background-color: #f5f5f5;
-            border-color: #2196f3;
-            color: #2196f3;
-        }
-
-        .action-button.terminate {
-            color: #f44336;
-        }
-
-        .action-button.terminate:hover {
-            border-color: #f44336;
-            background-color: #ffebee;
-        }
-
-        .action-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* ========== 响应式设计 ========== */
-        @media (max-width: 768px) {
-            .message.user .message-content,
-            .message.ai .message-content {
-                max-width: 90%;
-            }
-
-            .input-wrapper {
-                flex-direction: column;
-            }
-
-            .send-button {
-                width: 100%;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .action-button {
-                width: 100%;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="app">
-        <!-- 顶部标题 -->
-        <div class="header">
-            <h1>🤖 AI Query Assistant</h1>
-        </div>
+      <!-- 顶部标题 -->
+      <div class="header">
+        <h1>🤖 AI Query Assistant</h1>
+      </div>
 
-        <!-- 对话区域 -->
-        <div class="chat-container" ref="chatContainer">
-            <!-- 消息列表 -->
-            <div v-for="(message, index) in messages" :key="index" :class="['message', message.type]">
-                <div class="message-content">
-                    <!-- 用户消息 -->
-                    <div v-if="message.type === 'user'" class="message-text">
-                        {{ message.text }}
-                    </div>
-
-                    <!-- AI消息 -->
-                    <div v-if="message.type === 'ai'">
-                        <!-- 加载状态 -->
-                        <div v-if="message.status === 'searching'" class="loading">
-                            <div class="loading-spinner"></div>
-                            <span>Searching for relevant papers...</span>
-                        </div>
-
-                        <!-- 文件列表 -->
-                        <div v-if="message.status === 'files' || message.status === 'thinking' || message.status === 'done'" class="files-section">
-                            <div class="files-header">📄 Related Files:</div>
-                            <div v-if="message.status === 'files' && message.answerType === 'qa'" class="files-hint" style="font-size: 12px; color: #666; margin-bottom: 8px;">Please select the files you want to use as references</div>
-                            <div
-                                v-for="file in message.files"
-                                :key="file.id"
-                                class="file-item"
-                                :class="{ 'file-selected': file.selected && message.answerType === 'qa', 'file-disabled': message.status !== 'files' || message.answerType === 'file' }"
-                                :style="{ cursor: message.answerType === 'file' ? 'default' : 'pointer' }"
-                                @click="message.answerType === 'qa' ? toggleFileSelection(file, message) : null"
-                            >
-                                <input
-                                    v-if="message.answerType === 'qa'"
-                                    type="checkbox"
-                                    :id="'file-' + file.id"
-                                    v-model="file.selected"
-                                    :disabled="message.status !== 'files'"
-                                    @click.stop
-                                >
-                                <span class="file-icon">{{ getFileIcon(file.type) }}</span>
-                                <div class="file-info">
-                                    <div class="file-name">{{ file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name }}</div>
-                                    <div class="file-relevance">
-                                        <span class="relevance-label">relevance:</span>
-                                        <div class="relevance-bar">
-                                            <div class="relevance-fill" :style="{ width: file.barPercent + '%' }"></div>
-                                        </div>
-                                        <span class="relevance-percent">{{ file.relevance.toFixed(2) }}</span>
-                                    </div>
-                                </div>
-
-                                <!-- 文件悬浮提示 -->
-                                <div class="file-hover-trigger" @click.stop>ℹ️
-                                    <tooltip-card
-                                        title="📄 File Details"
-                                        :data="buildFileTooltipData(file)"
-                                        position="left"
-                                    ></tooltip-card>
-                                </div>
-                            </div>
-
-                            <!-- 确认按钮 -->
-                            <button
-                                v-if="message.status === 'files' && message.answerType === 'qa'"
-                                class="confirm-button"
-                                @click="confirmFiles(message)"
-                                :disabled="!hasSelectedFiles(message)"
-                            >
-                                Confirm Selection
-                            </button>
-                        </div>
-
-                        <!-- 思考中 -->
-                        <div v-if="message.status === 'thinking'" class="loading" style="margin-top: 15px;">
-                            <div class="loading-spinner"></div>
-                            <span>Thinking...</span>
-                        </div>
-
-                        <!-- AI回答 -->
-                        <div v-if="message.status === 'done' && message.answer" class="ai-answer">
-                            <div class="ai-answer-content">
-                                <answer-with-sources
-                                    :markdown="message.answer"
-                                    :sources="message.answerSources"
-                                    :cached-files="cachedFiles">
-                                </answer-with-sources>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 时间戳 -->
-                    <div class="message-time">{{ message.time }}</div>
-                </div>
+      <!-- 对话区域 -->
+      <div class="chat-container" ref="chatContainer">
+        <!-- 消息列表 -->
+        <div
+          v-for="(message, index) in messages"
+          :key="index"
+          :class="['message', message.type]"
+        >
+          <div class="message-content">
+            <!-- 用户消息 -->
+            <div v-if="message.type === 'user'" class="message-text">
+              {{ message.text }}
             </div>
-        </div>
 
-        <!-- 悬浮框容器 (用于Teleport) -->
-        <div id="tooltip-container"></div>
+            <!-- AI消息 -->
+            <div v-if="message.type === 'ai'">
+              <!-- 加载状态 -->
+              <div v-if="message.status === 'searching'" class="loading">
+                <div class="loading-spinner"></div>
+                <span>Searching for relevant papers...</span>
+              </div>
 
-        <!-- 输入区域 -->
-        <div class="input-container">
-            <div class="input-wrapper">
-                <textarea
-                    v-model="userInput"
-                    placeholder="Enter your question..."
-                    rows="2"
-                    @keydown.enter.exact.prevent="sendMessage"
-                    @keydown.shift.enter="handleShiftEnter"
-                    :disabled="isProcessing"
-                ></textarea>
-                <button
-                    class="send-button"
-                    @click="sendMessage"
-                    :disabled="!userInput.trim() || isProcessing"
+              <!-- 文件列表 -->
+              <div
+                v-if="message.status === 'files' || message.status === 'thinking' || message.status === 'done'"
+                class="files-section"
+              >
+                <div class="files-header">📄 Related Files:</div>
+                <div
+                  v-if="message.status === 'files' && message.answerType === 'qa'"
+                  class="files-hint"
+                  style="font-size: 12px; color: #666; margin-bottom: 8px"
                 >
-                    {{ isProcessing ? 'Sending...' : 'Send' }}
+                  Please select the files you want to use as references
+                </div>
+                <div
+                  v-for="file in message.files"
+                  :key="file.id"
+                  class="file-item"
+                  :class="{ 'file-selected': file.selected && message.answerType === 'qa', 'file-disabled': message.status !== 'files' || message.answerType === 'file' }"
+                  :style="{ cursor: message.answerType === 'file' ? 'default' : 'pointer' }"
+                  @click="message.answerType === 'qa' ? toggleFileSelection(file, message) : null"
+                >
+                  <input
+                    v-if="message.answerType === 'qa'"
+                    type="checkbox"
+                    :id="'file-' + file.id"
+                    v-model="file.selected"
+                    :disabled="message.status !== 'files'"
+                    @click.stop
+                  />
+                  <span class="file-icon">{{ getFileIcon(file.type) }}</span>
+                  <div class="file-info">
+                    <div class="file-name">
+                      {{ file.name.length > 30 ? file.name.substring(0, 30) +
+                      '...' : file.name }}
+                    </div>
+                    <div class="file-relevance">
+                      <span class="relevance-label">relevance:</span>
+                      <div class="relevance-bar">
+                        <div
+                          class="relevance-fill"
+                          :style="{ width: file.barPercent + '%' }"
+                        ></div>
+                      </div>
+                      <span class="relevance-percent"
+                        >{{ file.relevance.toFixed(2) }}</span
+                      >
+                    </div>
+                  </div>
+
+                  <!-- 文件悬浮提示 -->
+                  <div class="file-hover-trigger" @click.stop>
+                    ℹ️
+                    <tooltip-card
+                      title="📄 File Details"
+                      :data="buildFileTooltipData(file)"
+                      position="left"
+                    ></tooltip-card>
+                  </div>
+                </div>
+
+                <!-- 确认按钮 -->
+                <button
+                  v-if="message.status === 'files' && message.answerType === 'qa'"
+                  class="confirm-button"
+                  @click="confirmFiles(message)"
+                  :disabled="!hasSelectedFiles(message)"
+                >
+                  Confirm Selection
                 </button>
+              </div>
+
+              <!-- 思考中 -->
+              <div
+                v-if="message.status === 'thinking'"
+                class="loading"
+                style="margin-top: 15px"
+              >
+                <div class="loading-spinner"></div>
+                <span>Thinking...</span>
+              </div>
+
+              <!-- AI回答 -->
+              <div
+                v-if="message.status === 'done' && message.answer"
+                class="ai-answer"
+              >
+                <div class="ai-answer-content">
+                  <answer-with-sources
+                    :markdown="message.answer"
+                    :sources="message.answerSources"
+                    :cached-files="cachedFiles"
+                  >
+                  </answer-with-sources>
+                </div>
+              </div>
             </div>
 
-            <div class="action-buttons">
-                <button class="action-button" @click="exportToExcel">
-                    📊 Export Excel
-                </button>
-                <button class="action-button" @click="startCrawler">
-                    🕷️ Start Crawler
-                </button>
-                <button class="action-button" @click="stopCrawler">
-                    🛑 Stop Crawler
-                </button>
-            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">{{ message.time }}</div>
+          </div>
         </div>
+      </div>
+
+      <!-- 悬浮框容器 (用于Teleport) -->
+      <div id="tooltip-container"></div>
+
+      <!-- 输入区域 -->
+      <div class="input-container">
+        <div class="input-wrapper">
+          <textarea
+            v-model="userInput"
+            placeholder="Enter your question..."
+            rows="2"
+            @keydown.enter.exact.prevent="sendMessage"
+            @keydown.shift.enter="handleShiftEnter"
+            :disabled="isProcessing"
+          ></textarea>
+          <button
+            class="send-button"
+            @click="sendMessage"
+            :disabled="!userInput.trim() || isProcessing"
+          >
+            {{ isProcessing ? 'Sending...' : 'Send' }}
+          </button>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-button" @click="exportToExcel">
+            📊 Export Excel
+          </button>
+          <button class="action-button" @click="startCrawler">
+            🕷️ Start Crawler
+          </button>
+          <button class="action-button" @click="stopCrawler">
+            🛑 Stop Crawler
+          </button>
+        </div>
+      </div>
     </div>
 
     <script>
-        const { createApp } = Vue;
+      const { createApp } = Vue;
 
-        // ========== 配置 ==========
-        const CONFIG = {
-            USE_MOCK: true,        // 是否使用Mock数据
-            MOCK_DELAY: 1500,      // Mock延迟时间(毫秒)
-            API_URL: 'http://localhost:8080'  // 后端API地址
-        };
+      // ========== 配置 ==========
+      const CONFIG = {
+        USE_MOCK: true, // 是否使用Mock数据
+        MOCK_DELAY: 1500, // Mock延迟时间(毫秒)
+        API_URL: "http://localhost:8080", // 后端API地址
+      };
 
-        // ========== 可复用的悬浮提示组件 ==========
-        const TooltipCard = {
-            name: 'TooltipCard',
-            props: {
-                title: {
-                    type: String,
-                    required: true
-                },
-                data: {
-                    type: Object,
-                    required: true
-                },
-                position: {
-                    type: String,
-                    default: 'right' // 'left', 'right', 'top', 'bottom'
-                }
+      // ========== 可复用的悬浮提示组件 ==========
+      const TooltipCard = {
+        name: "TooltipCard",
+        props: {
+          title: {
+            type: String,
+            required: true,
+          },
+          data: {
+            type: Object,
+            required: true,
+          },
+          position: {
+            type: String,
+            default: "right", // 'left', 'right', 'top', 'bottom'
+          },
+        },
+        data() {
+          return {
+            isVisible: false,
+            tooltipStyle: {
+              top: "0px",
+              left: "0px",
             },
-            data() {
-                return {
-                    isVisible: false,
-                    tooltipStyle: {
-                        top: '0px',
-                        left: '0px'
+            chartInstance: null,
+            chartId: `chart-${Math.random().toString(36).substr(2, 9)}`,
+          };
+        },
+        mounted() {
+          // 监听触发器的鼠标事件
+          const trigger = this.$refs.placeholder?.parentElement;
+          if (trigger) {
+            trigger.addEventListener("mouseenter", this.showTooltip);
+            trigger.addEventListener("mouseleave", this.hideTooltip);
+          }
+        },
+        beforeUnmount() {
+          const trigger = this.$refs.placeholder?.parentElement;
+          if (trigger) {
+            trigger.removeEventListener("mouseenter", this.showTooltip);
+            trigger.removeEventListener("mouseleave", this.hideTooltip);
+          }
+          // 销毁图表实例
+          if (this.chartInstance) {
+            this.chartInstance.destroy();
+          }
+        },
+        watch: {
+          isVisible(newVal) {
+            // 当悬浮框变为可见时,渲染图表
+            if (newVal && this.data.chartData && !this.chartInstance) {
+              this.$nextTick(() => {
+                this.renderChart();
+              });
+            }
+          },
+        },
+        methods: {
+          showTooltip() {
+            this.calculatePosition();
+            this.isVisible = true;
+          },
+          hideTooltip() {
+            this.isVisible = false;
+            // 不立即销毁图表，让它保留在内存中
+            // 下次显示时会检查是否已存在，避免重复创建
+          },
+          renderChart() {
+            if (!this.data.chartData || this.chartInstance) return;
+
+            // 多次尝试获取 canvas,因为 DOM 可能还没准备好
+            const tryRender = (attempts = 0) => {
+              if (attempts > 10) return;
+
+              const canvas = document.getElementById(this.chartId);
+              if (!canvas) {
+                setTimeout(() => tryRender(attempts + 1), 50);
+                return;
+              }
+
+              try {
+                const ctx = canvas.getContext("2d");
+                const chartData = this.data.chartData;
+
+                // 创建图表
+                this.chartInstance = new Chart(ctx, {
+                  type: chartData.type || "bar",
+                  data: {
+                    labels: chartData.labels || [],
+                    datasets: chartData.datasets || [],
+                  },
+                  options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: false, // 禁用动画，避免销毁时的错误
+                    plugins: {
+                      legend: {
+                        display: chartData.showLegend !== false,
+                        position: "top",
+                      },
+                      title: {
+                        display: !!chartData.title,
+                        text: chartData.title || "",
+                      },
                     },
-                    chartInstance: null,
-                    chartId: `chart-${Math.random().toString(36).substr(2, 9)}`
-                };
-            },
-            mounted() {
-                // 监听触发器的鼠标事件
-                const trigger = this.$refs.placeholder?.parentElement;
-                if (trigger) {
-                    trigger.addEventListener('mouseenter', this.showTooltip);
-                    trigger.addEventListener('mouseleave', this.hideTooltip);
+                    scales:
+                      chartData.type === "pie" || chartData.type === "doughnut"
+                        ? {}
+                        : {
+                            y: {
+                              beginAtZero: true,
+                            },
+                          },
+                  },
+                });
+              } catch (error) {
+                // 静默失败
+              }
+            };
+
+            tryRender();
+          },
+          calculatePosition() {
+            const trigger = this.$refs.placeholder?.parentElement;
+            if (!trigger) return;
+
+            const triggerRect = trigger.getBoundingClientRect();
+            const tooltipWidth = 400; // 悬浮框宽度
+            const tooltipMaxHeight = 500; // 最大高度(包含内容滚动)
+            const gap = 10; // 间距
+            const edgePadding = 20; // 边缘安全距离
+
+            let top = 0;
+            let left = 0;
+
+            switch (this.position) {
+              case "left":
+                top = triggerRect.top;
+                left = triggerRect.left - tooltipWidth - gap;
+                // 防止超出左边界
+                if (left < 0) {
+                  left = triggerRect.right + gap;
                 }
-            },
-            beforeUnmount() {
-                const trigger = this.$refs.placeholder?.parentElement;
-                if (trigger) {
-                    trigger.removeEventListener('mouseenter', this.showTooltip);
-                    trigger.removeEventListener('mouseleave', this.hideTooltip);
+                // 防止超出下边界
+                if (top + tooltipMaxHeight > window.innerHeight - edgePadding) {
+                  top = window.innerHeight - tooltipMaxHeight - edgePadding;
                 }
-                // 销毁图表实例
-                if (this.chartInstance) {
-                    this.chartInstance.destroy();
+                // 防止超出上边界
+                top = Math.max(edgePadding, top);
+                break;
+              case "right":
+                top = triggerRect.top;
+                left = triggerRect.right + gap;
+                // 防止超出右边界
+                if (left + tooltipWidth > window.innerWidth - edgePadding) {
+                  left = triggerRect.left - tooltipWidth - gap;
                 }
-            },
-            watch: {
-                isVisible(newVal) {
-                    // 当悬浮框变为可见时,渲染图表
-                    if (newVal && this.data.chartData && !this.chartInstance) {
-                        this.$nextTick(() => {
-                            this.renderChart();
-                        });
-                    }
+                // 防止超出下边界
+                if (top + tooltipMaxHeight > window.innerHeight - edgePadding) {
+                  top = window.innerHeight - tooltipMaxHeight - edgePadding;
                 }
-            },
-            methods: {
-                showTooltip() {
-                    this.calculatePosition();
-                    this.isVisible = true;
-                },
-                hideTooltip() {
-                    this.isVisible = false;
-                    // 不立即销毁图表，让它保留在内存中
-                    // 下次显示时会检查是否已存在，避免重复创建
-                },
-                renderChart() {
-                    if (!this.data.chartData || this.chartInstance) return;
-
-                    // 多次尝试获取 canvas,因为 DOM 可能还没准备好
-                    const tryRender = (attempts = 0) => {
-                        if (attempts > 10) return;
-
-                        const canvas = document.getElementById(this.chartId);
-                        if (!canvas) {
-                            setTimeout(() => tryRender(attempts + 1), 50);
-                            return;
-                        }
-
-                        try {
-                            const ctx = canvas.getContext('2d');
-                            const chartData = this.data.chartData;
-
-                            // 创建图表
-                            this.chartInstance = new Chart(ctx, {
-                                type: chartData.type || 'bar',
-                                data: {
-                                    labels: chartData.labels || [],
-                                    datasets: chartData.datasets || []
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: true,
-                                    animation: false, // 禁用动画，避免销毁时的错误
-                                    plugins: {
-                                        legend: {
-                                            display: chartData.showLegend !== false,
-                                            position: 'top'
-                                        },
-                                        title: {
-                                            display: !!chartData.title,
-                                            text: chartData.title || ''
-                                        }
-                                    },
-                                    scales: chartData.type === 'pie' || chartData.type === 'doughnut' ? {} : {
-                                        y: {
-                                            beginAtZero: true
-                                        }
-                                    }
-                                }
-                            });
-                        } catch (error) {
-                            // 静默失败
-                        }
-                    };
-
-                    tryRender();
-                },
-                calculatePosition() {
-                    const trigger = this.$refs.placeholder?.parentElement;
-                    if (!trigger) return;
-
-                    const triggerRect = trigger.getBoundingClientRect();
-                    const tooltipWidth = 400; // 悬浮框宽度
-                    const tooltipMaxHeight = 500; // 最大高度(包含内容滚动)
-                    const gap = 10; // 间距
-                    const edgePadding = 20; // 边缘安全距离
-
-                    let top = 0;
-                    let left = 0;
-
-                    switch (this.position) {
-                        case 'left':
-                            top = triggerRect.top;
-                            left = triggerRect.left - tooltipWidth - gap;
-                            // 防止超出左边界
-                            if (left < 0) {
-                                left = triggerRect.right + gap;
-                            }
-                            // 防止超出下边界
-                            if (top + tooltipMaxHeight > window.innerHeight - edgePadding) {
-                                top = window.innerHeight - tooltipMaxHeight - edgePadding;
-                            }
-                            // 防止超出上边界
-                            top = Math.max(edgePadding, top);
-                            break;
-                        case 'right':
-                            top = triggerRect.top;
-                            left = triggerRect.right + gap;
-                            // 防止超出右边界
-                            if (left + tooltipWidth > window.innerWidth - edgePadding) {
-                                left = triggerRect.left - tooltipWidth - gap;
-                            }
-                            // 防止超出下边界
-                            if (top + tooltipMaxHeight > window.innerHeight - edgePadding) {
-                                top = window.innerHeight - tooltipMaxHeight - edgePadding;
-                            }
-                            // 防止超出上边界
-                            top = Math.max(edgePadding, top);
-                            break;
-                        case 'top':
-                            top = triggerRect.top - tooltipMaxHeight - gap;
-                            left = triggerRect.left;
-                            // 防止超出上边界
-                            if (top < edgePadding) {
-                                top = triggerRect.bottom + gap;
-                            }
-                            break;
-                        case 'bottom':
-                        default:
-                            top = triggerRect.bottom + gap;
-                            left = triggerRect.left;
-                            // 防止超出下边界
-                            if (top + tooltipMaxHeight > window.innerHeight - edgePadding) {
-                                top = triggerRect.top - tooltipMaxHeight - gap;
-                                // 如果上方也放不下,就紧贴下边界
-                                if (top < edgePadding) {
-                                    top = window.innerHeight - tooltipMaxHeight - edgePadding;
-                                }
-                            }
-                            break;
-                    }
-
-                    // 最终确保不超出视口(双重保险)
-                    top = Math.max(edgePadding, Math.min(top, window.innerHeight - tooltipMaxHeight - edgePadding));
-                    left = Math.max(edgePadding, Math.min(left, window.innerWidth - tooltipWidth - edgePadding));
-
-                    this.tooltipStyle = {
-                        top: `${top}px`,
-                        left: `${left}px`
-                    };
+                // 防止超出上边界
+                top = Math.max(edgePadding, top);
+                break;
+              case "top":
+                top = triggerRect.top - tooltipMaxHeight - gap;
+                left = triggerRect.left;
+                // 防止超出上边界
+                if (top < edgePadding) {
+                  top = triggerRect.bottom + gap;
                 }
-            },
-            template: `
+                break;
+              case "bottom":
+              default:
+                top = triggerRect.bottom + gap;
+                left = triggerRect.left;
+                // 防止超出下边界
+                if (top + tooltipMaxHeight > window.innerHeight - edgePadding) {
+                  top = triggerRect.top - tooltipMaxHeight - gap;
+                  // 如果上方也放不下,就紧贴下边界
+                  if (top < edgePadding) {
+                    top = window.innerHeight - tooltipMaxHeight - edgePadding;
+                  }
+                }
+                break;
+            }
+
+            // 最终确保不超出视口(双重保险)
+            top = Math.max(
+              edgePadding,
+              Math.min(top, window.innerHeight - tooltipMaxHeight - edgePadding)
+            );
+            left = Math.max(
+              edgePadding,
+              Math.min(left, window.innerWidth - tooltipWidth - edgePadding)
+            );
+
+            this.tooltipStyle = {
+              top: `${top}px`,
+              left: `${left}px`,
+            };
+          },
+        },
+        template: `
                 <span style="display: none;" ref="placeholder"></span>
                 <teleport to="#tooltip-container">
                     <div
@@ -1216,244 +1260,278 @@
                     </div>
                     </div>
                 </teleport>
-            `
-        };
+            `,
+      };
 
-        // ========== AI回答段落组件 ==========
-        const AnswerWithSources = {
-            name: 'AnswerWithSources',
-            props: {
-                markdown: {
-                    type: String,
-                    required: true
-                },
-                sources: {
-                    type: Array,
-                    default: () => []
-                },
-                cachedFiles: {
-                    type: Array,
-                    default: () => []
-                }
-            },
-            data() {
-                return {
-                    paragraphs: []
-                };
-            },
-            mounted() {
-                this.parseParagraphs();
-            },
-            watch: {
-                markdown() {
-                    this.parseParagraphs();
-                }
-            },
-            methods: {
-                parseParagraphs() {
-                    if (!this.markdown) {
-                        this.paragraphs = [];
-                        this.fileRefs = [];
-                        return;
-                    }
+      // ========== AI回答段落组件 ==========
+      const AnswerWithSources = {
+        name: "AnswerWithSources",
+        props: {
+          markdown: {
+            type: String,
+            required: true,
+          },
+          sources: {
+            type: Array,
+            default: () => [],
+          },
+          cachedFiles: {
+            type: Array,
+            default: () => [],
+          },
+        },
+        data() {
+          return {
+            paragraphs: [],
+          };
+        },
+        mounted() {
+          this.parseParagraphs();
+        },
+        watch: {
+          markdown() {
+            this.parseParagraphs();
+          },
+        },
+        methods: {
+          parseParagraphs() {
+            if (!this.markdown) {
+              this.paragraphs = [];
+              this.fileRefs = [];
+              return;
+            }
 
-                    // 使用marked渲染Markdown
-                    let html = marked.parse(this.markdown);
+            // 使用marked渲染Markdown
+            let html = marked.parse(this.markdown);
 
-                    // 替换[id]引用为文件悬浮按钮占位符
-                    const result = this.replaceFileReferences(html);
-                    html = result.html;
-                    this.fileRefs = result.fileRefs;
+            // 替换[id]引用为文件悬浮按钮占位符
+            const result = this.replaceFileReferences(html);
+            html = result.html;
+            this.fileRefs = result.fileRefs;
 
-                    // 将HTML分段
-                    const segments = html.split('</h1>').join('</h1>|||SPLIT|||')
-                                        .split('</h2>').join('</h2>|||SPLIT|||')
-                                        .split('</h3>').join('</h3>|||SPLIT|||')
-                                        .split('</p>').join('</p>|||SPLIT|||')
-                                        .split('</ul>').join('</ul>|||SPLIT|||')
-                                        .split('</ol>').join('</ol>|||SPLIT|||')
-                                        .split('|||SPLIT|||')
-                                        .filter(p => p.trim());
+            // 将HTML分段
+            const segments = html
+              .split("</h1>")
+              .join("</h1>|||SPLIT|||")
+              .split("</h2>")
+              .join("</h2>|||SPLIT|||")
+              .split("</h3>")
+              .join("</h3>|||SPLIT|||")
+              .split("</p>")
+              .join("</p>|||SPLIT|||")
+              .split("</ul>")
+              .join("</ul>|||SPLIT|||")
+              .split("</ol>")
+              .join("</ol>|||SPLIT|||")
+              .split("|||SPLIT|||")
+              .filter((p) => p.trim());
 
-                    // 为每个段落关联来源数据
-                    this.paragraphs = segments.map((html, index) => ({
-                        html,
-                        source: this.sources && this.sources[index] ? this.sources[index] : null
-                    }));
-                },
+            // 为每个段落关联来源数据
+            this.paragraphs = segments.map((html, index) => ({
+              html,
+              source:
+                this.sources && this.sources[index]
+                  ? this.sources[index]
+                  : null,
+            }));
+          },
 
-                // 替换[id]引用为文件悬浮按钮占位符
-                replaceFileReferences(html) {
-                    const fileRefs = [];
-                    if (!this.cachedFiles || this.cachedFiles.length === 0) {
-                        return { html, fileRefs };
-                    }
+          // 替换[id]引用为文件悬浮按钮占位符
+          replaceFileReferences(html) {
+            const fileRefs = [];
+            if (!this.cachedFiles || this.cachedFiles.length === 0) {
+              return { html, fileRefs };
+            }
 
-                    let refIndex = 0;
-                    // 匹配所有[...]格式的引用
-                    const newHtml = html.replace(/\[([^\]]+)\]/g, (match, content) => {
-                        // 检查content是否是缓存文件的id
-                        const file = this.cachedFiles.find(f => String(f.id) === String(content));
-                        if (file) {
-                            // 存储文件引用信息
-                            fileRefs.push({
-                                index: refIndex,
-                                file: file
-                            });
-                            // 生成占位符
-                            const placeholder = `<span class="file-ref-placeholder" data-ref-index="${refIndex}"></span>`;
-                            refIndex++;
-                            return placeholder;
-                        }
-                        // 不是文件id，保持原样
-                        return match;
-                    });
+            let refIndex = 0;
+            // 匹配所有[...]格式的引用
+            const newHtml = html.replace(/\[([^\]]+)\]/g, (match, content) => {
+              // 检查content是否是缓存文件的id
+              const file = this.cachedFiles.find(
+                (f) => String(f.id) === String(content)
+              );
+              if (file) {
+                // 存储文件引用信息
+                fileRefs.push({
+                  index: refIndex,
+                  file: file,
+                });
+                // 生成占位符
+                const placeholder = `<span class="file-ref-placeholder" data-ref-index="${refIndex}"></span>`;
+                refIndex++;
+                return placeholder;
+              }
+              // 不是文件id，保持原样
+              return match;
+            });
 
-                    return { html: newHtml, fileRefs };
-                },
+            return { html: newHtml, fileRefs };
+          },
 
-                // 构建文件tooltip数据(与文件选择框一致)
-                buildFileRefTooltipData(file) {
-                    return {
-                        text: file.name,
-                        description: file.description,
-                        tags: file.keywords,
-                        tagsLabel: 'keywords',
-                        list: file.summary,
-                        listLabel: 'summary',
-                        relevance: file.relevance,
-                        barPercent: file.barPercent
-                    };
-                },
-                buildSourceTooltipData(source) {
-                    if (!source) return null;
+          // 构建文件tooltip数据(与文件选择框一致)
+          buildFileRefTooltipData(file) {
+            return {
+              text: file.name,
+              description: file.description,
+              tags: file.keywords,
+              tagsLabel: "keywords",
+              list: file.summary,
+              listLabel: "summary",
+              relevance: file.relevance,
+              barPercent: file.barPercent,
+            };
+          },
+          buildSourceTooltipData(source) {
+            if (!source) return null;
 
-                    const data = {
-                        source: source.source,
-                        tags: source.tags,
-                        tagsLabel: 'tags',
-                        list: source.quotes,
-                        listLabel: 'key quotes',
-                        url: source.url,
-                        urlLabel: 'details',
-                        urlText: 'View original →'
-                    };
+            const data = {
+              source: source.source,
+              tags: source.tags,
+              tagsLabel: "tags",
+              list: source.quotes,
+              listLabel: "key quotes",
+              url: source.url,
+              urlLabel: "details",
+              urlText: "View original →",
+            };
 
-                    // 构建统计数据
-                    if (source.confidence || source.citations) {
-                        data.stats = [];
-                        data.statsLabel = 'reliability';
+            // 构建统计数据
+            if (source.confidence || source.citations) {
+              data.stats = [];
+              data.statsLabel = "reliability";
 
-                        if (source.confidence) {
-                            data.stats.push({
-                                value: Math.round(source.confidence * 100) + '%',
-                                label: 'confidence'
-                            });
-                        }
+              if (source.confidence) {
+                data.stats.push({
+                  value: Math.round(source.confidence * 100) + "%",
+                  label: "confidence",
+                });
+              }
 
-                        if (source.citations) {
-                            data.stats.push({
-                                value: source.citations,
-                                label: 'citations'
-                            });
-                        }
-                    }
+              if (source.citations) {
+                data.stats.push({
+                  value: source.citations,
+                  label: "citations",
+                });
+              }
+            }
 
-                    // 构建图表数据(示例:引用趋势)
-                    if (source.citationTrend) {
-                        data.chartData = {
-                            type: 'line',
-                            title: 'Citation Trend',
-                            labels: source.citationTrend.years,
-                            datasets: [{
-                                label: 'Annual Citations',
-                                data: source.citationTrend.counts,
-                                borderColor: 'rgb(102, 126, 234)',
-                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                                tension: 0.3,
-                                fill: true
-                            }]
-                        };
-                        data.chartLabel = 'Citation Trend Analysis';
-                    }
+            // 构建图表数据(示例:引用趋势)
+            if (source.citationTrend) {
+              data.chartData = {
+                type: "line",
+                title: "Citation Trend",
+                labels: source.citationTrend.years,
+                datasets: [
+                  {
+                    label: "Annual Citations",
+                    data: source.citationTrend.counts,
+                    borderColor: "rgb(102, 126, 234)",
+                    backgroundColor: "rgba(102, 126, 234, 0.1)",
+                    tension: 0.3,
+                    fill: true,
+                  },
+                ],
+              };
+              data.chartLabel = "Citation Trend Analysis";
+            }
 
-                    return data;
-                }
-            },
-            components: {
-                'tooltip-card': TooltipCard
-            },
-            methods: {
-                parseParagraphs() {
-                    if (!this.markdown) {
-                        this.paragraphs = [];
-                        return;
-                    }
+            return data;
+          },
+        },
+        components: {
+          "tooltip-card": TooltipCard,
+        },
+        methods: {
+          parseParagraphs() {
+            if (!this.markdown) {
+              this.paragraphs = [];
+              return;
+            }
 
-                    // 使用marked渲染Markdown
-                    let html = marked.parse(this.markdown);
+            // 使用marked渲染Markdown
+            let html = marked.parse(this.markdown);
 
-                    // 将HTML分段
-                    const segments = html.split('</h1>').join('</h1>|||SPLIT|||')
-                                        .split('</h2>').join('</h2>|||SPLIT|||')
-                                        .split('</h3>').join('</h3>|||SPLIT|||')
-                                        .split('</p>').join('</p>|||SPLIT|||')
-                                        .split('</ul>').join('</ul>|||SPLIT|||')
-                                        .split('</ol>').join('</ol>|||SPLIT|||')
-                                        .split('|||SPLIT|||')
-                                        .filter(p => p.trim());
+            // 将HTML分段
+            const segments = html
+              .split("</h1>")
+              .join("</h1>|||SPLIT|||")
+              .split("</h2>")
+              .join("</h2>|||SPLIT|||")
+              .split("</h3>")
+              .join("</h3>|||SPLIT|||")
+              .split("</p>")
+              .join("</p>|||SPLIT|||")
+              .split("</ul>")
+              .join("</ul>|||SPLIT|||")
+              .split("</ol>")
+              .join("</ol>|||SPLIT|||")
+              .split("|||SPLIT|||")
+              .filter((p) => p.trim());
 
-                    // 为每个段落关联来源数据和文件引用
-                    this.paragraphs = segments.map((segmentHtml, index) => {
-                        // 提取该段落中的文件引用
-                        const fileRefs = this.extractFileReferences(segmentHtml);
-                        // 替换[id]为显示文本
-                        const processedHtml = this.replaceFileReferencesInHtml(segmentHtml);
+            // 为每个段落关联来源数据和文件引用
+            this.paragraphs = segments.map((segmentHtml, index) => {
+              // 提取该段落中的文件引用
+              const fileRefs = this.extractFileReferences(segmentHtml);
+              // 替换[id]为显示文本
+              const processedHtml =
+                this.replaceFileReferencesInHtml(segmentHtml);
 
-                        return {
-                            html: processedHtml,
-                            source: this.sources && this.sources[index] ? this.sources[index] : null,
-                            fileRefs: fileRefs
-                        };
-                    });
-                },
+              return {
+                html: processedHtml,
+                source:
+                  this.sources && this.sources[index]
+                    ? this.sources[index]
+                    : null,
+                fileRefs: fileRefs,
+              };
+            });
+          },
 
-                // 提取段落中的文件引用
-                extractFileReferences(html) {
-                    const fileRefs = [];
-                    if (!this.cachedFiles || this.cachedFiles.length === 0) {
-                        return fileRefs;
-                    }
+          // 提取段落中的文件引用
+          extractFileReferences(html) {
+            const fileRefs = [];
+            if (!this.cachedFiles || this.cachedFiles.length === 0) {
+              return fileRefs;
+            }
 
-                    const regex = /\[([^\]]+)\]/g;
-                    let match;
-                    while ((match = regex.exec(html)) !== null) {
-                        const content = match[1];
-                        const file = this.cachedFiles.find(f => String(f.id) === String(content));
-                        if (file) {
-                            fileRefs.push(file);
-                        }
-                    }
-                    return fileRefs;
-                },
+            const regex = /\[([^\]]+)\]/g;
+            let match;
+            while ((match = regex.exec(html)) !== null) {
+              const content = match[1];
+              const file = this.cachedFiles.find(
+                (f) => String(f.id) === String(content)
+              );
+              if (file) {
+                fileRefs.push(file);
+              }
+            }
+            return fileRefs;
+          },
 
-                // 替换HTML中的[id]为带tooltip的文件引用按钮
-                replaceFileReferencesInHtml(html) {
-                    if (!this.cachedFiles || this.cachedFiles.length === 0) {
-                        return html;
-                    }
+          // 替换HTML中的[id]为带tooltip的文件引用按钮
+          replaceFileReferencesInHtml(html) {
+            if (!this.cachedFiles || this.cachedFiles.length === 0) {
+              return html;
+            }
 
-                    return html.replace(/\[([^\]]+)\]/g, (match, content) => {
-                        const file = this.cachedFiles.find(f => String(f.id) === String(content));
-                        if (file) {
-                            // 替换为带tooltip的文件引用按钮
-                            const displayName = file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name;
-                            const keywords = file.keywords ? file.keywords.join(', ') : '';
-                            const summary = file.description || '';
-                            const relevance = file.relevance ? file.relevance.toFixed(2) : '';
-                            const barPercent = file.barPercent || 0;
+            return html.replace(/\[([^\]]+)\]/g, (match, content) => {
+              const file = this.cachedFiles.find(
+                (f) => String(f.id) === String(content)
+              );
+              if (file) {
+                // 替换为带tooltip的文件引用按钮
+                const displayName =
+                  file.name.length > 15
+                    ? file.name.substring(0, 15) + "..."
+                    : file.name;
+                const keywords = file.keywords ? file.keywords.join(", ") : "";
+                const summary = file.description || "";
+                const relevance = file.relevance
+                  ? file.relevance.toFixed(2)
+                  : "";
+                const barPercent = file.barPercent || 0;
 
-                            return `<span class="file-ref-inline-wrapper">
+                return `<span class="file-ref-inline-wrapper">
                                 <span class="file-ref-inline">📄 ${displayName}</span>
                                 <span class="file-ref-tooltip">
                                     <span class="tooltip-header-inline">📄 File Details</span>
@@ -1465,80 +1543,82 @@
                                     </span>
                                 </span>
                             </span>`;
-                        }
-                        return match;
-                    });
-                },
+              }
+              return match;
+            });
+          },
 
-                // 构建文件tooltip数据(与文件选择框一致)
-                buildFileRefTooltipData(file) {
-                    return {
-                        text: file.name,
-                        description: file.description,
-                        tags: file.keywords,
-                        tagsLabel: 'keywords',
-                        list: file.summary,
-                        listLabel: 'summary',
-                        relevance: file.relevance,
-                        barPercent: file.barPercent
-                    };
-                },
-                buildSourceTooltipData(source) {
-                    if (!source) return null;
+          // 构建文件tooltip数据(与文件选择框一致)
+          buildFileRefTooltipData(file) {
+            return {
+              text: file.name,
+              description: file.description,
+              tags: file.keywords,
+              tagsLabel: "keywords",
+              list: file.summary,
+              listLabel: "summary",
+              relevance: file.relevance,
+              barPercent: file.barPercent,
+            };
+          },
+          buildSourceTooltipData(source) {
+            if (!source) return null;
 
-                    const data = {
-                        source: source.source,
-                        tags: source.tags,
-                        tagsLabel: 'tags',
-                        list: source.quotes,
-                        listLabel: 'key quotes',
-                        url: source.url,
-                        urlLabel: 'details',
-                        urlText: 'View original →'
-                    };
+            const data = {
+              source: source.source,
+              tags: source.tags,
+              tagsLabel: "tags",
+              list: source.quotes,
+              listLabel: "key quotes",
+              url: source.url,
+              urlLabel: "details",
+              urlText: "View original →",
+            };
 
-                    // 构建统计数据
-                    if (source.confidence || source.citations) {
-                        data.stats = [];
-                        data.statsLabel = 'reliability';
+            // 构建统计数据
+            if (source.confidence || source.citations) {
+              data.stats = [];
+              data.statsLabel = "reliability";
 
-                        if (source.confidence) {
-                            data.stats.push({
-                                value: Math.round(source.confidence * 100) + '%',
-                                label: 'confidence'
-                            });
-                        }
+              if (source.confidence) {
+                data.stats.push({
+                  value: Math.round(source.confidence * 100) + "%",
+                  label: "confidence",
+                });
+              }
 
-                        if (source.citations) {
-                            data.stats.push({
-                                value: source.citations,
-                                label: 'citations'
-                            });
-                        }
-                    }
+              if (source.citations) {
+                data.stats.push({
+                  value: source.citations,
+                  label: "citations",
+                });
+              }
+            }
 
-                    // 构建图表数据(示例:引用趋势)
-                    if (source.citationTrend) {
-                        data.chartData = {
-                            type: 'line',
-                            title: 'Citation Trend',
-                            labels: source.citationTrend.years,
-                            datasets: [{
-                                label: 'Annual Citations',
-                                data: source.citationTrend.counts,
-                                borderColor: 'rgb(102, 126, 234)',
-                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                                tension: 0.3,
-                                fill: true
-                            }]
-                        };
-                        data.chartLabel = 'Citation Trend Analysis';
-                    }
+            // 构建图表数据(示例:引用趋势)
+            if (source.citationTrend) {
+              data.chartData = {
+                type: "line",
+                title: "Citation Trend",
+                labels: source.citationTrend.years,
+                datasets: [
+                  {
+                    label: "Annual Citations",
+                    data: source.citationTrend.counts,
+                    borderColor: "rgb(102, 126, 234)",
+                    backgroundColor: "rgba(102, 126, 234, 0.1)",
+                    tension: 0.3,
+                    fill: true,
+                  },
+                ],
+              };
+              data.chartLabel = "Citation Trend Analysis";
+            }
 
-                    return data;
-                }
-            },
-            template: `
+            return data;
+          },
+        },
+        template: `
                 <div>
                     <div v-for="(para, index) in paragraphs" :key="index" class="paragraph-wrapper">
                         <div v-html="para.html"></div>
@@ -1552,101 +1632,110 @@
                         </span>
                     </div>
                 </div>
-            `
-        };
+            `,
+      };
 
-        // ========== Mock 数据 ==========
-        const MOCK_DATA = [
+      // ========== Mock 数据 ==========
+      const MOCK_DATA = [
+        {
+          question: "什么是人工智能?",
+          files: [
             {
-                question: "什么是人工智能?",
-                files: [
-                    {
-                        id: 1,
-                        name: "AI发展史.pdf",
-                        type: "pdf",
-                        relevance: 0.95,
-                        matchScore: 9.5,
-                        description: "详细介绍了人工智能从1950年代至今的发展历程,包括关键里程碑和技术突破。",
-                        keywords: ["人工智能", "历史", "图灵测试", "专家系统", "深度学习"],
-                        summary: [
-                            "回顾AI从1956年达特茅斯会议的诞生",
-                            "介绍三次AI浪潮和寒冬期",
-                            "分析深度学习带来的突破"
-                        ],
-                        author: "John McCarthy 等",
-                        year: 2020,
-                        pages: 350
-                    },
-                    {
-                        id: 2,
-                        name: "机器学习入门.docx",
-                        type: "docx",
-                        relevance: 0.87,
-                        matchScore: 8.7,
-                        description: "涵盖机器学习的基础概念、算法分类和应用场景。",
-                        keywords: ["机器学习", "监督学习", "无监督学习", "算法"],
-                        summary: [
-                            "机器学习的基本概念和定义",
-                            "常见算法分类和应用场景",
-                            "模型评估和优化方法"
-                        ],
-                        author: "Andrew Ng",
-                        year: 2019,
-                        pages: 180
-                    },
-                    {
-                        id: 3,
-                        name: "深度学习原理.pdf",
-                        type: "pdf",
-                        relevance: 0.82,
-                        matchScore: 8.2,
-                        description: "深入讲解神经网络、卷积神经网络和循环神经网络的原理。",
-                        keywords: ["深度学习", "神经网络", "CNN", "RNN", "反向传播"],
-                        summary: [
-                            "神经网络的数学基础",
-                            "CNN在计算机视觉中的应用",
-                            "RNN处理序列数据的方法"
-                        ],
-                        author: "Ian Goodfellow",
-                        year: 2021,
-                        pages: 520
-                    },
-                    {
-                        id: 4,
-                        name: "AI伦理与挑战.docx",
-                        type: "docx",
-                        relevance: 0.75,
-                        matchScore: 7.5,
-                        description: "探讨人工智能发展中的伦理问题、隐私保护和社会影响。",
-                        keywords: ["AI伦理", "隐私", "偏见", "责任"],
-                        summary: [
-                            "AI系统的偏见和公平性问题",
-                            "数据隐私和安全挑战",
-                            "AI对就业市场的影响"
-                        ],
-                        author: "Kate Crawford",
-                        year: 2022,
-                        pages: 240
-                    },
-                    {
-                        id: 5,
-                        name: "自然语言处理技术.pdf",
-                        type: "pdf",
-                        relevance: 0.68,
-                        matchScore: 6.8,
-                        description: "介绍NLP的核心技术,包括词向量、序列模型和Transformer架构。",
-                        keywords: ["NLP", "Transformer", "BERT", "GPT", "词向量"],
-                        summary: [
-                            "词向量表示和Word2Vec原理",
-                            "Transformer架构的创新",
-                            "预训练模型的应用"
-                        ],
-                        author: "Yoshua Bengio",
-                        year: 2021,
-                        pages: 420
-                    }
-                ],
-                answer: `# 人工智能简介
+              id: 1,
+              name: "AI发展史.pdf",
+              type: "pdf",
+              relevance: 0.95,
+              matchScore: 9.5,
+              description:
+                "详细介绍了人工智能从1950年代至今的发展历程,包括关键里程碑和技术突破。",
+              keywords: [
+                "人工智能",
+                "历史",
+                "图灵测试",
+                "专家系统",
+                "深度学习",
+              ],
+              summary: [
+                "回顾AI从1956年达特茅斯会议的诞生",
+                "介绍三次AI浪潮和寒冬期",
+                "分析深度学习带来的突破",
+              ],
+              author: "John McCarthy 等",
+              year: 2020,
+              pages: 350,
+            },
+            {
+              id: 2,
+              name: "机器学习入门.docx",
+              type: "docx",
+              relevance: 0.87,
+              matchScore: 8.7,
+              description: "涵盖机器学习的基础概念、算法分类和应用场景。",
+              keywords: ["机器学习", "监督学习", "无监督学习", "算法"],
+              summary: [
+                "机器学习的基本概念和定义",
+                "常见算法分类和应用场景",
+                "模型评估和优化方法",
+              ],
+              author: "Andrew Ng",
+              year: 2019,
+              pages: 180,
+            },
+            {
+              id: 3,
+              name: "深度学习原理.pdf",
+              type: "pdf",
+              relevance: 0.82,
+              matchScore: 8.2,
+              description:
+                "深入讲解神经网络、卷积神经网络和循环神经网络的原理。",
+              keywords: ["深度学习", "神经网络", "CNN", "RNN", "反向传播"],
+              summary: [
+                "神经网络的数学基础",
+                "CNN在计算机视觉中的应用",
+                "RNN处理序列数据的方法",
+              ],
+              author: "Ian Goodfellow",
+              year: 2021,
+              pages: 520,
+            },
+            {
+              id: 4,
+              name: "AI伦理与挑战.docx",
+              type: "docx",
+              relevance: 0.75,
+              matchScore: 7.5,
+              description: "探讨人工智能发展中的伦理问题、隐私保护和社会影响。",
+              keywords: ["AI伦理", "隐私", "偏见", "责任"],
+              summary: [
+                "AI系统的偏见和公平性问题",
+                "数据隐私和安全挑战",
+                "AI对就业市场的影响",
+              ],
+              author: "Kate Crawford",
+              year: 2022,
+              pages: 240,
+            },
+            {
+              id: 5,
+              name: "自然语言处理技术.pdf",
+              type: "pdf",
+              relevance: 0.68,
+              matchScore: 6.8,
+              description:
+                "介绍NLP的核心技术,包括词向量、序列模型和Transformer架构。",
+              keywords: ["NLP", "Transformer", "BERT", "GPT", "词向量"],
+              summary: [
+                "词向量表示和Word2Vec原理",
+                "Transformer架构的创新",
+                "预训练模型的应用",
+              ],
+              author: "Yoshua Bengio",
+              year: 2021,
+              pages: 420,
+            },
+          ],
+          answer: `# 人工智能简介
 
 人工智能(Artificial Intelligence, AI)是计算机科学的一个分支,致力于创建能够模拟、延伸和扩展人类智能的系统。
 
@@ -1664,152 +1753,151 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
 ## 发展趋势
 
 随着深度学习技术的突破,AI正在快速发展并深入到各个行业,改变着我们的生活和工作方式。`,
-                answerSources: [
-                    {
-                        paragraph: 0,
-                        source: "来源: AI发展史.pdf, 第12-15页",
-                        confidence: 0.95,
-                        citations: 1250,
-                        tags: ["人工智能", "历史", "基础概念"],
-                        quotes: [
-                            "AI起源于1956年达特茅斯会议",
-                            "图灵测试是评估AI的经典标准"
-                        ],
-                        citationTrend: {
-                            years: ['2018', '2019', '2020', '2021', '2022', '2023'],
-                            counts: [180, 245, 320, 485, 720, 1250]
-                        },
-                        url: "#"
-                    },
-                    {
-                        paragraph: 1,
-                        source: "来源: 机器学习入门.docx, 第3章",
-                        confidence: 0.92,
-                        citations: 856,
-                        tags: ["核心概念", "定义"],
-                        quotes: [
-                            "AI系统能够执行需要人类智能的任务"
-                        ]
-                    },
-                    {
-                        paragraph: 2,
-                        source: "来源: AI发展史.pdf, 第28-35页; 自然语言处理技术.pdf, 第5章",
-                        confidence: 0.88,
-                        citations: 2341,
-                        tags: ["应用领域", "技术分类", "计算机视觉", "NLP"],
-                        quotes: [
-                            "CV技术在自动驾驶中至关重要",
-                            "NLP推动了智能客服的发展",
-                            "推荐系统改变了电商行业"
-                        ],
-                        citationTrend: {
-                            years: ['2018', '2019', '2020', '2021', '2022', '2023'],
-                            counts: [320, 580, 890, 1240, 1780, 2341]
-                        },
-                        url: "#"
-                    },
-                    {
-                        paragraph: 3,
-                        source: "来源: 深度学习原理.pdf, 结论部分",
-                        confidence: 0.90,
-                        citations: 1780,
-                        tags: ["深度学习", "发展趋势", "未来展望"],
-                        quotes: [
-                            "深度学习是AI发展的重要驱动力"
-                        ]
-                    }
-                ]
+          answerSources: [
+            {
+              paragraph: 0,
+              source: "来源: AI发展史.pdf, 第12-15页",
+              confidence: 0.95,
+              citations: 1250,
+              tags: ["人工智能", "历史", "基础概念"],
+              quotes: [
+                "AI起源于1956年达特茅斯会议",
+                "图灵测试是评估AI的经典标准",
+              ],
+              citationTrend: {
+                years: ["2018", "2019", "2020", "2021", "2022", "2023"],
+                counts: [180, 245, 320, 485, 720, 1250],
+              },
+              url: "#",
             },
             {
-                question: "深度学习是什么?",
-                files: [
-                    {
-                        id: 6,
-                        name: "深度学习基础.pdf",
-                        type: "pdf",
-                        relevance: 0.98,
-                        matchScore: 9.8,
-                        description: "系统介绍深度学习的基本原理、神经网络结构和训练方法。",
-                        keywords: ["深度学习", "神经网络", "梯度下降", "激活函数"],
-                        summary: [
-                            "深度学习的定义和发展历程",
-                            "前馈神经网络的基本结构",
-                            "训练过程和优化技术"
-                        ],
-                        author: "Yann LeCun",
-                        year: 2020,
-                        pages: 480
-                    },
-                    {
-                        id: 7,
-                        name: "卷积神经网络CNN.docx",
-                        type: "docx",
-                        relevance: 0.91,
-                        matchScore: 9.1,
-                        description: "详细讲解CNN的结构、卷积层、池化层和经典模型。",
-                        keywords: ["CNN", "卷积", "池化", "AlexNet", "ResNet"],
-                        summary: [
-                            "卷积操作的数学原理",
-                            "经典CNN架构解析",
-                            "图像识别任务实战"
-                        ],
-                        author: "Geoffrey Hinton",
-                        year: 2019,
-                        pages: 320
-                    },
-                    {
-                        id: 8,
-                        name: "反向传播算法.pdf",
-                        type: "pdf",
-                        relevance: 0.85,
-                        matchScore: 8.5,
-                        description: "深入解析反向传播算法的数学原理和实现细节。",
-                        keywords: ["反向传播", "链式法则", "梯度", "优化"],
-                        summary: [
-                            "梯度计算的数学基础",
-                            "链式法则的应用",
-                            "常见优化算法对比"
-                        ],
-                        author: "David Rumelhart",
-                        year: 2018,
-                        pages: 180
-                    },
-                    {
-                        id: 9,
-                        name: "TensorFlow实战.docx",
-                        type: "docx",
-                        relevance: 0.79,
-                        matchScore: 7.9,
-                        description: "使用TensorFlow框架构建深度学习模型的实践指南。",
-                        keywords: ["TensorFlow", "Keras", "实战", "部署"],
-                        summary: [
-                            "TensorFlow框架基础",
-                            "模型构建和训练",
-                            "模型部署和优化"
-                        ],
-                        author: "Google Brain Team",
-                        year: 2022,
-                        pages: 420
-                    },
-                    {
-                        id: 10,
-                        name: "深度学习应用案例.pdf",
-                        type: "pdf",
-                        relevance: 0.72,
-                        matchScore: 7.2,
-                        description: "收集了图像分类、目标检测、语音识别等领域的实际应用案例。",
-                        keywords: ["应用案例", "图像识别", "目标检测", "语音识别"],
-                        summary: [
-                            "ImageNet竞赛历年冠军方案",
-                            "自动驾驶中的视觉系统",
-                            "语音助手的技术实现"
-                        ],
-                        author: "Various Authors",
-                        year: 2021,
-                        pages: 560
-                    }
-                ],
-                answer: `# 深度学习详解
+              paragraph: 1,
+              source: "来源: 机器学习入门.docx, 第3章",
+              confidence: 0.92,
+              citations: 856,
+              tags: ["核心概念", "定义"],
+              quotes: ["AI系统能够执行需要人类智能的任务"],
+            },
+            {
+              paragraph: 2,
+              source:
+                "来源: AI发展史.pdf, 第28-35页; 自然语言处理技术.pdf, 第5章",
+              confidence: 0.88,
+              citations: 2341,
+              tags: ["应用领域", "技术分类", "计算机视觉", "NLP"],
+              quotes: [
+                "CV技术在自动驾驶中至关重要",
+                "NLP推动了智能客服的发展",
+                "推荐系统改变了电商行业",
+              ],
+              citationTrend: {
+                years: ["2018", "2019", "2020", "2021", "2022", "2023"],
+                counts: [320, 580, 890, 1240, 1780, 2341],
+              },
+              url: "#",
+            },
+            {
+              paragraph: 3,
+              source: "来源: 深度学习原理.pdf, 结论部分",
+              confidence: 0.9,
+              citations: 1780,
+              tags: ["深度学习", "发展趋势", "未来展望"],
+              quotes: ["深度学习是AI发展的重要驱动力"],
+            },
+          ],
+        },
+        {
+          question: "深度学习是什么?",
+          files: [
+            {
+              id: 6,
+              name: "深度学习基础.pdf",
+              type: "pdf",
+              relevance: 0.98,
+              matchScore: 9.8,
+              description:
+                "系统介绍深度学习的基本原理、神经网络结构和训练方法。",
+              keywords: ["深度学习", "神经网络", "梯度下降", "激活函数"],
+              summary: [
+                "深度学习的定义和发展历程",
+                "前馈神经网络的基本结构",
+                "训练过程和优化技术",
+              ],
+              author: "Yann LeCun",
+              year: 2020,
+              pages: 480,
+            },
+            {
+              id: 7,
+              name: "卷积神经网络CNN.docx",
+              type: "docx",
+              relevance: 0.91,
+              matchScore: 9.1,
+              description: "详细讲解CNN的结构、卷积层、池化层和经典模型。",
+              keywords: ["CNN", "卷积", "池化", "AlexNet", "ResNet"],
+              summary: [
+                "卷积操作的数学原理",
+                "经典CNN架构解析",
+                "图像识别任务实战",
+              ],
+              author: "Geoffrey Hinton",
+              year: 2019,
+              pages: 320,
+            },
+            {
+              id: 8,
+              name: "反向传播算法.pdf",
+              type: "pdf",
+              relevance: 0.85,
+              matchScore: 8.5,
+              description: "深入解析反向传播算法的数学原理和实现细节。",
+              keywords: ["反向传播", "链式法则", "梯度", "优化"],
+              summary: [
+                "梯度计算的数学基础",
+                "链式法则的应用",
+                "常见优化算法对比",
+              ],
+              author: "David Rumelhart",
+              year: 2018,
+              pages: 180,
+            },
+            {
+              id: 9,
+              name: "TensorFlow实战.docx",
+              type: "docx",
+              relevance: 0.79,
+              matchScore: 7.9,
+              description: "使用TensorFlow框架构建深度学习模型的实践指南。",
+              keywords: ["TensorFlow", "Keras", "实战", "部署"],
+              summary: [
+                "TensorFlow框架基础",
+                "模型构建和训练",
+                "模型部署和优化",
+              ],
+              author: "Google Brain Team",
+              year: 2022,
+              pages: 420,
+            },
+            {
+              id: 10,
+              name: "深度学习应用案例.pdf",
+              type: "pdf",
+              relevance: 0.72,
+              matchScore: 7.2,
+              description:
+                "收集了图像分类、目标检测、语音识别等领域的实际应用案例。",
+              keywords: ["应用案例", "图像识别", "目标检测", "语音识别"],
+              summary: [
+                "ImageNet竞赛历年冠军方案",
+                "自动驾驶中的视觉系统",
+                "语音助手的技术实现",
+              ],
+              author: "Various Authors",
+              year: 2021,
+              pages: 560,
+            },
+          ],
+          answer: `# 深度学习详解
 
 深度学习(Deep Learning)是机器学习的一个子领域,基于人工神经网络,特别是深层神经网络进行学习。
 
@@ -1831,96 +1919,92 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
 - **Transformer** - 现代NLP的基石
 
 深度学习在图像识别、语音识别、自然语言处理等领域取得了突破性进展。`,
-                answerSources: [
-                    {
-                        paragraph: 0,
-                        source: "来源: 深度学习基础.pdf, 第1章导论",
-                        confidence: 0.98,
-                        citations: 3200,
-                        tags: ["深度学习", "神经网络", "定义"],
-                        quotes: [
-                            "深度学习通过多层网络学习数据表示",
-                            "特征学习是深度学习的核心优势"
-                        ],
-                        url: "#"
-                    },
-                    {
-                        paragraph: 1,
-                        source: "来源: 深度学习基础.pdf, 第2-3章",
-                        confidence: 0.96,
-                        citations: 2890,
-                        tags: ["原理", "层次化特征"],
-                        quotes: [
-                            "每一层学习不同抽象级别的特征"
-                        ]
-                    },
-                    {
-                        paragraph: 2,
-                        source: "来源: 反向传播算法.pdf, 第4章; 深度学习基础.pdf, 第5章",
-                        confidence: 0.94,
-                        citations: 4120,
-                        tags: ["反向传播", "激活函数", "优化算法"],
-                        quotes: [
-                            "反向传播是训练神经网络的核心算法",
-                            "ReLU激活函数解决了梯度消失问题",
-                            "Dropout有效防止过拟合"
-                        ],
-                        url: "#"
-                    },
-                    {
-                        paragraph: 3,
-                        source: "来源: 卷积神经网络CNN.docx; TensorFlow实战.docx, 第7章",
-                        confidence: 0.93,
-                        citations: 5600,
-                        tags: ["CNN", "RNN", "Transformer", "架构"],
-                        quotes: [
-                            "CNN在图像领域表现卓越",
-                            "Transformer架构引领NLP新时代"
-                        ],
-                        url: "#"
-                    }
-                ]
+          answerSources: [
+            {
+              paragraph: 0,
+              source: "来源: 深度学习基础.pdf, 第1章导论",
+              confidence: 0.98,
+              citations: 3200,
+              tags: ["深度学习", "神经网络", "定义"],
+              quotes: [
+                "深度学习通过多层网络学习数据表示",
+                "特征学习是深度学习的核心优势",
+              ],
+              url: "#",
             },
             {
-                question: "机器学习有哪些类型?",
-                files: [
-                    {
-                        id: 11,
-                        name: "机器学习概论.pdf",
-                        type: "pdf",
-                        relevance: 0.96,
-                        description: "全面介绍机器学习的基本概念、算法分类和理论基础。"
-                    },
-                    {
-                        id: 12,
-                        name: "监督学习算法.docx",
-                        type: "docx",
-                        relevance: 0.89,
-                        description: "详细讲解线性回归、逻辑回归、决策树等监督学习算法。"
-                    },
-                    {
-                        id: 13,
-                        name: "无监督学习方法.pdf",
-                        type: "pdf",
-                        relevance: 0.88,
-                        description: "介绍聚类、降维、异常检测等无监督学习技术。"
-                    },
-                    {
-                        id: 14,
-                        name: "强化学习入门.docx",
-                        type: "docx",
-                        relevance: 0.84,
-                        description: "讲解强化学习的基本概念、马尔可夫决策过程和Q-learning算法。"
-                    },
-                    {
-                        id: 15,
-                        name: "集成学习技术.pdf",
-                        type: "pdf",
-                        relevance: 0.76,
-                        description: "探讨Bagging、Boosting和Stacking等集成学习方法。"
-                    }
-                ],
-                answer: `# 机器学习的类型
+              paragraph: 1,
+              source: "来源: 深度学习基础.pdf, 第2-3章",
+              confidence: 0.96,
+              citations: 2890,
+              tags: ["原理", "层次化特征"],
+              quotes: ["每一层学习不同抽象级别的特征"],
+            },
+            {
+              paragraph: 2,
+              source: "来源: 反向传播算法.pdf, 第4章; 深度学习基础.pdf, 第5章",
+              confidence: 0.94,
+              citations: 4120,
+              tags: ["反向传播", "激活函数", "优化算法"],
+              quotes: [
+                "反向传播是训练神经网络的核心算法",
+                "ReLU激活函数解决了梯度消失问题",
+                "Dropout有效防止过拟合",
+              ],
+              url: "#",
+            },
+            {
+              paragraph: 3,
+              source: "来源: 卷积神经网络CNN.docx; TensorFlow实战.docx, 第7章",
+              confidence: 0.93,
+              citations: 5600,
+              tags: ["CNN", "RNN", "Transformer", "架构"],
+              quotes: ["CNN在图像领域表现卓越", "Transformer架构引领NLP新时代"],
+              url: "#",
+            },
+          ],
+        },
+        {
+          question: "机器学习有哪些类型?",
+          files: [
+            {
+              id: 11,
+              name: "机器学习概论.pdf",
+              type: "pdf",
+              relevance: 0.96,
+              description: "全面介绍机器学习的基本概念、算法分类和理论基础。",
+            },
+            {
+              id: 12,
+              name: "监督学习算法.docx",
+              type: "docx",
+              relevance: 0.89,
+              description: "详细讲解线性回归、逻辑回归、决策树等监督学习算法。",
+            },
+            {
+              id: 13,
+              name: "无监督学习方法.pdf",
+              type: "pdf",
+              relevance: 0.88,
+              description: "介绍聚类、降维、异常检测等无监督学习技术。",
+            },
+            {
+              id: 14,
+              name: "强化学习入门.docx",
+              type: "docx",
+              relevance: 0.84,
+              description:
+                "讲解强化学习的基本概念、马尔可夫决策过程和Q-learning算法。",
+            },
+            {
+              id: 15,
+              name: "集成学习技术.pdf",
+              type: "pdf",
+              relevance: 0.76,
+              description: "探讨Bagging、Boosting和Stacking等集成学习方法。",
+            },
+          ],
+          answer: `# 机器学习的类型
 
 机器学习根据学习方式和任务特点,可以分为以下几种主要类型:
 
@@ -1949,615 +2033,645 @@ AI的目标是使机器能够执行通常需要人类智能的任务,如视觉�
 结合少量标记数据和大量未标记数据进行学习,平衡成本和性能。
 
 不同类型的机器学习适用于不同的场景,选择合适的方法是成功的关键。`,
-                answerSources: [
-                    {
-                        paragraph: 0,
-                        source: "来源: 机器学习概论.pdf, 第2章",
-                        confidence: 0.96,
-                        citations: 2100,
-                        tags: ["机器学习", "分类", "概述"],
-                        quotes: [
-                            "机器学习分为监督、无监督和强化学习三大类"
-                        ]
-                    },
-                    {
-                        paragraph: 1,
-                        source: "来源: 监督学习算法.docx, 第1-3章",
-                        confidence: 0.94,
-                        citations: 1850,
-                        tags: ["监督学习", "分类", "回归"],
-                        quotes: [
-                            "监督学习需要标记数据进行训练",
-                            "分类和回归是两大主要任务"
-                        ],
-                        url: "#"
-                    },
-                    {
-                        paragraph: 2,
-                        source: "来源: 无监督学习方法.pdf, 第2、4、6章",
-                        confidence: 0.91,
-                        citations: 1620,
-                        tags: ["无监督学习", "聚类", "降维"],
-                        quotes: [
-                            "无监督学习从未标记数据中发现模式",
-                            "K-means是最常用的聚类算法",
-                            "PCA用于数据降维和可视化"
-                        ],
-                        url: "#"
-                    },
-                    {
-                        paragraph: 3,
-                        source: "来源: 强化学习入门.docx, 第1、5、7章",
-                        confidence: 0.89,
-                        citations: 2450,
-                        tags: ["强化学习", "Q-learning", "策略优化"],
-                        quotes: [
-                            "强化学习通过试错学习最优策略",
-                            "AlphaGo展示了强化学习的强大能力"
-                        ],
-                        url: "#"
-                    },
-                    {
-                        paragraph: 4,
-                        source: "来源: 机器学习概论.pdf, 第9章",
-                        confidence: 0.92,
-                        citations: 980,
-                        tags: ["半监督学习", "混合方法"],
-                        quotes: [
-                            "半监督学习平衡了标注成本和模型性能"
-                        ]
-                    }
-                ]
-            }
-        ];
+          answerSources: [
+            {
+              paragraph: 0,
+              source: "来源: 机器学习概论.pdf, 第2章",
+              confidence: 0.96,
+              citations: 2100,
+              tags: ["机器学习", "分类", "概述"],
+              quotes: ["机器学习分为监督、无监督和强化学习三大类"],
+            },
+            {
+              paragraph: 1,
+              source: "来源: 监督学习算法.docx, 第1-3章",
+              confidence: 0.94,
+              citations: 1850,
+              tags: ["监督学习", "分类", "回归"],
+              quotes: [
+                "监督学习需要标记数据进行训练",
+                "分类和回归是两大主要任务",
+              ],
+              url: "#",
+            },
+            {
+              paragraph: 2,
+              source: "来源: 无监督学习方法.pdf, 第2、4、6章",
+              confidence: 0.91,
+              citations: 1620,
+              tags: ["无监督学习", "聚类", "降维"],
+              quotes: [
+                "无监督学习从未标记数据中发现模式",
+                "K-means是最常用的聚类算法",
+                "PCA用于数据降维和可视化",
+              ],
+              url: "#",
+            },
+            {
+              paragraph: 3,
+              source: "来源: 强化学习入门.docx, 第1、5、7章",
+              confidence: 0.89,
+              citations: 2450,
+              tags: ["强化学习", "Q-learning", "策略优化"],
+              quotes: [
+                "强化学习通过试错学习最优策略",
+                "AlphaGo展示了强化学习的强大能力",
+              ],
+              url: "#",
+            },
+            {
+              paragraph: 4,
+              source: "来源: 机器学习概论.pdf, 第9章",
+              confidence: 0.92,
+              citations: 980,
+              tags: ["半监督学习", "混合方法"],
+              quotes: ["半监督学习平衡了标注成本和模型性能"],
+            },
+          ],
+        },
+      ];
 
-        // ========== Vue 应用 ==========
-        createApp({
-            data() {
+      // ========== Vue 应用 ==========
+      createApp({
+        data() {
+          return {
+            messages: [], // 消息列表
+            userInput: "", // 用户输入
+            isProcessing: false, // 是否正在处理
+            currentMockIndex: 0, // 当前使用的Mock数据索引
+            currentTaskId: null, // 当前任务ID(用于终止)
+            cachedFiles: [], // 缓存的文件列表(每次setDemand刷新)
+          };
+        },
+
+        methods: {
+          // 发送消息
+          async sendMessage() {
+            const text = this.userInput.trim();
+            if (!text || this.isProcessing) return;
+
+            // 添加用户消息
+            this.messages.push({
+              type: "user",
+              text: text,
+              time: this.getCurrentTime(),
+            });
+
+            // 清空输入框
+            this.userInput = "";
+            this.isProcessing = true;
+
+            // 创建AI消息
+            const aiMessage = {
+              type: "ai",
+              status: "searching", // searching -> files -> thinking -> done
+              files: [],
+              answer: "",
+              answerSources: [],
+              time: this.getCurrentTime(),
+            };
+
+            this.messages.push(aiMessage);
+
+            // 滚动到底部
+            this.$nextTick(() => {
+              this.scrollToBottom();
+            });
+
+            try {
+              // 调用后端API获取相关文件
+              const result = await this.apiSetDemand(text);
+
+              if (!this.isProcessing) return; // 已终止
+
+              // 转换后端返回的数据格式为前端显示格式
+              // 后端返回: {answer_type, details: [{file_id, title, summary, content, keywords, author, text_length, file_name, similarity}]}
+              // 计算相关度的最大最小值
+              const similarities = result.details.map(
+                (item) => item.similarity || 0
+              );
+              const maxSim = Math.max(...similarities);
+              const minSim = Math.min(...similarities);
+              const range = maxSim - minSim || 1; // 避免除以0
+
+              const files = result.details.map((item, index) => {
+                const sim = item.similarity || 0;
+                // 将相关度映射到 20%-100% 的柱状图宽度
+                const barPercent = 20.0 + ((sim - minSim) / range) * 80.0;
+
                 return {
-                    messages: [],          // 消息列表
-                    userInput: '',         // 用户输入
-                    isProcessing: false,   // 是否正在处理
-                    currentMockIndex: 0,   // 当前使用的Mock数据索引
-                    currentTaskId: null,   // 当前任务ID(用于终止)
-                    cachedFiles: []        // 缓存的文件列表(每次setDemand刷新)
+                  id: item.file_id,
+                  name: item.title || item.file_name || `File ${index + 1}`,
+                  type: this.getFileType(item.file_name),
+                  relevance: barPercent, // 直接使用原始分数
+                  barPercent: barPercent, // 柱状图百分比
+                  matchScore: barPercent ? barPercent.toFixed(2) : 0,
+                  description: item.summary || "no summary",
+                  keywords: item.keywords || [],
+                  summary: item.summary
+                    ? [item.summary.substring(0, 100) + "..."]
+                    : [],
+                  author: item.author || "Unknown",
+                  selected: false,
                 };
-            },
-
-            methods: {
-                // 发送消息
-                async sendMessage() {
-                    const text = this.userInput.trim();
-                    if (!text || this.isProcessing) return;
-
-                    // 添加用户消息
-                    this.messages.push({
-                        type: 'user',
-                        text: text,
-                        time: this.getCurrentTime()
-                    });
-
-                    // 清空输入框
-                    this.userInput = '';
-                    this.isProcessing = true;
-
-                    // 创建AI消息
-                    const aiMessage = {
-                        type: 'ai',
-                        status: 'searching',  // searching -> files -> thinking -> done
-                        files: [],
-                        answer: '',
-                        answerSources: [],
-                        time: this.getCurrentTime()
-                    };
-
-                    this.messages.push(aiMessage);
-
-                    // 滚动到底部
-                    this.$nextTick(() => {
-                        this.scrollToBottom();
-                    });
-
-                    try {
-                        // 调用后端API获取相关文件
-                        const result = await this.apiSetDemand(text);
-
-                        if (!this.isProcessing) return; // 已终止
-
-                        // 转换后端返回的数据格式为前端显示格式
-                        // 后端返回: {answer_type, details: [{file_id, title, summary, content, keywords, author, text_length, file_name, similarity}]}
-                        // 计算相关度的最大最小值
-                        const similarities = result.details.map(item => item.similarity || 0);
-                        const maxSim = Math.max(...similarities);
-                        const minSim = Math.min(...similarities);
-                        const range = maxSim - minSim || 1; // 避免除以0
-
-                        const files = result.details.map((item, index) => {
-                            const sim = item.similarity || 0;
-                            // 将相关度映射到 20%-100% 的柱状图宽度
-                            const barPercent = 20 + ((sim - minSim) / range) * 80;
-
-                            return {
-                                id: item.file_id,
-                                name: item.title || item.file_name || `File ${index + 1}`,
-                                type: this.getFileType(item.file_name),
-                                relevance: sim,  // 直接使用原始分数
-                                barPercent: barPercent,  // 柱状图百分比
-                                matchScore: sim ? sim.toFixed(2) : 0,
-                                description: item.summary || 'no summary',
-                                keywords: item.keywords || [],
-                                summary: item.summary ? [item.summary.substring(0, 100) + '...'] : [],
-                                author: item.author || 'Unknown',
-                                selected: false
-                            };
-                        });
-
-                        // 按相关度降序排序
-                        files.sort((a, b) => b.relevance - a.relevance);
-
-                        // 缓存文件列表(每次setDemand刷新)
-                        this.cachedFiles = files;
-
-                        aiMessage.files = files;
-                        aiMessage.status = 'files';
-                        aiMessage.answerType = result.answer_type;
-
-                    } catch (error) {
-                        console.error('获取文件列表失败:', error);
-                        aiMessage.status = 'done';
-                        aiMessage.answer = `**Request failed**: ${error.message}`;
-                    }
-
-                    this.isProcessing = false;
-
-                    this.$nextTick(() => {
-                        this.scrollToBottom();
-                    });
-                },
-
-                // 根据文件名获取文件类型
-                getFileType(fileName) {
-                    if (!fileName) return 'pdf';
-                    const ext = fileName.split('.').pop().toLowerCase();
-                    if (['pdf'].includes(ext)) return 'pdf';
-                    if (['doc', 'docx'].includes(ext)) return 'docx';
-                    if (['txt'].includes(ext)) return 'txt';
-                    return 'pdf';
-                },
-
-                // 切换文件选中状态
-                toggleFileSelection(file, message) {
-                    // 只有在 'files' 状态下才能切换
-                    if (message.status !== 'files') return;
-
-                    // 切换选中状态
-                    file.selected = !file.selected;
-                },
-
-                // 确认选择文件
-                async confirmFiles(message) {
-                    const selectedFiles = message.files.filter(f => f.selected);
-                    if (selectedFiles.length === 0) return;
-
-                    // 获取选中文件的ID列表
-                    const fileIds = selectedFiles.map(f => f.id);
-
-                    // 设置处理状态
-                    this.isProcessing = true;
-
-                    // 开始思考
-                    message.status = 'thinking';
-                    this.$nextTick(() => {
-                        this.scrollToBottom();
-                    });
-
-                    try {
-                        // 调用LLM接口获取回复
-                        const reply = await this.apiGetLLMReply(fileIds);
-
-                        if (!this.isProcessing) return; // 已终止
-
-                        // 显示答案
-                        message.status = 'done';
-                        message.answer = reply;
-
-                    } catch (error) {
-                        console.error('获取LLM回复失败:', error);
-                        message.status = 'done';
-                        message.answer = `**Failed to get reply**: ${error.message}`;
-                    }
-
-                    this.isProcessing = false;
-
-                    this.$nextTick(() => {
-                        this.scrollToBottom();
-                    });
-                },
-
-                // 导出Excel
-                async exportToExcel() {
-                    await this.apiDownloadSummary();
-                },
-
-                // 开始爬虫
-                async startCrawler() {
-                    try {
-                        const result = await this.apiCrawlingTask('start');
-                        alert(result);
-                    } catch (error) {
-                        alert('Failed to start crawler: ' + error.message);
-                    }
-                },
-
-                // 停止爬虫
-                async stopCrawler() {
-                    try {
-                        const result = await this.apiStopCrawler();
-                        alert(result);
-                    } catch (error) {
-                        alert('Failed to stop crawler: ' + error.message);
-                    }
-                },
-
-                // ========== API 交互方法 ==========
-
-                /**
-                 * 设置用户需求 - /generator/set_demand
-                 * @param {string} question - 用户问题
-                 * @returns {Promise<Object>} - 返回 {answer_type, details: [{file_id, title, summary, ...}]}
-                 */
-                async apiSetDemand(question) {
-                    try {
-                        const response = await fetch(`${CONFIG.API_URL}/generator/set_demand`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                params: {
-                                    question: question
-                                }
-                            })
-                        });
-
-                        const result = await response.json();
-                        console.log('apiSetDemand 响应:', result);
-
-                        if (result.status === 'success') {
-                            return result.message; // {answer_type, details}
-                        } else {
-                            throw new Error(result.message || 'Request failed');
-                        }
-                    } catch (error) {
-                        console.error('apiSetDemand 失败:', error);
-                        throw error;
-                    }
-                },
-
-                /**
-                 * 获取LLM回复 - /generator/get_LLM_reply
-                 * @param {Array<string>} fileIds - 选中的文件ID列表
-                 * @returns {Promise<string>} - 返回LLM生成的回复
-                 */
-                async apiGetLLMReply(fileIds = []) {
-                    try {
-                        const response = await fetch(`${CONFIG.API_URL}/generator/get_LLM_reply`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                message: {
-                                    file_ids: fileIds
-                                }
-                            })
-                        });
-
-                        const result = await response.json();
-                        console.log('apiGetLLMReply 响应:', result);
-
-                        if (result.status === 'success') {
-                            return result.message; // LLM回复内容
-                        } else {
-                            throw new Error(result.message || 'Failed to get reply');
-                        }
-                    } catch (error) {
-                        console.error('apiGetLLMReply 失败:', error);
-                        throw error;
-                    }
-                },
-
-                /**
-                 * 启动爬虫任务 - /crawler/crawling_task
-                 * @param {string} command - 命令: 'start', 'pause', 'resume', 'stop'
-                 * @returns {Promise<string>} - 返回操作结果消息
-                 */
-                async apiCrawlingTask(command = 'start') {
-                    try {
-                        const response = await fetch(`${CONFIG.API_URL}/crawler/crawling_task`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                message: command
-                            })
-                        });
-
-                        const result = await response.json();
-                        console.log('apiCrawlingTask 响应:', result);
-
-                        if (result.status === 'success') {
-                            return result.message;
-                        } else {
-                            throw new Error(result.message || 'Crawler operation failed');
-                        }
-                    } catch (error) {
-                        console.error('apiCrawlingTask 失败:', error);
-                        throw error;
-                    }
-                },
-
-                /**
-                 * 停止爬虫任务 - /crawler/crawling_task (stop)
-                 * @returns {Promise<string>} - 返回操作结果消息
-                 */
-                async apiStopCrawler() {
-                    return await this.apiCrawlingTask('stop');
-                },
-
-                /**
-                 * 下载总结CSV - /download/summary
-                 * 直接触发浏览器下载
-                 */
-                async apiDownloadSummary() {
-                    try {
-                        const url = `${CONFIG.API_URL}/download/summary`;
-                        // 使用 window.open 或创建 a 标签触发下载
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = 'summary.csv';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        console.log('apiDownloadSummary: 下载已触发');
-                    } catch (error) {
-                        console.error('apiDownloadSummary 失败:', error);
-                        throw error;
-                    }
-                },
-
-                // 测试按钮方法
-                async test1() {
-                    try {
-                        // 测试 set_demand
-                        const demandResult = await this.apiSetDemand('what is transformer');
-                        console.log('set_demand 结果:', demandResult);
-                        alert('请求成功，请查看控制台');
-                    } catch (error) {
-                        alert('请求失败: ' + error.message);
-                    }
-                },
-
-                // 获取Mock数据
-                getMockData(question) {
-                    // 根据问题关键词匹配
-                    for (const data of MOCK_DATA) {
-                        if (question.includes('深度学习') && data.question.includes('深度学习')) {
-                            return data;
-                        }
-                        if (question.includes('机器学习') && data.question.includes('机器学习')) {
-                            return data;
-                        }
-                    }
-
-                    // 默认返回第一组数据,并循环使用
-                    const data = MOCK_DATA[this.currentMockIndex % MOCK_DATA.length];
-                    this.currentMockIndex++;
-                    return data;
-                },
-
-                // 构建文件悬浮提示数据
-                buildFileTooltipData(file) {
-                    const data = {
-                        text: file.name,
-                        description: file.description,
-                        tags: file.keywords,
-                        tagsLabel: 'keywords',
-                        list: file.summary,
-                        listLabel: 'summary',
-                        relevance: file.relevance,
-                        barPercent: file.barPercent
-                    };
-
-                    // 构建统计数据
-                    if (file.relevance || file.matchScore) {
-                        data.stats = [];
-                        data.statsLabel = 'Relevance Analysis';
-
-                        if (file.relevance) {
-                            data.stats.push({
-                                value: Math.round(file.relevance * 100) + '%',
-                                label: 'match rate'
-                            });
-                        }
-
-                        if (file.matchScore) {
-                            data.stats.push({
-                                value: file.matchScore,
-                                label: 'match score'
-                            });
-                        }
-                    }
-
-                    return data;
-                },
-
-                // 判断是否有选中的文件
-                hasSelectedFiles(message) {
-                    return message.files && message.files.some(f => f.selected);
-                },
-
-                // 获取文件图标
-                getFileIcon(type) {
-                    const icons = {
-                        'pdf': '📕',
-                        'docx': '📘',
-                        'doc': '📘',
-                        'txt': '📄'
-                    };
-                    return icons[type] || '📄';
-                },
-
-                // 获取当前时间
-                getCurrentTime() {
-                    const now = new Date();
-                    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                },
-
-                // 滚动到底部
-                scrollToBottom() {
-                    this.$nextTick(() => {
-                        const container = this.$refs.chatContainer;
-                        if (container) {
-                            container.scrollTop = container.scrollHeight;
-                        }
-                    });
-                },
-
-                // 处理Shift+Enter换行
-                handleShiftEnter(event) {
-                    // Shift+Enter已经自动换行,不需要特殊处理
-                },
-
-                // 睡眠函数
-                sleep(ms) {
-                    return new Promise(resolve => setTimeout(resolve, ms));
-                }
-            },
-
-            mounted() {
-                // 页面加载时不添加欢迎消息，保持对话区域为空
-            },
-
-            components: {
-                'tooltip-card': TooltipCard,
-                'answer-with-sources': AnswerWithSources
-            }
-        }).mount('#app');
-
-        // 文件引用tooltip动态定位
-        (function() {
-            let hideTimeout = null;
-            let currentTooltip = null;
-
-            function showTooltip(trigger) {
-                const wrapper = trigger.closest('.file-ref-inline-wrapper');
-                if (!wrapper) return;
-
-                const tooltip = wrapper.querySelector('.file-ref-tooltip');
-                if (!tooltip) return;
-
-                // 清除隐藏定时器
-                if (hideTimeout) {
-                    clearTimeout(hideTimeout);
-                    hideTimeout = null;
-                }
-
-                // 隐藏之前的tooltip
-                if (currentTooltip && currentTooltip !== tooltip) {
-                    currentTooltip.classList.remove('visible');
-                }
-
-                currentTooltip = tooltip;
-
-                // 显示tooltip以获取尺寸
-                tooltip.classList.add('visible');
-
-                const triggerRect = trigger.getBoundingClientRect();
-                const tooltipRect = tooltip.getBoundingClientRect();
-                const padding = 10;
-
-                let top, left;
-
-                // 计算垂直位置 - 优先显示在上方
-                if (triggerRect.top > tooltipRect.height + padding) {
-                    top = triggerRect.top - tooltipRect.height - 8;
-                } else {
-                    // 上方空间不足，显示在下方
-                    top = triggerRect.bottom + 8;
-                }
-
-                // 计算水平位置 - 居中对齐
-                left = triggerRect.left + (triggerRect.width / 2) - (tooltipRect.width / 2);
-
-                // 边界检查 - 左边
-                if (left < padding) {
-                    left = padding;
-                }
-
-                // 边界检查 - 右边
-                if (left + tooltipRect.width > window.innerWidth - padding) {
-                    left = window.innerWidth - tooltipRect.width - padding;
-                }
-
-                // 边界检查 - 底部
-                if (top + tooltipRect.height > window.innerHeight - padding) {
-                    top = window.innerHeight - tooltipRect.height - padding;
-                }
-
-                // 边界检查 - 顶部
-                if (top < padding) {
-                    top = padding;
-                }
-
-                tooltip.style.top = top + 'px';
-                tooltip.style.left = left + 'px';
+              });
+
+              // 按相关度降序排序
+              files.sort((a, b) => b.relevance - a.relevance);
+
+              // 缓存文件列表(每次setDemand刷新)
+              this.cachedFiles = files;
+
+              aiMessage.files = files;
+              aiMessage.status = "files";
+              aiMessage.answerType = result.answer_type;
+            } catch (error) {
+              console.error("获取文件列表失败:", error);
+              aiMessage.status = "done";
+              aiMessage.answer = `**Request failed**: ${error.message}`;
             }
 
-            function hideTooltip() {
-                if (hideTimeout) {
-                    clearTimeout(hideTimeout);
-                }
-                hideTimeout = setTimeout(function() {
-                    if (currentTooltip) {
-                        currentTooltip.classList.remove('visible');
-                        currentTooltip = null;
-                    }
-                }, 100); // 延迟100ms隐藏，给鼠标移动到tooltip的时间
+            this.isProcessing = false;
+
+            this.$nextTick(() => {
+              this.scrollToBottom();
+            });
+          },
+
+          // 根据文件名获取文件类型
+          getFileType(fileName) {
+            if (!fileName) return "pdf";
+            const ext = fileName.split(".").pop().toLowerCase();
+            if (["pdf"].includes(ext)) return "pdf";
+            if (["doc", "docx"].includes(ext)) return "docx";
+            if (["txt"].includes(ext)) return "txt";
+            return "pdf";
+          },
+
+          // 切换文件选中状态
+          toggleFileSelection(file, message) {
+            // 只有在 'files' 状态下才能切换
+            if (message.status !== "files") return;
+
+            // 切换选中状态
+            file.selected = !file.selected;
+          },
+
+          // 确认选择文件
+          async confirmFiles(message) {
+            const selectedFiles = message.files.filter((f) => f.selected);
+            if (selectedFiles.length === 0) return;
+
+            // 获取选中文件的ID列表
+            const fileIds = selectedFiles.map((f) => f.id);
+
+            // 设置处理状态
+            this.isProcessing = true;
+
+            // 开始思考
+            message.status = "thinking";
+            this.$nextTick(() => {
+              this.scrollToBottom();
+            });
+
+            try {
+              // 调用LLM接口获取回复
+              const reply = await this.apiGetLLMReply(fileIds);
+
+              if (!this.isProcessing) return; // 已终止
+
+              // 显示答案
+              message.status = "done";
+              message.answer = reply;
+            } catch (error) {
+              console.error("获取LLM回复失败:", error);
+              message.status = "done";
+              message.answer = `**Failed to get reply**: ${error.message}`;
             }
 
-            function cancelHide() {
-                if (hideTimeout) {
-                    clearTimeout(hideTimeout);
-                    hideTimeout = null;
+            this.isProcessing = false;
+
+            this.$nextTick(() => {
+              this.scrollToBottom();
+            });
+          },
+
+          // 导出Excel
+          async exportToExcel() {
+            await this.apiDownloadSummary();
+          },
+
+          // 开始爬虫
+          async startCrawler() {
+            try {
+              const result = await this.apiCrawlingTask("start");
+              alert(result);
+            } catch (error) {
+              alert("Failed to start crawler: " + error.message);
+            }
+          },
+
+          // 停止爬虫
+          async stopCrawler() {
+            try {
+              const result = await this.apiStopCrawler();
+              alert(result);
+            } catch (error) {
+              alert("Failed to stop crawler: " + error.message);
+            }
+          },
+
+          // ========== API 交互方法 ==========
+
+          /**
+           * 设置用户需求 - /generator/set_demand
+           * @param {string} question - 用户问题
+           * @returns {Promise<Object>} - 返回 {answer_type, details: [{file_id, title, summary, ...}]}
+           */
+          async apiSetDemand(question) {
+            try {
+              const response = await fetch(
+                `${CONFIG.API_URL}/generator/set_demand`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    params: {
+                      question: question,
+                    },
+                  }),
                 }
+              );
+
+              const result = await response.json();
+              console.log("apiSetDemand 响应:", result);
+
+              if (result.status === "success") {
+                return result.message; // {answer_type, details}
+              } else {
+                throw new Error(result.message || "Request failed");
+              }
+            } catch (error) {
+              console.error("apiSetDemand 失败:", error);
+              throw error;
+            }
+          },
+
+          /**
+           * 获取LLM回复 - /generator/get_LLM_reply
+           * @param {Array<string>} fileIds - 选中的文件ID列表
+           * @returns {Promise<string>} - 返回LLM生成的回复
+           */
+          async apiGetLLMReply(fileIds = []) {
+            try {
+              const response = await fetch(
+                `${CONFIG.API_URL}/generator/get_LLM_reply`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    message: {
+                      file_ids: fileIds,
+                    },
+                  }),
+                }
+              );
+
+              const result = await response.json();
+              console.log("apiGetLLMReply 响应:", result);
+
+              if (result.status === "success") {
+                return result.message; // LLM回复内容
+              } else {
+                throw new Error(result.message || "Failed to get reply");
+              }
+            } catch (error) {
+              console.error("apiGetLLMReply 失败:", error);
+              throw error;
+            }
+          },
+
+          /**
+           * 启动爬虫任务 - /crawler/crawling_task
+           * @param {string} command - 命令: 'start', 'pause', 'resume', 'stop'
+           * @returns {Promise<string>} - 返回操作结果消息
+           */
+          async apiCrawlingTask(command = "start") {
+            try {
+              const response = await fetch(
+                `${CONFIG.API_URL}/crawler/crawling_task`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    message: command,
+                  }),
+                }
+              );
+
+              const result = await response.json();
+              console.log("apiCrawlingTask 响应:", result);
+
+              if (result.status === "success") {
+                return result.message;
+              } else {
+                throw new Error(result.message || "Crawler operation failed");
+              }
+            } catch (error) {
+              console.error("apiCrawlingTask 失败:", error);
+              throw error;
+            }
+          },
+
+          /**
+           * 停止爬虫任务 - /crawler/crawling_task (stop)
+           * @returns {Promise<string>} - 返回操作结果消息
+           */
+          async apiStopCrawler() {
+            return await this.apiCrawlingTask("stop");
+          },
+
+          /**
+           * 下载总结CSV - /download/summary
+           * 直接触发浏览器下载
+           */
+          async apiDownloadSummary() {
+            try {
+              const url = `${CONFIG.API_URL}/download/summary`;
+              // 使用 window.open 或创建 a 标签触发下载
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = "summary.csv";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              console.log("apiDownloadSummary: 下载已触发");
+            } catch (error) {
+              console.error("apiDownloadSummary 失败:", error);
+              throw error;
+            }
+          },
+
+          // 测试按钮方法
+          async test1() {
+            try {
+              // 测试 set_demand
+              const demandResult = await this.apiSetDemand(
+                "what is transformer"
+              );
+              console.log("set_demand 结果:", demandResult);
+              alert("请求成功，请查看控制台");
+            } catch (error) {
+              alert("请求失败: " + error.message);
+            }
+          },
+
+          // 获取Mock数据
+          getMockData(question) {
+            // 根据问题关键词匹配
+            for (const data of MOCK_DATA) {
+              if (
+                question.includes("深度学习") &&
+                data.question.includes("深度学习")
+              ) {
+                return data;
+              }
+              if (
+                question.includes("机器学习") &&
+                data.question.includes("机器学习")
+              ) {
+                return data;
+              }
             }
 
-            document.addEventListener('mouseenter', function(e) {
-                if (!e.target || !e.target.classList) return;
+            // 默认返回第一组数据,并循环使用
+            const data = MOCK_DATA[this.currentMockIndex % MOCK_DATA.length];
+            this.currentMockIndex++;
+            return data;
+          },
 
-                if (e.target.classList.contains('file-ref-inline')) {
-                    showTooltip(e.target);
-                }
-                // 鼠标进入tooltip时取消隐藏
-                if (e.target.classList.contains('file-ref-tooltip') || (e.target.closest && e.target.closest('.file-ref-tooltip'))) {
-                    cancelHide();
-                }
-            }, true);
+          // 构建文件悬浮提示数据
+          buildFileTooltipData(file) {
+            const data = {
+              text: file.name,
+              description: file.description,
+              tags: file.keywords,
+              tagsLabel: "keywords",
+              list: file.summary,
+              listLabel: "summary",
+              relevance: file.relevance,
+              barPercent: file.barPercent,
+            };
 
-            document.addEventListener('mouseleave', function(e) {
-                if (!e.target || !e.target.classList) return;
+            // 构建统计数据
+            if (file.relevance || file.matchScore) {
+              data.stats = [];
+              data.statsLabel = "Relevance Analysis";
 
-                if (e.target.classList.contains('file-ref-inline')) {
-                    hideTooltip();
-                }
-                // 鼠标离开tooltip时隐藏
-                if (e.target.classList.contains('file-ref-tooltip')) {
-                    hideTooltip();
-                }
-            }, true);
-        })();
+              if (file.relevance) {
+                data.stats.push({
+                  value: Math.round(file.relevance * 100) + "%",
+                  label: "match rate",
+                });
+              }
+
+              if (file.matchScore) {
+                data.stats.push({
+                  value: file.matchScore,
+                  label: "match score",
+                });
+              }
+            }
+
+            return data;
+          },
+
+          // 判断是否有选中的文件
+          hasSelectedFiles(message) {
+            return message.files && message.files.some((f) => f.selected);
+          },
+
+          // 获取文件图标
+          getFileIcon(type) {
+            const icons = {
+              pdf: "📕",
+              docx: "📘",
+              doc: "📘",
+              txt: "📄",
+            };
+            return icons[type] || "📄";
+          },
+
+          // 获取当前时间
+          getCurrentTime() {
+            const now = new Date();
+            return `${now.getHours().toString().padStart(2, "0")}:${now
+              .getMinutes()
+              .toString()
+              .padStart(2, "0")}`;
+          },
+
+          // 滚动到底部
+          scrollToBottom() {
+            this.$nextTick(() => {
+              const container = this.$refs.chatContainer;
+              if (container) {
+                container.scrollTop = container.scrollHeight;
+              }
+            });
+          },
+
+          // 处理Shift+Enter换行
+          handleShiftEnter(event) {
+            // Shift+Enter已经自动换行,不需要特殊处理
+          },
+
+          // 睡眠函数
+          sleep(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+          },
+        },
+
+        mounted() {
+          // 页面加载时不添加欢迎消息，保持对话区域为空
+        },
+
+        components: {
+          "tooltip-card": TooltipCard,
+          "answer-with-sources": AnswerWithSources,
+        },
+      }).mount("#app");
+
+      // 文件引用tooltip动态定位
+      (function () {
+        let hideTimeout = null;
+        let currentTooltip = null;
+
+        function showTooltip(trigger) {
+          const wrapper = trigger.closest(".file-ref-inline-wrapper");
+          if (!wrapper) return;
+
+          const tooltip = wrapper.querySelector(".file-ref-tooltip");
+          if (!tooltip) return;
+
+          // 清除隐藏定时器
+          if (hideTimeout) {
+            clearTimeout(hideTimeout);
+            hideTimeout = null;
+          }
+
+          // 隐藏之前的tooltip
+          if (currentTooltip && currentTooltip !== tooltip) {
+            currentTooltip.classList.remove("visible");
+          }
+
+          currentTooltip = tooltip;
+
+          // 显示tooltip以获取尺寸
+          tooltip.classList.add("visible");
+
+          const triggerRect = trigger.getBoundingClientRect();
+          const tooltipRect = tooltip.getBoundingClientRect();
+          const padding = 10;
+
+          let top, left;
+
+          // 计算垂直位置 - 优先显示在上方
+          if (triggerRect.top > tooltipRect.height + padding) {
+            top = triggerRect.top - tooltipRect.height - 8;
+          } else {
+            // 上方空间不足，显示在下方
+            top = triggerRect.bottom + 8;
+          }
+
+          // 计算水平位置 - 居中对齐
+          left =
+            triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+
+          // 边界检查 - 左边
+          if (left < padding) {
+            left = padding;
+          }
+
+          // 边界检查 - 右边
+          if (left + tooltipRect.width > window.innerWidth - padding) {
+            left = window.innerWidth - tooltipRect.width - padding;
+          }
+
+          // 边界检查 - 底部
+          if (top + tooltipRect.height > window.innerHeight - padding) {
+            top = window.innerHeight - tooltipRect.height - padding;
+          }
+
+          // 边界检查 - 顶部
+          if (top < padding) {
+            top = padding;
+          }
+
+          tooltip.style.top = top + "px";
+          tooltip.style.left = left + "px";
+        }
+
+        function hideTooltip() {
+          if (hideTimeout) {
+            clearTimeout(hideTimeout);
+          }
+          hideTimeout = setTimeout(function () {
+            if (currentTooltip) {
+              currentTooltip.classList.remove("visible");
+              currentTooltip = null;
+            }
+          }, 100); // 延迟100ms隐藏，给鼠标移动到tooltip的时间
+        }
+
+        function cancelHide() {
+          if (hideTimeout) {
+            clearTimeout(hideTimeout);
+            hideTimeout = null;
+          }
+        }
+
+        document.addEventListener(
+          "mouseenter",
+          function (e) {
+            if (!e.target || !e.target.classList) return;
+
+            if (e.target.classList.contains("file-ref-inline")) {
+              showTooltip(e.target);
+            }
+            // 鼠标进入tooltip时取消隐藏
+            if (
+              e.target.classList.contains("file-ref-tooltip") ||
+              (e.target.closest && e.target.closest(".file-ref-tooltip"))
+            ) {
+              cancelHide();
+            }
+          },
+          true
+        );
+
+        document.addEventListener(
+          "mouseleave",
+          function (e) {
+            if (!e.target || !e.target.classList) return;
+
+            if (e.target.classList.contains("file-ref-inline")) {
+              hideTooltip();
+            }
+            // 鼠标离开tooltip时隐藏
+            if (e.target.classList.contains("file-ref-tooltip")) {
+              hideTooltip();
+            }
+          },
+          true
+        );
+      })();
     </script>
-</body>
+  </body>
 </html>
