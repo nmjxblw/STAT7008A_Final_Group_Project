@@ -159,10 +159,7 @@ class MyClass:
 
 ```mermaid
 graph TD
-  global_module[全局配置模块<br>1.dotenv加载环境变量<br>2.Global Object将json转化为可访问实例对象]
-  launcher_module[启动器模块<br>1.上位机<br>2.网页后台]
-  frontend_module[前端网页模块]
-  clawer_module[爬虫模块<br>]-->|功能|clawer_api[1.提供爬虫类单例对象<br>]
-  classifier_module[文件归档模块]
-  generator_module[回答生成器模块]
+  A[Global Module<br>1.load dotenv file while imported<br>2.Convert app_settings.json as the Global Object,and create a singleton instance for all scripts to import.]
+  B[Log Module<br>1. Automatically creates a logging instance upon first import.<br>2. Registers a custom exception handler to prevent fatal errors from occurring without any error records.]
+  C[Database Module<br>1.作为数据库中转模块，在初次导入模组时会自动检测数据库的完整性，并在]
 ```
