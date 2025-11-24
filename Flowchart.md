@@ -57,6 +57,8 @@ flowchart TB
     entry["python __main__.py"] -- call run() function --> launcher_import_module
     launcher_import_module -- call global <br> and load config from --> global
     dotenv_file--"build up"-->global_dotenv
+    global_dotenv--load from-->dotenv_file
+    global_object--load from-->app_settings_json
     launcher_import_module -- call database --> create_database_instance
     sqlite_database --build --> create_database_instance
     app_settings_json--"build up"-->global_object
