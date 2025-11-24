@@ -12,6 +12,7 @@ from .utils import DemandType, query_files_by_attributes
 from log_module import logger
 import numpy as np
 
+
 class Generator(metaclass=SingletonMeta):
     """
     问答生成器实例 (单例)
@@ -62,7 +63,9 @@ class Generator(metaclass=SingletonMeta):
             k_segments=30,
             k_articles=15,
         )
-        segments_retrieval: list[tuple[Document, float]] = retrieval["most_similar_paragrapghs"]
+        segments_retrieval: list[tuple[Document, float]] = retrieval[
+            "most_similar_paragrapghs"
+        ]
         articles_retrieval: list[dict[str, Any]] = retrieval["most_similar_paper"]
 
         segment_set: dict[str, float] = {}
@@ -71,10 +74,13 @@ class Generator(metaclass=SingletonMeta):
             if _id is None:
                 continue
             segment_set[_id] = min(round(float(score), 2), segment_set.get(_id, 100.0))
-        #logger.debug(f'FAISS: {segment_set}')
-        segment_set = {key: round(1 / (1+np.exp(4*dist-5)), 2) for key, dist in segment_set.items()}
-        segment_set = list(segment_set.items())
-        #logger.debug(f'FAISS: {segment_set}')
+        # logger.debug(f'FAISS: {segment_set}')
+        segment_set = {
+            key: round(1 / (1 + np.exp(4 * dist - 5)), 2)
+            for key, dist in segment_set.items()
+        }
+        # segment_set = list(segment_set.items())
+        # logger.debug(f'FAISS: {segment_set}')
 
         article_set: dict[str, float] = {}
         for result in articles_retrieval:
@@ -83,28 +89,31 @@ class Generator(metaclass=SingletonMeta):
             if _id is None or score is None:
                 continue
             article_set[_id] = max(round(float(score), 2), article_set.get(_id, 0.0))
-        #logger.debug(f'BM25: {article_set}')
-        article_set = {key: round(1 / (1+np.exp(3-score)), 2) for key, score in article_set.items()}
-        article_set = list(article_set.items())
-        #logger.debug(f'BM25: {article_set}')
+        # logger.debug(f'BM25: {article_set}')
+        article_set = {
+            key: round(1 / (1 + np.exp(3 - score)), 2)
+            for key, score in article_set.items()
+        }
+        # article_set = list(article_set.items())
+        # logger.debug(f'BM25: {article_set}')
 
         candidates = dict()
         threshold = 0.6
-        for key, sim in segment_set:
+        for key, sim in segment_set.items():
             candidates[key] = sim + threshold
-        for key, sim in article_set:
+        for key, sim in article_set.items():
             if key in candidates:
                 candidates[key] *= sim + threshold
             else:
                 candidates[key] = sim + threshold
         for key in candidates:
-            candidates[key] = round(candidates.get(key, 0.0) / (threshold+1)**2, 2)
-        
+            candidates[key] = round(candidates.get(key, 0.0) / (threshold + 1) ** 2, 2)
+
         candidates = list(candidates.items())
-        #logger.debug(f'candidates: {candidates}')
-        candidates = sorted(candidates, key=lambda x:x[1], reverse=True)[:num_doc]
-        #logger.debug(f'candidates: {candidates}')
-        
+        # logger.debug(f'candidates: {candidates}')
+        candidates = sorted(candidates, key=lambda x: x[1], reverse=True)[:num_doc]
+        # logger.debug(f'candidates: {candidates}')
+
         self._current_query_results = candidates
         return demand, self._current_query_results
 

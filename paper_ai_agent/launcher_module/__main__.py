@@ -9,7 +9,8 @@ from global_module import (
 from log_module import *  # 导入全局日志模块
 import tray_module  # 导入托盘模块以确保托盘图标被创建
 import database_module  # 导入数据库模块以确保数据库初始化
-import file_classifier_module
+import file_classifier_module  # 导入文件分类模块以确保分类器被初始化
+import answer_generator_module  # 导入问答生成模块以确保生成器被初始化
 
 
 def create_app(

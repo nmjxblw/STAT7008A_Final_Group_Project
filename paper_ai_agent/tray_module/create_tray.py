@@ -13,8 +13,8 @@ def create_system_tray() -> Icon:
 
     logger.debug("正在创建系统托盘图标...")
     image = Image.open(Path.cwd() / ICON_NAME)
-    menu = pystray.Menu(pystray.MenuItem("退出", _on_exit))
-    icon = pystray.Icon(PROJECT_NAME, image, "论文查询助手智能体", menu)
+    menu = pystray.Menu(pystray.MenuItem("exit", _on_exit))
+    icon = pystray.Icon(PROJECT_NAME, image, "Paper AI Agent", menu)
     logger.debug("系统托盘图标创建完成，正在启动托盘线程...")
     import threading
 
