@@ -70,3 +70,17 @@ def method_not_allowed(error: Exception) -> tuple[Response, int]:
         jsonify({"status": "error", "message": {}}),
         405,
     )
+
+
+# # 在每个请求处理后，添加CORS头
+# @main_bp.after_request
+# def after_request(response):
+#     # 允许所有源（在生产环境中应谨慎使用）
+#     response.headers.add("Access-Control-Allow-Origin", "*")
+#     # 允许的HTTP方法
+#     response.headers.add(
+#         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"
+#     )
+#     # 如果请求头中包含'Authorization'，也需要在此允许
+#     response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+#     return response
