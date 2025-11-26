@@ -58,10 +58,12 @@ class PDFContentAnalyzer:
 
     def __call_ai_model(self, text):
         # 从global_module获取API key
-        if not API_KEY:
+        if not API_KEY or API_KEY.strip() == "":
             logger.debug("DeepSeek API Key未配置，跳过AI分析")
             return {"title": "", "summary": "", "keywords": []}
-
+        elif not API_KEY.startswith("sk-"):
+            logger.debug("DeepSeek API Key格式不正确，跳过AI分析")
+            return {"title": "", "summary": "", "keywords": []}
         try:
             # 初始化OpenAI客户端
             from openai import OpenAI as OpenAIClient

@@ -21,12 +21,13 @@ class CorpusSingleton(metaclass=SingletonMeta):
         """
         # 使用全局模块的路径配置
         from global_module import DATABASE_PATH
-        
+
         db_parent = Path(DATABASE_PATH).parent
         self.bm25_folder = db_parent / "BM25"
         self.bm25_folder.mkdir(parents=True, exist_ok=True)  # 确保目录存在
 
         self.corpus_path = self.bm25_folder / corpus_filename
+        assert self.corpus_path is not None, "语料库路径未正确初始化"
         self._corpus: list = []  # 内部变量，存储实际的语料库数据
 
         # 单例初始化：在实例化时自动加载已有语料库
@@ -67,11 +68,15 @@ class CorpusSingleton(metaclass=SingletonMeta):
         if existing_index is not None:
             # 更新已存在的文档
             self._corpus[existing_index] = document_data
-            logger.debug(f"BM25语料库：更新了文档 {document_data.get('file_name', 'Unknown')}")
+            logger.debug(
+                f"BM25语料库：更新了文档 {document_data.get('file_name', 'Unknown')}"
+            )
         else:
             # 添加新文档
             self._corpus.append(document_data)
-            logger.debug(f"BM25语料库：添加了新文档 {document_data.get('file_name', 'Unknown')}")
+            logger.debug(
+                f"BM25语料库：添加了新文档 {document_data.get('file_name', 'Unknown')}"
+            )
 
         # 添加或更新后，自动保存
         self.save_corpus()

@@ -33,15 +33,17 @@ PROJECT_AUTHOR: str = os.getenv("PROJECT_AUTHOR", "")
 """项目作者"""
 DATABASE_PATH: Path = Path.joinpath(Path.cwd(), os.getenv("DATABASE_PATH", ""))
 """数据库路径"""
+assert DATABASE_PATH.exists(), "DATABASE_PATH环境变量未设置，请在.env文件中配置"
 HOST: str = os.getenv("HOST", "0.0.0.0")
 """主机名"""
 PORT: int = int(os.getenv("PORT", 8080))
 """端口号"""
 assert os.getenv("API_KEY"), "API_KEY环境变量未设置，请在.env文件中配置"
-API_KEY: str = os.getenv("API_KEY", "")
+API_KEY: str = os.getenv("API_KEY", "").strip()
 """API密钥"""
-if len(API_KEY) <= 0:
-    raise ValueError("API_KEY环境变量未设置，请在.env文件中配置")
+assert API_KEY.startswith(
+    "sk-"
+), "API_KEY环境变量设置不正确，仅接受Deepseek API-Key！请在.env文件中配置"
 USING_PROXY: bool = os.getenv("USING_PROXY", "").lower() in ("1", "true", "yes")
 """是否使用代理"""
 AUTO_CRAWL: bool = os.getenv("AUTO_CRAWL", "").lower() in ("1", "true", "yes")
