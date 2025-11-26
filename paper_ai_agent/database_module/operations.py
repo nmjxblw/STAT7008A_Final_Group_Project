@@ -9,6 +9,12 @@ import csv
 import json
 import pandas as pd
 from .models import File
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+)
 from .core import session
 from global_module import SUMMARY_FILE
 from log_module import *  # 导入全局日志模块
@@ -32,13 +38,12 @@ def query_files_by_attributes(attributes: dict[str, Any]) -> list[dict[str, Any]
         for attr, value in attributes.items():
             attr_name: str = attr.lower()
             if hasattr(File, attr_name):
+                _target_column: Column = getattr(File, attr_name)
                 if attr_name == "keywords":
                     # 关键词使用模糊匹配
-                    query = query.filter(
-                        getattr(File, attr_name).ilike(f"%{str(value)}%")
-                    )
+                    query = query.filter(_target_column.ilike(f"%{str(value)}%"))
                 else:
-                    query = query.filter(getattr(File, attr_name) == value)
+                    query = query.filter(_target_column == value)
         files_list: list[dict[str, Any]] = [f.to_dict() for f in query.all()]
         if not files_list:
             logger.debug("✘ 数据库未找到符合条件的记录")
@@ -126,8 +131,8 @@ def export_files_to_csv(csv_path: PathLike | str = SUMMARY_FILE) -> str | PathLi
             logger.debug("✘ 数据库中没有文件记录可导出")
             return ""
 
-        with open(csv_path, mode="w", newline="", encoding="utf-8") as csv_file:
-            fieldnames = [column.key for column in File.__table__.columns]
+        with open(csv_path, mode="w", encoding="utf-8") as csv_file:
+            fieldnames = [str(column.key).lower() for column in File.__table__.columns]
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writeheader()
             for file in files_list:
