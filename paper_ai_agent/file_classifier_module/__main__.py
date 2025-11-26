@@ -84,5 +84,18 @@ def run():
 
 def test_retrieval():
     from .utils import get_retrieval_content
+    from  .utils import plot_similarity_bar_chart
 
-    get_retrieval_content("what is computer vision?", 10)
+
+    query = "The Future of AI"
+    content = get_retrieval_content(query, k_articles=20)
+    list_data = [{"similarity": x["score"], "title": x["document"]["metadata"]["file_title"]} for x in
+                 content["most_similar_paper"]]
+
+    plot_similarity_bar_chart(list_data, query)
+    query = "Transformer Architecture"
+    content = get_retrieval_content(query, k_articles=20)
+    list_data = [{"similarity": x["score"], "title": x["document"]["metadata"]["file_title"]} for x in
+                 content["most_similar_paper"]]
+    plot_similarity_bar_chart(list_data, query)
+    print(1)

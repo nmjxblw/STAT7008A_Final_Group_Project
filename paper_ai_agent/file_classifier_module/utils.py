@@ -143,3 +143,77 @@ def get_local_embedding_model():
         logger.debug("首次使用需要下载模型，请确保网络连接")
         logger.debug("或安装: pip install sentence-transformers")
         return None
+
+
+
+
+
+def plot_similarity_bar_chart(data_list, query="", figsize=(12, 8), top_n=10, color='skyblue', save_path=None):
+
+    import matplotlib
+
+    matplotlib.use('Agg')  # 在导入pyplot之前设置
+    import matplotlib.pyplot as plt
+    import numpy as np
+    # 按相似度从高到低排序
+    sorted_data = sorted(data_list, key=lambda x: x['similarity'], reverse=True)
+
+    # 只取前top_n个
+    if len(sorted_data) > top_n:
+        display_data = sorted_data[:top_n]
+    else:
+        display_data = sorted_data
+        top_n = len(sorted_data)
+
+    # 提取数据
+    similarities = [item['similarity'] for item in display_data]
+
+    # 处理标题：只显示前两个词，后面加...
+    titles = []
+    for item in display_data:
+        words = item['title'].split()
+        if len(words) > 2:
+            short_title = ' '.join(words[:2]) + '...'
+        else:
+            short_title = item['title']
+        titles.append(short_title)
+
+    # 创建图表
+    plt.figure(figsize=figsize)
+
+    # 创建柱状图
+    bars = plt.bar(range(top_n), similarities, color=color, alpha=0.7, edgecolor='black')
+
+    # **关键修复1：调整X轴标签字体大小和旋转角度**
+    plt.xticks(range(top_n), titles, rotation=45, ha='right', fontsize=12)  # 增加字体大小，调整旋转角度
+
+    # 添加数值标签
+    for i, (bar, similarity) in enumerate(zip(bars, similarities)):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2., height + 0.005,  # 调整位置
+                 f'{similarity:.3f}', ha='center', va='bottom', fontsize=11,  # 增加字体大小
+                 bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8))
+
+    # **关键修复2：调整所有字体大小**
+    plt.xlabel('Title', fontsize=14, fontweight='bold')  # 增加X轴标签字体
+    plt.ylabel('Similarity', fontsize=14, fontweight='bold')  # 增加Y轴标签字体
+    plt.title(f'Similarity Rank: {query}', fontsize=16, fontweight='bold', pad=20)  # 增加标题字体
+
+    # **关键修复3：调整Y轴刻度字体**
+    plt.yticks(fontsize=12)
+    plt.ylim(min(similarities) -0.03, max(similarities) * 1.05)  # 为数值标签留出空间
+
+    plt.grid(axis='y', alpha=0.3)
+
+    # **关键修复4：使用tight_layout并调整参数**
+    plt.tight_layout(pad=3.0)
+
+    # 保存图片而不是显示
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"图表已保存到: {save_path}")
+    else:
+        plt.savefig(f'{query}.png', dpi=300, bbox_inches='tight')
+        print(f"图表已保存为 {query}.png")
+
+    plt.close()  # 关闭图表释放内存

@@ -2,11 +2,11 @@ if __name__ == "__main__":
     print(f"{__package__}.{__name__} 被作为主程序运行，启动 launcher 模块...")
 
     profile_filename = f"app_runtime_result.stats"
-    from launcher_module import run
+    from file_classifier_module import test_retrieval
     import cProfile
 
     cProfile.run(
-        statement="run()",
+        statement="test_retrieval()",
         filename=profile_filename,
         sort="cumulative",
     )
