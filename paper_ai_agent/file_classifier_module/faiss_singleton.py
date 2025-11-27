@@ -119,20 +119,33 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         atexit模块注册的退出处理函数。
         在程序退出前自动调用，保存向量数据库索引。
         """
-        if self._vector_db is not None and self._initialized:
-            record_count = self._vector_db.index.ntotal
-
-            self._vector_db.save_local(self._save_path)
-            logger.debug(
-                f"程序退出，向量索引已自动保存至 {self._save_path}。当前有{record_count}个索引。"
-            )
+        # 使用 getattr 进行防御性检查，避免 AttributeError
+        # 这在 Python 解释器关闭期间尤为重要，某些属性可能已被清理
+        vector_db = getattr(self, '_vector_db', None)
+        initialized = getattr(self, '_initialized', False)
+        save_path = getattr(self, '_save_path', None)
+        
+        if vector_db is not None and initialized and save_path is not None:
+            try:
+                record_count = vector_db.index.ntotal
+                vector_db.save_local(save_path)
+                logger.debug(
+                    f"程序退出，向量索引已自动保存至 {save_path}。当前有{record_count}个索引。"
+                )
+            except Exception as e:
+                # 在程序退出时捕获所有异常，避免影响其他清理工作
+                logger.error(f"程序退出时保存向量索引失败：{e}")
         else:
             logger.debug("程序退出，无需保存（向量数据库未初始化或为空）。")
 
     def manual_save(self):
         """也提供一个手动保存的接口，以备不时之需。"""
-        if self._vector_db is not None and self._initialized:
-            self._vector_db.save_local(self._save_path)
-            logger.debug(f"向量索引已手动保存至 {self._save_path}。")
+        vector_db = getattr(self, '_vector_db', None)
+        initialized = getattr(self, '_initialized', False)
+        save_path = getattr(self, '_save_path', None)
+        
+        if vector_db is not None and initialized and save_path is not None:
+            vector_db.save_local(save_path)
+            logger.debug(f"向量索引已手动保存至 {save_path}。")
         else:
             logger.debug("无需手动保存（向量数据库未初始化或为空）。")
