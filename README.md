@@ -13,9 +13,11 @@
 
 [Virtual Environment List(.txt)](./requirements.txt)
 
+For the Python interpreter, we recommend using Python version `3.13.7` or lower. The minimum version should be `3.12.0`.
+
 ```powershell
 # run venv module
-python -m venv .venv
+python3.13 -m venv .venv
 # active venv
 .venv/Scripts/activate
 # install requirements form requirements.txt
@@ -43,10 +45,18 @@ cd ./paper_ai_agent
 python __main__.py
 ```
 
-## Flowchart and Module Functions Description
+When you see Flask indicating that it's running in PowerShell/Terminal, it means the program has successfully started. You can open the specified URL in a web browser as prompted in the terminal, usually http://127.0.0.1:8080, and you will then see a web frontend created by the program. On this webpage, you can download papers by interacting with the UI and engage with the LLM.
 
-![app_flowchart](app_flowchart.png)
+You can terminate the program by closing the project terminal.
+
+## Flowchart for the Main Program
+
+![app_flowchart](./Reference/app_flowchart.png)
+
+## Report
+
+[STAT7008_Project_Report(.pdf)](./Reference/STAT7008_Project_Report.pdf)
 
 ## Reference
 
-[Project Guide(.pdf)](./STAT7008a_project.pdf)
+Please goto [Reference Folder](./Reference/) to see more details about the program.
