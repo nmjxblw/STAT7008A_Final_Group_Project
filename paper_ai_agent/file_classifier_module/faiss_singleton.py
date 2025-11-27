@@ -29,6 +29,11 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
             embeddings_model (Embeddings): 用于向量化的嵌入模型实例
             save_path (str): 向量数据库保存路径
         """
+        # 始终初始化实例属性，避免 AttributeError
+        self._vector_db = None
+        self._embeddings_model = None
+        self._save_path = None
+        
         if embeddings_model is not None and save_path is not None:
             self._embeddings_model = embeddings_model
             self._save_path = save_path
