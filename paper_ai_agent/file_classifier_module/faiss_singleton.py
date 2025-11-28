@@ -13,11 +13,11 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
     FAISS 向量数据库单例类（集成atexit自动保存）。
     """
 
-    _vector_db: FAISS
+    _vector_db: Optional[FAISS]
     """ FAISS向量数据库实例，类级别属性。 """
-    _embeddings_model: Embeddings
+    _embeddings_model: Optional[Embeddings]
     """ 嵌入模型实例，类级别属性。 """
-    _save_path: str
+    _save_path: Optional[str]
     """ 向量数据库保存路径，类级别属性。 """
     _initialized = False  # 用于标记是否已初始化atexit注册，避免重复注册
     """ 标记是否已初始化向量数据库实例。 """
@@ -33,7 +33,7 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         self._vector_db = None
         self._embeddings_model = None
         self._save_path = None
-        
+
         if embeddings_model is not None and save_path is not None:
             self._embeddings_model = embeddings_model
             self._save_path = save_path
@@ -126,10 +126,10 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
         """
         # 使用 getattr 进行防御性检查，避免 AttributeError
         # 这在 Python 解释器关闭期间尤为重要，某些属性可能已被清理
-        vector_db = getattr(self, '_vector_db', None)
-        initialized = getattr(self, '_initialized', False)
-        save_path = getattr(self, '_save_path', None)
-        
+        vector_db = getattr(self, "_vector_db", None)
+        initialized = getattr(self, "_initialized", False)
+        save_path = getattr(self, "_save_path", None)
+
         if vector_db is not None and initialized and save_path is not None:
             try:
                 record_count = vector_db.index.ntotal
@@ -145,10 +145,10 @@ class FAISSVectorStoreSingleton(metaclass=SingletonMeta):
 
     def manual_save(self):
         """也提供一个手动保存的接口，以备不时之需。"""
-        vector_db = getattr(self, '_vector_db', None)
-        initialized = getattr(self, '_initialized', False)
-        save_path = getattr(self, '_save_path', None)
-        
+        vector_db = getattr(self, "_vector_db", None)
+        initialized = getattr(self, "_initialized", False)
+        save_path = getattr(self, "_save_path", None)
+
         if vector_db is not None and initialized and save_path is not None:
             vector_db.save_local(save_path)
             logger.debug(f"向量索引已手动保存至 {save_path}。")

@@ -10,6 +10,7 @@ from flask_cors import CORS
 from log_module import *
 from global_module import AUTO_CRAWL
 import threading
+import atexit
 
 
 def register_blueprints(_flask_app: Flask):
@@ -77,6 +78,7 @@ def setup_flask_app(_flask_app: Flask):
 
     from global_module import HOST, PORT
 
+    atexit.register(on_exit)
     # 启用CORS支持
     CORS(_flask_app)
     logger.debug("✔ CORS已启用")
@@ -85,9 +87,14 @@ def setup_flask_app(_flask_app: Flask):
     _flask_app.run(
         debug=True, host=HOST, port=PORT, load_dotenv=True, use_reloader=False
     )
+    logger.debug("Flask 应用已终止，正在等待其他线程加入...")
     current_thread = threading.current_thread()  # 获取当前线程（通常是主线程）
     _thread_list: list[threading.Thread] = threading.enumerate()
     for t in _thread_list:
         if t is not current_thread:
             t.join(timeout=5.0)
+
+
+def on_exit():
+    """程序退出时的处理函数"""
     logger.debug("主程序退出程序...")

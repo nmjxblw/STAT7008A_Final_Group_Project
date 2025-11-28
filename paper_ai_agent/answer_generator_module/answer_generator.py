@@ -191,7 +191,7 @@ class Generator(metaclass=SingletonMeta):
         if llm_label == "QA":
             return DemandType.QA
 
-        raise Exception("API_KEY在.env中未设置，无法使用LLM进行意图分类")
+        # raise Exception("API_KEY在.env中未设置，无法使用LLM进行意图分类")
 
         # 关键字 fallback
         logger.debug(
