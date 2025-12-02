@@ -59,4 +59,4 @@ You can terminate the program by closing the project terminal.
 
 ## Reference
 
-Please goto [Reference Folder](./Reference/) to see more details about the program.
+Please goto [Reference Folder](./Reference/) and [Google Drive](https://drive.google.com/drive/folders/1XL8j7Hj1QGgH89-s-IfGut6qp2AP9hbv) to see more details about the program.
